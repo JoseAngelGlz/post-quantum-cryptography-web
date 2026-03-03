@@ -33,6 +33,12 @@ interface DecapsulationResult {
   failed: boolean;
 }
 
+interface StepGuide {
+  title: string;
+  story: string;
+  explain: string;
+}
+
 const mod = (value: number, q: number): number => ((value % q) + q) % q;
 
 const transpose = (matrix: Matrix): Matrix => matrix[0].map((_, col) => matrix.map((row) => row[col]));
@@ -114,6 +120,30 @@ const DataBlock = ({ name, value, tone }: DataBlockProps) => {
   );
 };
 
+const guideContent: StepGuide[] = [
+  {
+    title: '1. Generación',
+    story:
+      'Alice crea dos cosas: una parte pública que puede compartir y una parte secreta que nunca sale de su equipo.',
+    explain:
+      'La parte pública se construye mezclando la matriz A con la clave secreta s y un pequeño ruido e. Ese ruido protege el secreto.',
+  },
+  {
+    title: '2. Envío',
+    story:
+      'Bob usa la clave pública de Alice para envolver el mensaje en un criptograma (u, v) y se lo envía.',
+    explain:
+      'El ruido vuelve a aparecer durante el envío. Si es razonable, Alice podrá corregirlo al final.',
+  },
+  {
+    title: '3. Desencapsulado',
+    story:
+      'Alice usa su clave secreta para recuperar una versión ruidosa del mensaje y luego aplica un redondeo.',
+    explain:
+      'Ese redondeo (thresholding) decide si cada valor está más cerca de 0 o de q/2. Con ruido alto, el resultado puede caer del lado incorrecto.',
+  },
+];
+
 const MLKEMSimulator = () => {
   const [activeStep, setActiveStep] = useState<StepIndex>(0);
   const [keyPair, setKeyPair] = useState<KeyPair | null>(null);
@@ -123,8 +153,15 @@ const MLKEMSimulator = () => {
   const [isSending, setIsSending] = useState<boolean>(false);
   const [sentToAlice, setSentToAlice] = useState<boolean>(false);
   const [result, setResult] = useState<DecapsulationResult | null>(null);
+  const [showDetails, setShowDetails] = useState<Record<number, boolean>>({
+    0: false,
+    1: false,
+    2: false,
+  });
+  const [showHelp, setShowHelp] = useState<boolean>(true);
 
   const noisePercent = useMemo(() => Math.round((noiseLevel / 10) * 100), [noiseLevel]);
+  const activeGuide = guideContent[activeStep];
 
   const handleGenerateKeys = () => {
     const A = randomMatrix(N, Q);
@@ -185,6 +222,8 @@ const MLKEMSimulator = () => {
     setResult(null);
     setIsSending(false);
     setSentToAlice(false);
+    setShowDetails({ 0: false, 1: false, 2: false });
+    setShowHelp(true);
   };
 
   const decryptionSuccess =
@@ -196,13 +235,16 @@ const MLKEMSimulator = () => {
     { label: '3. Desencapsulado', icon: Unlock },
   ];
 
+  const toggleDetail = (step: StepIndex) => {
+    setShowDetails((prev) => ({ ...prev, [step]: !prev[step] }));
+  };
+
   return (
     <section className="mx-auto max-w-5xl space-y-6 text-slate-900 dark:text-slate-100">
       <div className="rounded-2xl border border-white/30 bg-white/55 p-6 shadow-xl backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/45">
         <h2 className="text-3xl font-bold">Simulador ML-KEM</h2>
         <p className="mt-2 text-sm text-slate-700 dark:text-slate-300">
-          Una narrativa visual del encapsulamiento: Bob genera, envía el criptograma (u, v) y Alice
-          desencapsula aplicando thresholding sobre m&apos; = v - sᵀu.
+          Modo guiado: menos fórmulas al principio, más historia e interacción para entender el flujo.
         </p>
 
         <div className="mt-5 grid gap-2 md:grid-cols-3">
@@ -228,6 +270,27 @@ const MLKEMSimulator = () => {
               </button>
             );
           })}
+        </div>
+
+        <div className="mt-4 rounded-xl border border-cyan-300/60 bg-cyan-500/10 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-semibold text-cyan-800 dark:text-cyan-200">Guía del paso actual</p>
+            <button
+              type="button"
+              onClick={() => setShowHelp((prev) => !prev)}
+              className="rounded-lg border border-cyan-400/70 px-3 py-1 text-xs font-medium hover:bg-cyan-500/10"
+            >
+              {showHelp ? 'Ocultar ayuda' : 'Mostrar ayuda'}
+            </button>
+          </div>
+          {showHelp && (
+            <div className="mt-2 space-y-2 text-sm text-slate-700 dark:text-slate-200">
+              <p>
+                <span className="font-semibold">{activeGuide.title}:</span> {activeGuide.story}
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">{activeGuide.explain}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -279,6 +342,22 @@ const MLKEMSimulator = () => {
               Alice genera su material criptográfico. Datos públicos en azul, privados en naranja.
             </p>
 
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => toggleDetail(0)}
+                className="rounded-lg border border-blue-300/70 px-3 py-1 text-xs font-medium hover:bg-blue-500/10"
+              >
+                {showDetails[0] ? 'Ocultar detalle técnico' : '¿Qué está pasando aquí?'}
+              </button>
+            </div>
+
+            {showDetails[0] && (
+              <div className="rounded-xl border border-slate-300/70 bg-slate-500/10 p-3 text-xs text-slate-700 dark:text-slate-200">
+                Cálculo técnico: t = A·s + e (mod {Q}). El ruido e dificulta deducir s a partir de A y t.
+              </div>
+            )}
+
             {keyPair && (
               <div className="grid gap-3 md:grid-cols-2">
                 <DataBlock name="Matriz pública A" value={formatMatrix(keyPair.A)} tone="public" />
@@ -321,6 +400,22 @@ const MLKEMSimulator = () => {
             <p className="text-sm text-slate-700 dark:text-slate-300">
               Bob usa la clave pública de Alice para encapsular y construir el criptograma (u, v).
             </p>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => toggleDetail(1)}
+                className="rounded-lg border border-violet-300/70 px-3 py-1 text-xs font-medium hover:bg-violet-500/10"
+              >
+                {showDetails[1] ? 'Ocultar detalle técnico' : '¿Cómo se forma (u, v)?'}
+              </button>
+            </div>
+
+            {showDetails[1] && (
+              <div className="rounded-xl border border-slate-300/70 bg-slate-500/10 p-3 text-xs text-slate-700 dark:text-slate-200">
+                Cálculo técnico: u = Aᵀr + e₁ y v = tᵀr + e₂ + m (mod {Q}).
+              </div>
+            )}
 
             {ciphertext && message && (
               <div className="grid gap-3 md:grid-cols-2">
@@ -389,6 +484,22 @@ const MLKEMSimulator = () => {
             <p className="text-sm text-slate-700 dark:text-slate-300">
               Alice calcula m&apos; antes del thresholding y después redondea a 0 o {HALF_Q}.
             </p>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => toggleDetail(2)}
+                className="rounded-lg border border-emerald-300/70 px-3 py-1 text-xs font-medium hover:bg-emerald-500/10"
+              >
+                {showDetails[2] ? 'Ocultar detalle técnico' : 'Ver cálculo de decapsulado'}
+              </button>
+            </div>
+
+            {showDetails[2] && (
+              <div className="rounded-xl border border-slate-300/70 bg-slate-500/10 p-3 text-xs text-slate-700 dark:text-slate-200">
+                Se calcula m&apos; = v - sᵀu (mod {Q}) y luego se aplica thresholding para mapear cada valor a 0 o {HALF_Q}.
+              </div>
+            )}
 
             <div className="grid gap-3 md:grid-cols-2">
               <DataBlock

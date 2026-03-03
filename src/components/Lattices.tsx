@@ -72,7 +72,7 @@ const Lattices: React.FC = () => {
             Visualización Interactiva de Retículos 2D
           </h3>
           <a
-            href="https://www.geogebra.org"
+            href="https://www.geogebra.org/m/js4x7wfj"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
@@ -84,26 +84,23 @@ const Lattices: React.FC = () => {
         <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg mb-4 border border-blue-200 dark:border-blue-800">
           <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
           <p className="text-xs text-blue-700 dark:text-blue-300">
-            Applet de GeoGebra para explorar visualmente retículos bidimensionales,
-            cambio de base y el problema SVP/CVP. Activa JavaScript para cargar el applet.
+            Mueve el punto objetivo y utiliza los controles del applet para observar cómo cambia
+            el vector más cercano (CVP) y el vector más corto del retículo (SVP).
           </p>
         </div>
 
-        {/* GeoGebra iframe placeholder */}
         <iframe
-          title="GeoGebra Lattice Applet"
-          src=""
+          title="GeoGebra SVP/CVP Applet"
+          src="https://www.geogebra.org/material/iframe/id/js4x7wfj/width/1000/height/600/border/888888/sfsb/true/smb/false/stb/false/stbh/false/ai/false/asb/false/sri/false/rc/false/ld/false/sdz/true/ctl/false"
           className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900"
-          style={{ height: '400px' }}
+          style={{ height: '560px' }}
+          loading="lazy"
           allowFullScreen
-        >
-          <div className="flex items-center justify-center h-full text-slate-500">
-            Cargando applet GeoGebra…
-          </div>
-        </iframe>
+        />
 
-        <p className="text-xs text-slate-400 mt-2 text-center">
-          Placeholder para el applet interactivo de GeoGebra (se integrará con URL específica del applet)
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-3">
+          Fuente del recurso interactivo: GeoGebra Material <span className="font-mono">js4x7wfj</span>.
+          Para documentación académica del TFG, cita explícitamente el autor/material original.
         </p>
       </div>
     </div>
