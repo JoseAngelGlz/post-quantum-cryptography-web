@@ -1,6 +1,106 @@
-import { ExternalLink, Info } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, ChevronRight, ExternalLink, Info } from 'lucide-react';
+
+type LatticeProblemId = 'svp' | 'cvp' | 'lwe' | 'ntru';
+
+interface LatticeProblem {
+  id: LatticeProblemId;
+  title: string;
+  description: string;
+}
+
+const problems: LatticeProblem[] = [
+  {
+    id: 'svp',
+    title: 'SVP (Shortest Vector Problem)',
+    description:
+      'Dado un retículo, encontrar el vector no nulo más corto. Es una base clásica de dureza criptográfica.',
+  },
+  {
+    id: 'cvp',
+    title: 'CVP (Closest Vector Problem)',
+    description:
+      'Dado un punto objetivo, hallar el punto del retículo más cercano. Es uno de los problemas geométricos más difíciles.',
+  },
+  {
+    id: 'lwe',
+    title: 'LWE (Learning With Errors)',
+    description:
+      'Recuperar un secreto oculto cuando las ecuaciones lineales incluyen ruido. Es central en ML-KEM.',
+  },
+  {
+    id: 'ntru',
+    title: 'NTRU / Ring-LWE (Anillos de polinomios)',
+    description:
+      'Versión estructurada para ganar eficiencia mediante polinomios y anillos modulares.',
+  },
+];
+
+const problemDetail: Record<LatticeProblemId, { title: string; content: string[] }> = {
+  svp: {
+    title: 'SVP (Shortest Vector Problem)',
+    content: [
+      'Entrada: una base de un retículo en dimensión n.',
+      'Objetivo: encontrar el vector no nulo de menor norma euclídea del retículo.',
+      'Relevancia criptográfica: aproximaciones de SVP se relacionan con garantías de seguridad de construcciones basadas en retículos.',
+    ],
+  },
+  cvp: {
+    title: 'CVP (Closest Vector Problem)',
+    content: [
+      'Entrada: un retículo y un punto objetivo que normalmente no pertenece al retículo.',
+      'Objetivo: encontrar el punto del retículo más cercano al objetivo.',
+      'Relevancia criptográfica: CVP y variantes aproximadas modelan la dificultad geométrica de “corregir ruido” en espacios de alta dimensión.',
+    ],
+  },
+  lwe: {
+    title: 'LWE (Learning With Errors)',
+    content: [
+      'Modelo básico: b = A·s + e (mod q), donde s es secreto y e es ruido pequeño.',
+      'Problema: distinguir o recuperar s a partir de muestras ruidosas (A, b).',
+      'En ML-KEM se usa Module-LWE para mejorar eficiencia y mantener seguridad con estructuras algebraicas.',
+    ],
+  },
+  ntru: {
+    title: 'NTRU / Ring-LWE',
+    content: [
+      'Trabajan sobre anillos de polinomios, no sobre vectores completamente generales.',
+      'Ventaja principal: operaciones más rápidas y tamaños prácticos para implementación real.',
+      'Uso en estándares: FALCON se apoya en retículos NTRU y ML-KEM usa estructura módulo sobre anillos.',
+    ],
+  },
+};
 
 const Lattices: React.FC = () => {
+  const [selectedProblem, setSelectedProblem] = useState<LatticeProblemId | null>(null);
+
+  if (selectedProblem) {
+    const detail = problemDetail[selectedProblem];
+
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <button
+          type="button"
+          onClick={() => setSelectedProblem(null)}
+          className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          <ArrowLeft size={16} /> Volver a Lattices
+        </button>
+
+        <section className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{detail.title}</h2>
+          <div className="mt-4 space-y-3">
+            {detail.content.map((text) => (
+              <p key={text} className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                {text}
+              </p>
+            ))}
+          </div>
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <header>
@@ -15,57 +115,37 @@ const Lattices: React.FC = () => {
         </p>
       </header>
 
-      {/* Definition cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-slate-700">
-          <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-2">
-            Problema SVP (Shortest Vector Problem)
-          </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Dado un retículo, encontrar el vector no nulo más corto. Se cree que este problema
-            es difícil incluso para ordenadores cuánticos, constituyendo la base de seguridad
-            de muchos esquemas PQC.
-          </p>
+      <section className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          ¿Qué es un retículo y por qué importa?
+        </h3>
+        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          Antes de entrar en los problemas (SVP, CVP, LWE...), conviene fijar la intuición geométrica:
+          un retículo es una malla regular de puntos en el espacio que nace de combinar una base con
+          coeficientes enteros.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-900/40">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Base y dimensión</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              La base define la forma de la malla. En alta dimensión aparecen comportamientos difíciles de resolver.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-900/40">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Ruido controlado</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              En criptografía, el ruido convierte problemas lineales simples en problemas difíciles de invertir.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-900/40">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Aplicación práctica</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              ML-KEM y otros esquemas usan esta dureza para encapsular claves de forma eficiente y segura.
+            </p>
+          </div>
         </div>
+      </section>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-slate-700">
-          <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-2">
-            Problema CVP (Closest Vector Problem)
-          </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Dado un retículo y un punto arbitrario, encontrar el punto del retículo más cercano.
-            El CVP es NP-difícil y su variante Learning With Errors (LWE) es la base de ML-KEM.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-slate-700">
-          <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-2">
-            LWE (Learning With Errors)
-          </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Introducido por Regev (2005). Dado{' '}
-            <span className="font-mono text-xs bg-slate-100 dark:bg-slate-700 px-1 rounded">
-              (A, b = As + e mod q)
-            </span>
-            , recuperar{' '}
-            <span className="font-mono text-xs bg-slate-100 dark:bg-slate-700 px-1 rounded">s</span>.
-            La variante Module-LWE (MLWE) es la base matemática de ML-KEM.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-slate-700">
-          <h3 className="font-semibold text-slate-800 dark:text-slate-100 mb-2">
-            NTRU y Ring-LWE
-          </h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Las variantes de anillo trabajan con polinomios truncados, ofreciendo mayor eficiencia.
-            FALCON (FIPS 206) utiliza retículos NTRU, mientras que Kyber/ML-KEM usa Module-LWE
-            sobre anillos de polinomios.
-          </p>
-        </div>
-      </div>
-
-      {/* GeoGebra applet placeholder */}
       <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
@@ -103,6 +183,28 @@ const Lattices: React.FC = () => {
           Para documentación académica del TFG, cita explícitamente el autor/material original.
         </p>
       </div>
+
+      <section className="space-y-4">
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          Problemas fundamentales (click para abrir detalle)
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {problems.map((problem) => (
+            <button
+              key={problem.id}
+              type="button"
+              onClick={() => setSelectedProblem(problem.id)}
+              className="text-left bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md transition-all"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <h4 className="font-semibold text-slate-800 dark:text-slate-100">{problem.title}</h4>
+                <ChevronRight size={16} className="text-slate-400" />
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400">{problem.description}</p>
+            </button>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };
