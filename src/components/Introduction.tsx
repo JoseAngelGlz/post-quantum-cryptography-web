@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ArrowLeft, ChevronRight, GitBranch, Info, Lock, ShieldCheck, Zap } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, ChevronDown, ChevronRight, GitBranch, Lock, ShieldCheck, Zap } from 'lucide-react';
 
-type IntroTopic = 'quantum-security' | 'nist-standard' | 'algorithm-families';
+type IntroTopic = 'quantum-security' | 'nist-standard' | 'math-structures';
 
 interface IntroCard {
   id: IntroTopic;
@@ -26,10 +27,10 @@ const introCards: IntroCard[] = [
     icon: <Zap className="text-green-500" size={22} />,
   },
   {
-    id: 'algorithm-families',
-    title: 'Familias de algoritmos',
+    id: 'math-structures',
+    title: 'Estructuras matemáticas',
     description:
-      'En esta app se presentan como estructuras matemáticas: retículos, códigos, hashes y sistemas multivariantes.',
+      'Retículos, códigos correctores, funciones hash y polinomios multivariantes como base de la PQC.',
     icon: <Lock className="text-purple-500" size={22} />,
   },
 ];
@@ -51,20 +52,105 @@ const topicContent: Record<IntroTopic, { title: string; body: string[] }> = {
       'El objetivo no es solo teoría: también interoperabilidad, despliegue en protocolos y guías de migración para industria.',
     ],
   },
-  'algorithm-families': {
-    title: 'Familias de algoritmos y estructuras matemáticas',
+  'math-structures': {
+    title: 'Estructuras matemáticas',
     body: [
       'Retículos (Lattices): base de ML-KEM y ML-DSA mediante problemas como LWE / Module-LWE.',
-      'Códigos correctores de errores (Error-Correcting Codes): familia histórica en criptografía post-cuántica.',
+      'Códigos correctores de errores (Error-Correcting Codes): familia histórica en criptografía post-cuántica (ej. McEliece).',
       'Funciones hash (Hash-Based Signatures): base de SLH-DSA y otras firmas resistentes.',
       'Polinomios multivariantes (Multivariate Polynomials): sistemas algebraicos con ecuaciones no lineales sobre campos finitos.',
     ],
   },
 };
 
+/* ── Timeline data for interactive tree ─────────────────────── */
+interface TimelineNode {
+  id: string;
+  year: string;
+  title: string;
+  summary: string;
+  details: string[];
+}
+
+const timelineNodes: TimelineNode[] = [
+  {
+    id: '2016',
+    year: '2016',
+    title: 'Convocatoria',
+    summary: 'NIST abre la llamada internacional para proponer algoritmos PQC.',
+    details: [
+      'Se publica el documento «Submission Requirements and Evaluation Criteria for the Post-Quantum Cryptography Standardization Process».',
+      'Objetivo: identificar algoritmos de clave pública resistentes a ataques cuánticos.',
+    ],
+  },
+  {
+    id: '2017',
+    year: '2017',
+    title: 'Ronda inicial',
+    summary: '69 propuestas entran en evaluación criptográfica y de implementación.',
+    details: [
+      'Propuestas de todo el mundo cubriendo retículos, códigos, hashes, isogenias y multivariantes.',
+      'Se inician análisis de seguridad, rendimiento y tamaño de claves.',
+    ],
+  },
+  {
+    id: '2019-20',
+    year: '2019-2020',
+    title: 'Rondas intermedias',
+    summary: 'Se filtran candidatos y se consolidan familias con mejor equilibrio seguridad/rendimiento.',
+    details: [
+      'Se reduce de 69 a 26 candidatos (Ronda 2) y luego a 7 finalistas + 8 alternativas (Ronda 3).',
+      'Los retículos (Kyber, Dilithium, NTRU, FALCON) dominan como familia más eficiente.',
+    ],
+  },
+  {
+    id: '2022',
+    year: '2022',
+    title: 'Selección principal',
+    summary: 'NIST anuncia Kyber, Dilithium, FALCON y SPHINCS+ como algoritmos seleccionados.',
+    details: [
+      'CRYSTALS-Kyber: KEM basado en Module-LWE (retículos).',
+      'CRYSTALS-Dilithium: firma digital basada en Module-LWE.',
+      'FALCON: firma basada en retículos NTRU con muestreo gaussiano.',
+      'SPHINCS+: firma basada en funciones hash (sin retículos).',
+    ],
+  },
+  {
+    id: '2024',
+    year: '2024',
+    title: 'Estandarización',
+    summary: 'Publicación de FIPS 203 (ML-KEM), FIPS 204 (ML-DSA) y FIPS 205 (SLH-DSA).',
+    details: [
+      'ML-KEM (antes Kyber) definido en FIPS 203 con niveles 512, 768 y 1024.',
+      'ML-DSA (antes Dilithium) definido en FIPS 204.',
+      'SLH-DSA (antes SPHINCS+) definido en FIPS 205.',
+    ],
+  },
+  {
+    id: 'next',
+    year: 'Siguiente fase',
+    title: 'Migración práctica',
+    summary: 'Despliegue gradual en protocolos, bibliotecas y sistemas productivos.',
+    details: [
+      'TLS 1.3 ya experimenta con esquemas híbridos (ej. X25519 + ML-KEM-768).',
+      'Organismos como ANSSI, BSI y NSA publican guías de migración.',
+      'Se evalúan candidatos adicionales para firmas (HQC, BIKE…).',
+    ],
+  },
+];
+
 const Introduction: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<IntroTopic | null>(null);
-  const [showTimelineMap, setShowTimelineMap] = useState(false);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+
+  const toggleNode = (id: string) => {
+    setExpandedNodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   if (selectedTopic) {
     const detail = topicContent[selectedTopic];
@@ -93,104 +179,22 @@ const Introduction: React.FC = () => {
     );
   }
 
-  if (showTimelineMap) {
-    return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <button
-          type="button"
-          onClick={() => setShowTimelineMap(false)}
-          className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
-        >
-          <ArrowLeft size={16} /> Volver a Introducción
-        </button>
-
-        <section className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Cronología NIST PQC · Mapa mental</h2>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-            Vista en árbol del proceso de estandarización de criptografía post-cuántica del NIST.
-          </p>
-
-          <div className="mt-6 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-            <div className="text-center">
-              <span className="inline-flex items-center gap-2 text-sm font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-3 py-1.5 rounded-full">
-                <GitBranch size={14} /> Proceso NIST PQC
-              </span>
-            </div>
-
-            <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
-              {[
-                {
-                  year: '2016',
-                  title: 'Convocatoria',
-                  detail: 'NIST abre la llamada internacional para proponer algoritmos PQC.',
-                },
-                {
-                  year: '2017',
-                  title: 'Ronda inicial',
-                  detail: '69 propuestas entran en evaluación criptográfica y de implementación.',
-                },
-                {
-                  year: '2019-2020',
-                  title: 'Rondas intermedias',
-                  detail: 'Se filtran candidatos y se consolidan familias con mejor equilibrio seguridad/rendimiento.',
-                },
-                {
-                  year: '2022',
-                  title: 'Selección principal',
-                  detail: 'NIST anuncia Kyber, Dilithium, FALCON y SPHINCS+ como algoritmos seleccionados.',
-                },
-                {
-                  year: '2024',
-                  title: 'Estandarización',
-                  detail: 'Publicación de FIPS 203 (ML-KEM), FIPS 204 (ML-DSA) y FIPS 205 (SLH-DSA).',
-                },
-                {
-                  year: 'Siguiente fase',
-                  title: 'Migración práctica',
-                  detail: 'Despliegue gradual en protocolos, bibliotecas y sistemas productivos.',
-                },
-              ].map((node) => (
-                <div
-                  key={node.year + node.title}
-                  className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-900/40"
-                >
-                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-300">{node.year}</p>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mt-1">{node.title}</p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">{node.detail}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      {/* Hero — title as protagonist */}
       <header>
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-          Introducción a la Criptografía Post-Cuántica
+        <h2 className="text-4xl font-extrabold text-slate-800 dark:text-slate-100 leading-tight">
+          Criptografía<br />
+          <span className="text-blue-600 dark:text-blue-400">Post-Cuántica</span>
         </h2>
-        <p className="mt-3 text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
+        <p className="mt-4 text-slate-600 dark:text-slate-400 text-lg leading-relaxed max-w-2xl">
           La llegada de los ordenadores cuánticos representa una amenaza directa a los sistemas
           criptográficos actuales. Esta aplicación explora las bases matemáticas y los algoritmos
           que formarán la criptografía del futuro.
         </p>
       </header>
 
-      <div className="flex gap-4 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 rounded-xl">
-        <Info className="text-blue-500 shrink-0 mt-0.5" size={20} />
-        <div>
-          <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">Contexto inicial</p>
-          <p className="text-sm text-blue-700 dark:text-blue-400 mt-1">
-            El algoritmo de Shor, ejecutado en un ordenador cuántico suficientemente potente,
-            podría romper RSA, ECDSA y Diffie-Hellman en tiempo polinomial, comprometiendo
-            la mayor parte de la infraestructura de clave pública actual.
-          </p>
-        </div>
-      </div>
-
+      {/* Clickable cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {introCards.map((card) => (
           <button
@@ -211,23 +215,73 @@ const Introduction: React.FC = () => {
         ))}
       </div>
 
-      <button
-        type="button"
-        onClick={() => setShowTimelineMap(true)}
-        className="w-full text-left bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md transition-all"
-      >
-        <div className="flex items-center justify-between gap-3">
+      {/* Interactive Timeline Tree */}
+      <section className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <GitBranch size={18} className="text-blue-500" />
           <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
             Cronología del Proceso NIST PQC
           </h3>
-          <span className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400">
-            Abrir mapa mental <ChevronRight size={14} />
-          </span>
         </div>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-          Haz click para ver la evolución completa del proceso en formato árbol.
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Haz clic en cada nodo para expandir los detalles del proceso de estandarización.
         </p>
-      </button>
+
+        <div className="relative ml-4 border-l-2 border-blue-200 dark:border-blue-800 space-y-3 pt-2">
+          {timelineNodes.map((node) => {
+            const isOpen = expandedNodes.has(node.id);
+            return (
+              <div key={node.id} className="relative pl-6">
+                {/* Dot on the line */}
+                <div className="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-blue-500 border-2 border-white dark:border-slate-800" />
+
+                <button
+                  type="button"
+                  onClick={() => toggleNode(node.id)}
+                  className="w-full text-left rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 p-3 transition-all hover:shadow-sm bg-slate-50 dark:bg-slate-900/40"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
+                        {node.year}
+                      </span>
+                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        {node.title}
+                      </span>
+                    </div>
+                    {isOpen ? (
+                      <ChevronDown size={16} className="text-slate-400 shrink-0" />
+                    ) : (
+                      <ChevronRight size={16} className="text-slate-400 shrink-0" />
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                    {node.summary}
+                  </p>
+                </button>
+
+                <AnimatePresence>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <ul className="mt-2 ml-2 space-y-1 text-xs text-slate-600 dark:text-slate-400 list-disc list-inside pb-1">
+                        {node.details.map((d) => (
+                          <li key={d} className="leading-relaxed">{d}</li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 };

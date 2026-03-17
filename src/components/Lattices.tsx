@@ -105,7 +105,7 @@ const Lattices: React.FC = () => {
     <div className="max-w-4xl mx-auto space-y-8">
       <header>
         <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-          Lattices (Retículos)
+          Retículos (Lattices)
         </h2>
         <p className="mt-3 text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
           Un retículo es un conjunto discreto de puntos en el espacio n-dimensional con una
@@ -117,7 +117,7 @@ const Lattices: React.FC = () => {
 
       <section className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
         <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-          ¿Qué es un retículo y por qué importa?
+          ¿Qué es un retículo (Lattice) y por qué importa?
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
           Antes de entrar en los problemas (SVP, CVP, LWE...), conviene fijar la intuición geométrica:
@@ -186,8 +186,13 @@ const Lattices: React.FC = () => {
 
       <section className="space-y-4">
         <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-          Problemas fundamentales (click para abrir detalle)
+          Problemas fundamentales sobre retículos (Lattice Problems)
         </h3>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Ahora que ya tienes la intuición de qué es un retículo, estos son los problemas
+          computacionales difíciles que hacen posible la criptografía basada en esta estructura.
+          Haz clic en cada tarjeta para ver el detalle.
+        </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {problems.map((problem) => (
             <button

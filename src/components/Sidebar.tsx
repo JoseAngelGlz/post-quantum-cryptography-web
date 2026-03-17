@@ -1,6 +1,6 @@
-import { BookOpen, Grid3X3, Cpu, Library, Moon, Sun } from 'lucide-react';
+import { BookOpen, Grid3X3, Cpu, Library, Moon, Sun, FileText } from 'lucide-react';
 
-export type Section = 'introduction' | 'lattices' | 'mlkem' | 'resources';
+export type Section = 'introduction' | 'lattices' | 'mlkem-theory' | 'mlkem' | 'resources';
 
 interface SidebarProps {
   activeSection: Section;
@@ -17,8 +17,9 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'introduction', label: 'Introducción', icon: <BookOpen size={18} /> },
-  { id: 'lattices', label: 'Lattices (Retículos)', icon: <Grid3X3 size={18} /> },
-  { id: 'mlkem', label: 'Simulador ML-KEM', icon: <Cpu size={18} /> },
+  { id: 'lattices', label: 'Retículos (Lattices)', icon: <Grid3X3 size={18} /> },
+  { id: 'mlkem-theory', label: 'ML-KEM: Teoría', icon: <FileText size={18} /> },
+  { id: 'mlkem', label: 'ML-KEM: Simulador', icon: <Cpu size={18} /> },
   { id: 'resources', label: 'Recursos', icon: <Library size={18} /> },
 ];
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Sidebar, { type Section } from './components/Sidebar';
 import Introduction from './components/Introduction';
 import Lattices from './components/Lattices';
+import ExplicacionMLKEM from './components/ExplicacionMLKEM';
 import MLKEMSimulator from './components/MLKEMSimulator';
 import Resources from './components/Resources';
 
@@ -28,6 +29,8 @@ function App() {
         return <Introduction />;
       case 'lattices':
         return <Lattices />;
+      case 'mlkem-theory':
+        return <ExplicacionMLKEM />;
       case 'mlkem':
         return <MLKEMSimulator />;
       case 'resources':
