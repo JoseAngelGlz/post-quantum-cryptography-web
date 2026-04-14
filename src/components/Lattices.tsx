@@ -1,111 +1,45 @@
-import { useState } from 'react';
-import { ArrowLeft, ChevronRight, ExternalLink, Info } from 'lucide-react';
+import { ExternalLink, Info } from 'lucide-react';
+import InlineExercises, { type Exercise } from './InlineExercises';
 
-type LatticeProblemId = 'svp' | 'cvp' | 'lwe' | 'ntru';
-
-interface LatticeProblem {
-  id: LatticeProblemId;
-  title: string;
-  description: string;
-}
-
-const problems: LatticeProblem[] = [
+const latticeExercises: Exercise[] = [
   {
-    id: 'svp',
-    title: 'SVP (Shortest Vector Problem)',
-    description:
-      'Dado un retículo, encontrar el vector no nulo más corto. Es una base clásica de dureza criptográfica.',
+    type: 'multiple-choice',
+    question:
+      'Si la base de un retículo 2D es {(2, 0), (0, 3)}, ¿cuál de los siguientes puntos pertenece al retículo?',
+    options: ['(3, 3)', '(4, 6)', '(2, 2)', '(1, 3)'],
+    correctIndex: 1,
+    explanation:
+      '(4, 6) = 2·(2,0) + 2·(0,3). Los coeficientes deben ser enteros y el resultado es una combinación lineal entera de la base.',
   },
   {
-    id: 'cvp',
-    title: 'CVP (Closest Vector Problem)',
-    description:
-      'Dado un punto objetivo, hallar el punto del retículo más cercano. Es uno de los problemas geométricos más difíciles.',
+    type: 'multiple-choice',
+    question: '¿Por qué los problemas sobre retículos en alta dimensión son útiles para la criptografía?',
+    options: [
+      'Porque son fáciles de resolver con ordenadores cuánticos',
+      'Porque se vuelven computacionalmente intratables y resisten ataques cuánticos',
+      'Porque solo se pueden resolver con lápiz y papel',
+      'Porque requieren bases ortogonales',
+    ],
+    correctIndex: 1,
+    explanation:
+      'En alta dimensión, los problemas como SVP y CVP son intratables tanto para algoritmos clásicos como cuánticos, lo que los convierte en una base segura para la criptografía.',
   },
   {
-    id: 'lwe',
-    title: 'LWE (Learning With Errors)',
-    description:
-      'Recuperar un secreto oculto cuando las ecuaciones lineales incluyen ruido. Es central en ML-KEM.',
-  },
-  {
-    id: 'ntru',
-    title: 'NTRU / Ring-LWE (Anillos de polinomios)',
-    description:
-      'Versión estructurada para ganar eficiencia mediante polinomios y anillos modulares.',
+    type: 'text',
+    question:
+      'Si la base es {(1, 0), (0, 1)}, describe un vector del retículo que NO sea un vector base (escríbelo como (x, y)).',
+    acceptedAnswers: ['(1, 1)', '(2, 0)', '(0, 2)', '(2, 1)', '(1, 2)', '(-1, 0)', '(0, -1)', '(-1, -1)', '(2, 2)', '(3, 0)', '(0, 3)'],
+    explanation:
+      'Cualquier punto con coordenadas enteras pertenece a este retículo. Por ejemplo, (1, 1) = 1·(1,0) + 1·(0,1).',
   },
 ];
 
-const problemDetail: Record<LatticeProblemId, { title: string; content: string[] }> = {
-  svp: {
-    title: 'SVP (Shortest Vector Problem)',
-    content: [
-      'Entrada: una base de un retículo en dimensión n.',
-      'Objetivo: encontrar el vector no nulo de menor norma euclídea del retículo.',
-      'Relevancia criptográfica: aproximaciones de SVP se relacionan con garantías de seguridad de construcciones basadas en retículos.',
-    ],
-  },
-  cvp: {
-    title: 'CVP (Closest Vector Problem)',
-    content: [
-      'Entrada: un retículo y un punto objetivo que normalmente no pertenece al retículo.',
-      'Objetivo: encontrar el punto del retículo más cercano al objetivo.',
-      'Relevancia criptográfica: CVP y variantes aproximadas modelan la dificultad geométrica de “corregir ruido” en espacios de alta dimensión.',
-    ],
-  },
-  lwe: {
-    title: 'LWE (Learning With Errors)',
-    content: [
-      'Modelo básico: b = A·s + e (mod q), donde s es secreto y e es ruido pequeño.',
-      'Problema: distinguir o recuperar s a partir de muestras ruidosas (A, b).',
-      'En ML-KEM se usa Module-LWE para mejorar eficiencia y mantener seguridad con estructuras algebraicas.',
-    ],
-  },
-  ntru: {
-    title: 'NTRU / Ring-LWE',
-    content: [
-      'Trabajan sobre anillos de polinomios, no sobre vectores completamente generales.',
-      'Ventaja principal: operaciones más rápidas y tamaños prácticos para implementación real.',
-      'Uso en estándares: FALCON se apoya en retículos NTRU y ML-KEM usa estructura módulo sobre anillos.',
-    ],
-  },
-};
-
 const Lattices: React.FC = () => {
-  const [selectedProblem, setSelectedProblem] = useState<LatticeProblemId | null>(null);
-
-  if (selectedProblem) {
-    const detail = problemDetail[selectedProblem];
-
-    return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <button
-          type="button"
-          onClick={() => setSelectedProblem(null)}
-          className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:underline"
-        >
-          <ArrowLeft size={16} /> Volver a Lattices
-        </button>
-
-        <section className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{detail.title}</h2>
-          <div className="mt-4 space-y-3">
-            {detail.content.map((text) => (
-              <p key={text} className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                {text}
-              </p>
-            ))}
-          </div>
-        </section>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <header>
         <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-          Retículos (Lattices)
+          Retículos
         </h2>
         <p className="mt-3 text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
           Un retículo es un conjunto discreto de puntos en el espacio n-dimensional con una
@@ -117,12 +51,13 @@ const Lattices: React.FC = () => {
 
       <section className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
         <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-          ¿Qué es un retículo (Lattice) y por qué importa?
+          ¿Qué es un retículo y por qué importa?
         </h3>
         <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-          Antes de entrar en los problemas (SVP, CVP, LWE...), conviene fijar la intuición geométrica:
-          un retículo es una malla regular de puntos en el espacio que nace de combinar una base con
-          coeficientes enteros.
+          Conviene fijar la intuición geométrica: un retículo es una malla regular de puntos
+          en el espacio que nace de combinar una base con coeficientes enteros. Sobre esta
+          estructura se definen problemas computacionales difíciles (SVP, CVP, LWE) que
+          constituyen la base de la criptografía post-cuántica.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 bg-slate-50 dark:bg-slate-900/40">
@@ -146,10 +81,72 @@ const Lattices: React.FC = () => {
         </div>
       </section>
 
+      {/* Definición formal */}
+      <section className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          Definición formal
+        </h3>
+        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          Dado un conjunto de vectores linealmente independientes{' '}
+          <span className="font-mono bg-slate-100 dark:bg-slate-700 px-1 rounded">b₁, b₂, …, bₙ ∈ ℝⁿ</span>,
+          el retículo generado por ellos es:
+        </p>
+        <div className="flex justify-center py-3">
+          <span className="font-mono text-lg bg-slate-100 dark:bg-slate-900/60 px-4 py-2 rounded-lg text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700">
+            L(B) = {'{'} z₁b₁ + z₂b₂ + … + zₙbₙ : zᵢ ∈ ℤ {'}'}
+          </span>
+        </div>
+        <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          Es decir, el conjunto de todas las combinaciones lineales <em>enteras</em> de los vectores base.
+          Un mismo retículo puede tener muchas bases distintas, y la calidad de la base (cuán ortogonales
+          sean los vectores) influye directamente en la dificultad de los problemas definidos sobre él.
+        </p>
+      </section>
+
+      {/* Propiedades clave */}
+      <section className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          Propiedades relevantes para criptografía
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-900/40">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Dureza en alta dimensión</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              Los problemas sobre retículos en dos o tres dimensiones son sencillos. En dimensiones
+              del orden de cientos o miles, se vuelven computacionalmente intratables tanto para
+              algoritmos clásicos como cuánticos.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-900/40">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Reducción de base</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              Algoritmos como LLL y BKZ intentan encontrar bases «mejores» (más ortogonales).
+              Aunque logran aproximaciones, no resuelven los problemas de forma exacta en alta
+              dimensión, lo cual sustenta la seguridad criptográfica.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-900/40">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Determinante y volumen</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              El determinante del retículo (volumen del paralelepípedo fundamental) es un invariante
+              que no depende de la base elegida. Influye en la longitud del vector más corto esperado.
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-900/40">
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Retículos estructurados</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              En la práctica (ML-KEM, ML-DSA), se usan retículos con estructura algebraica adicional
+              (módulos de anillos de polinomios) para lograr tamaños de clave y velocidades prácticas.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Applet GeoGebra */}
       <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-            Visualización Interactiva de Retículos 2D
+            Visualización interactiva de retículos 2D
           </h3>
           <a
             href="https://www.geogebra.org/m/js4x7wfj"
@@ -157,20 +154,21 @@ const Lattices: React.FC = () => {
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
           >
-            Abrir GeoGebra <ExternalLink size={14} />
+            Abrir en GeoGebra <ExternalLink size={14} />
           </a>
         </div>
 
         <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg mb-4 border border-blue-200 dark:border-blue-800">
           <Info size={16} className="text-blue-500 shrink-0 mt-0.5" />
           <p className="text-xs text-blue-700 dark:text-blue-300">
-            Mueve el punto objetivo y utiliza los controles del applet para observar cómo cambia
-            el vector más cercano (CVP) y el vector más corto del retículo (SVP).
+            Mueve los vectores base y observa cómo cambia la malla del retículo.
+            Fíjate en cómo varía la densidad de puntos y la distancia al vector más
+            corto según la orientación de la base.
           </p>
         </div>
 
         <iframe
-          title="GeoGebra SVP/CVP Applet"
+          title="Applet de retículos 2D en GeoGebra"
           src="https://www.geogebra.org/material/iframe/id/js4x7wfj/width/1000/height/600/border/888888/sfsb/true/smb/false/stb/false/stbh/false/ai/false/asb/false/sri/false/rc/false/ld/false/sdz/true/ctl/false"
           className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900"
           style={{ height: '560px' }}
@@ -184,32 +182,7 @@ const Lattices: React.FC = () => {
         </p>
       </div>
 
-      <section className="space-y-4">
-        <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-          Problemas fundamentales sobre retículos (Lattice Problems)
-        </h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          Ahora que ya tienes la intuición de qué es un retículo, estos son los problemas
-          computacionales difíciles que hacen posible la criptografía basada en esta estructura.
-          Haz clic en cada tarjeta para ver el detalle.
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {problems.map((problem) => (
-            <button
-              key={problem.id}
-              type="button"
-              onClick={() => setSelectedProblem(problem.id)}
-              className="text-left bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md transition-all"
-            >
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <h4 className="font-semibold text-slate-800 dark:text-slate-100">{problem.title}</h4>
-                <ChevronRight size={16} className="text-slate-400" />
-              </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">{problem.description}</p>
-            </button>
-          ))}
-        </div>
-      </section>
+      <InlineExercises exercises={latticeExercises} />
     </div>
   );
 };

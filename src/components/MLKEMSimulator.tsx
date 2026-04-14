@@ -7,6 +7,7 @@ import {
   KeyRound,
   Lock,
   RefreshCw,
+  Send,
   ShieldAlert,
   Unlock,
 } from 'lucide-react';
@@ -1049,7 +1050,123 @@ const MLKEMSimulator: React.FC = () => {
           Reiniciar
         </button>
       </div>
+
+      {/* ── Feedback form (only after result) ─────── */}
+      {phase === 'result' && <FeedbackForm />}
     </section>
+  );
+};
+
+/* ═══════ Feedback Form ═══════ */
+const FEEDBACK_QUESTIONS = [
+  {
+    id: 'clarity',
+    label: '¿Las explicaciones del simulador fueron claras?',
+    options: ['Muy claras', 'Bastante claras', 'Algo confusas', 'Muy confusas'],
+  },
+  {
+    id: 'difficulty',
+    label: '¿Cómo valoras la dificultad del contenido?',
+    options: ['Muy fácil', 'Adecuada', 'Algo difícil', 'Muy difícil'],
+  },
+  {
+    id: 'useful',
+    label: '¿Te ha resultado útil la comparación con Eva (espía)?',
+    options: ['Muy útil', 'Bastante útil', 'Poco útil', 'Nada útil'],
+  },
+];
+
+const FeedbackForm: React.FC = () => {
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [comment, setComment] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = () => {
+    // In a real app, send data to backend
+    console.log('Feedback:', { answers, comment });
+    setSubmitted(true);
+  };
+
+  if (submitted) {
+    return (
+      <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 p-6 text-center space-y-2">
+        <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">
+          ¡Gracias por tu valoración!
+        </p>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Tu opinión nos ayuda a mejorar este recurso educativo.
+        </p>
+      </div>
+    );
+  }
+
+  const allAnswered = FEEDBACK_QUESTIONS.every((q) => answers[q.id]);
+
+  return (
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm space-y-5">
+      <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+        Cuestionario de satisfacción
+      </h3>
+      <p className="text-sm text-slate-600 dark:text-slate-400">
+        Ahora que has completado el simulador, nos gustaría conocer tu opinión.
+      </p>
+
+      {FEEDBACK_QUESTIONS.map((q) => (
+        <div key={q.id} className="space-y-2">
+          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+            {q.label}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {q.options.map((opt) => {
+              const selected = answers[q.id] === opt;
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() =>
+                    setAnswers((prev) => ({ ...prev, [q.id]: opt }))
+                  }
+                  className={`rounded-lg px-3 py-1.5 text-xs font-medium border transition ${
+                    selected
+                      ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                      : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+          ¿Algún comentario o sugerencia adicional?
+        </p>
+        <textarea
+          value={comment}
+          onChange={(ev) => setComment(ev.target.value)}
+          placeholder="Escribe aquí tu comentario (opcional)…"
+          rows={3}
+          className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+        />
+      </div>
+
+      <button
+        type="button"
+        disabled={!allAnswered}
+        onClick={handleSubmit}
+        className={`flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-medium transition ${
+          allAnswered
+            ? 'bg-blue-600 text-white hover:bg-blue-700'
+            : 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
+        }`}
+      >
+        <Send size={14} />
+        Enviar valoración
+      </button>
+    </div>
   );
 };
 

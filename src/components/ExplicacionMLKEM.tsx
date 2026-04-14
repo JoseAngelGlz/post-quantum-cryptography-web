@@ -1,5 +1,40 @@
 import { ArrowRight, Key, Lock, Shield, Unlock } from 'lucide-react';
+import InlineExercises, { type Exercise } from './InlineExercises';
 
+const mlkemExercises: Exercise[] = [
+  {
+    type: 'multiple-choice',
+    question: '¿Cuál es la finalidad de un KEM (Key Encapsulation Mechanism)?',
+    options: [
+      'Cifrar mensajes directamente',
+      'Generar y compartir un secreto que luego se usa como clave simétrica',
+      'Firmar documentos digitalmente',
+      'Almacenar contraseñas de forma segura',
+    ],
+    correctIndex: 1,
+    explanation:
+      'Un KEM no cifra mensajes. Genera un secreto compartido aleatorio que después se usa como clave para un cifrado simétrico (AES, ChaCha20…).',
+  },
+  {
+    type: 'multiple-choice',
+    question: 'En el paso de desencapsulado, ¿qué ocurre si el ruido acumulado supera el umbral q/4?',
+    options: [
+      'El receptor recupera el mensaje correctamente',
+      'El mensaje se cifra de nuevo automáticamente',
+      'El redondeo falla y se decodifica un bit incorrecto',
+      'El atacante puede leer el mensaje',
+    ],
+    correctIndex: 2,
+    explanation:
+      'Si el ruido acumulado es demasiado grande, el valor cruza la frontera de decisión y el redondeo (thresholding) decodifica un bit erróneo.',
+  },
+  {
+    type: 'text',
+    question: '¿Cuántos pasos principales tiene ML-KEM? (escribe el número)',
+    acceptedAnswers: ['3', 'tres'],
+    explanation: 'ML-KEM tiene 3 pasos: Generación de claves (KeyGen), Encapsulado (Encaps) y Desencapsulado (Decaps).',
+  },
+];
 const ExplicacionMLKEM: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -199,6 +234,8 @@ const ExplicacionMLKEM: React.FC = () => {
           de ruido y visualizar exactamente cómo los valores caen (o no) en la zona correcta.
         </p>
       </section>
+
+      <InlineExercises exercises={mlkemExercises} />
     </div>
   );
 };

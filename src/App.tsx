@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import Sidebar, { type Section } from './components/Sidebar';
 import Introduction from './components/Introduction';
 import Lattices from './components/Lattices';
+import LWESection from './components/LWESection';
+import SVPSection from './components/SVPSection';
+import CVPSection from './components/CVPSection';
 import ExplicacionMLKEM from './components/ExplicacionMLKEM';
 import MLKEMSimulator from './components/MLKEMSimulator';
 import Resources from './components/Resources';
@@ -29,6 +32,12 @@ function App() {
         return <Introduction />;
       case 'lattices':
         return <Lattices />;
+      case 'lwe':
+        return <LWESection />;
+      case 'svp':
+        return <SVPSection />;
+      case 'cvp':
+        return <CVPSection />;
       case 'mlkem-theory':
         return <ExplicacionMLKEM />;
       case 'mlkem':
