@@ -1,63 +1,65 @@
-import { useState, useEffect } from 'react';
-import Sidebar, { type Section } from './components/Sidebar';
-import Introduction from './components/Introduction';
-import Lattices from './components/Lattices';
-import LWESection from './components/LWESection';
-import SVPSection from './components/SVPSection';
-import CVPSection from './components/CVPSection';
-import ExplicacionMLKEM from './components/ExplicacionMLKEM';
-import MLKEMSimulator from './components/MLKEMSimulator';
-import Resources from './components/Resources';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import './App.css';
+import type { RouteId } from './routes';
+import TopNav from './components/shared/TopNav';
+import IntroRoute from './components/routes/IntroRoute';
+import FundamentosRoute from './components/routes/FundamentosRoute';
+import AplicacionesRoute from './components/routes/AplicacionesRoute';
+import MLKEMRoute from './components/routes/MLKEMRoute';
 
 function App() {
-  const [activeSection, setActiveSection] = useState<Section>('introduction');
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    // Persist dark mode preference in localStorage
-    return localStorage.getItem('darkMode') === 'true';
-  });
+  const [route, setRoute] = useState<RouteId>('intro');
 
-  // Apply/remove the 'dark' class on <html> whenever darkMode changes
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('darkMode', String(darkMode));
-  }, [darkMode]);
+    document.documentElement.classList.add('dark');
+  }, []);
 
-  const renderSection = () => {
-    switch (activeSection) {
-      case 'introduction':
-        return <Introduction />;
-      case 'lattices':
-        return <Lattices />;
-      case 'lwe':
-        return <LWESection />;
-      case 'svp':
-        return <SVPSection />;
-      case 'cvp':
-        return <CVPSection />;
-      case 'mlkem-theory':
-        return <ExplicacionMLKEM />;
+  const changeRoute = (r: RouteId) => {
+    setRoute(r);
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  };
+
+  const renderRoute = () => {
+    switch (route) {
+      case 'intro':
+        return <IntroRoute onChange={changeRoute} />;
+      case 'fundamentos':
+        return <FundamentosRoute onChange={changeRoute} />;
+      case 'aplicaciones':
+        return <AplicacionesRoute onChange={changeRoute} />;
       case 'mlkem':
-        return <MLKEMSimulator />;
-      case 'resources':
-        return <Resources />;
+        return <MLKEMRoute onChange={changeRoute} />;
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-100 dark:bg-slate-900 transition-colors">
-      <Sidebar
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
-        darkMode={darkMode}
-        onToggleDarkMode={() => setDarkMode((d) => !d)}
-      />
-      <main className="flex-1 p-8 overflow-auto">
-        {renderSection()}
-      </main>
+    <div className="min-h-screen bg-quantum-bg text-slate-200 relative overflow-x-hidden">
+      <TopNav current={route} onChange={changeRoute} />
+
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={route}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="pt-0"
+        >
+          {renderRoute()}
+        </motion.main>
+      </AnimatePresence>
+
+      <footer className="border-t border-quantum-border mt-20 py-10 text-center text-sm text-slate-500">
+        <p>
+          Trabajo de Fin de Grado · Criptografía Post-Cuántica · ML-KEM (FIPS 203, NIST 2024)
+        </p>
+        <p className="mt-1 text-xs">
+          José Ángel González Álamo · Universidad de La Laguna
+        </p>
+      </footer>
     </div>
   );
 }
