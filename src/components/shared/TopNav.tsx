@@ -13,6 +13,7 @@ const routeLabels: Record<RouteId, string> = {
   aplicaciones: 'Aplicaciones',
   mlkem: 'ML-KEM',
   noticias: 'Noticias',
+  recursos: 'Recursos',
 };
 
 const order: RouteId[] = [
@@ -21,6 +22,7 @@ const order: RouteId[] = [
   'aplicaciones',
   'mlkem',
   'noticias',
+  'recursos',
 ];
 
 const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {

@@ -8,6 +8,7 @@ import FundamentosRoute from './components/routes/FundamentosRoute';
 import AplicacionesRoute from './components/routes/AplicacionesRoute';
 import MLKEMRoute from './components/routes/MLKEMRoute';
 import NoticiasRoute from './components/routes/NoticiasRoute';
+import RecursosRoute from './components/routes/RecursosRoute';
 
 function App() {
   const [route, setRoute] = useState<RouteId>('intro');
@@ -35,6 +36,8 @@ function App() {
         return <MLKEMRoute onChange={changeRoute} />;
       case 'noticias':
         return <NoticiasRoute onChange={changeRoute} />;
+      case 'recursos':
+        return <RecursosRoute onChange={changeRoute} />;
     }
   };
 
