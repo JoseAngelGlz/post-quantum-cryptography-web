@@ -1,1 +1,6 @@
-export type RouteId = 'intro' | 'fundamentos' | 'aplicaciones' | 'mlkem';
+export type RouteId =
+  | 'intro'
+  | 'fundamentos'
+  | 'aplicaciones'
+  | 'mlkem'
+  | 'noticias';

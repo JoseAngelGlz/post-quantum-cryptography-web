@@ -1,19 +1,28 @@
 import { motion } from 'framer-motion';
 import {
   ArrowDown,
+  ArrowRight,
   CheckCircle2,
+  Dice5,
   Eye,
+  Hash,
   KeyRound,
+  Layers,
   Lock,
+  Package,
   Send,
   ShieldCheck,
+  Shuffle,
+  Sigma,
   Sparkles,
   Unlock,
+  Waves,
 } from 'lucide-react';
 import Hero from '../shared/Hero';
 import ScrollSection from '../shared/ScrollSection';
 import Callout from '../shared/Callout';
 import QuickQuiz from '../shared/QuickQuiz';
+import QuizSummary from '../shared/QuizSummary';
 import FeedbackForm from '../shared/FeedbackForm';
 import Math from '../shared/Math';
 import MLKEMSimulator from '../MLKEMSimulator';
@@ -28,6 +37,164 @@ const params = [
   { variant: 'ML-KEM-768', sec: '≈ AES-192', k: 3, eta1: 2, eta2: 2 },
   { variant: 'ML-KEM-1024', sec: '≈ AES-256', k: 4, eta1: 2, eta2: 2 },
 ];
+
+/* ─── Shared visual primitives for the step explanations ─── */
+
+type StepPalette = 'cyan' | 'violet' | 'pink' | 'mint';
+
+const paletteToHex: Record<StepPalette, string> = {
+  cyan: '#5eead4',
+  violet: '#a78bfa',
+  pink: '#f472b6',
+  mint: '#34d399',
+};
+
+interface StepCardProps {
+  step: number;
+  icon: React.ReactNode;
+  title: string;
+  plain: React.ReactNode;
+  formula: React.ReactNode;
+  produces: string;
+  highlight?: boolean;
+  palette: StepPalette;
+  compact?: boolean;
+}
+
+const StepCard: React.FC<StepCardProps> = ({
+  step,
+  icon,
+  title,
+  plain,
+  formula,
+  produces,
+  highlight,
+  palette,
+  compact,
+}) => {
+  const hex = paletteToHex[palette];
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.4 }}
+      className="relative rounded-xl border bg-quantum-panel/60 overflow-hidden"
+      style={{
+        borderColor: highlight ? `${hex}80` : '#1f2750',
+        boxShadow: highlight ? `0 0 22px ${hex}33` : undefined,
+      }}
+    >
+      {/* accent stripe */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1"
+        style={{ background: `linear-gradient(180deg, ${hex}, ${hex}33)` }}
+      />
+      <div
+        className={`grid ${
+          compact ? 'gap-2' : 'md:grid-cols-[1.4fr,1fr] gap-4'
+        } p-4 pl-5`}
+      >
+        {/* left: explanation */}
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-mono font-bold border"
+              style={{
+                background: `${hex}1f`,
+                borderColor: `${hex}55`,
+                color: hex,
+              }}
+            >
+              {step}
+            </div>
+            <div
+              className="w-7 h-7 rounded-md flex items-center justify-center"
+              style={{ background: `${hex}10`, color: hex }}
+            >
+              {icon}
+            </div>
+            <h4 className="font-display font-semibold text-slate-100 text-[15px]">
+              {title}
+            </h4>
+          </div>
+          <p className="text-[13px] text-slate-300 leading-relaxed pl-9">{plain}</p>
+        </div>
+
+        {/* right: formula + output */}
+        <div className="flex flex-col items-stretch gap-2 md:items-end">
+          <div
+            className="rounded-lg border bg-quantum-panel2/50 px-3 py-2 text-center"
+            style={{ borderColor: `${hex}33` }}
+          >
+            <div className="text-[9px] uppercase tracking-widest text-slate-500 mb-1">
+              Fórmula
+            </div>
+            <div className="text-[14px]">{formula}</div>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-slate-400">
+            <ArrowRight size={11} style={{ color: hex }} />
+            <span style={{ color: hex }}>produce</span>
+            <span className="text-slate-300 normal-case">{produces}</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+interface PipelineNode {
+  icon: React.ReactNode;
+  label: string;
+}
+
+const PipelineDiagram: React.FC<{
+  nodes: PipelineNode[];
+  palette: StepPalette;
+}> = ({ nodes, palette }) => {
+  const hex = paletteToHex[palette];
+  return (
+    <div className="rounded-2xl border border-quantum-border bg-quantum-panel/40 p-4 md:p-5 overflow-x-auto">
+      <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-mono">
+        Flujo del algoritmo
+      </div>
+      <div className="flex items-center gap-2 md:gap-3 min-w-max">
+        {nodes.map((n, i) => (
+          <div key={i} className="flex items-center gap-2 md:gap-3">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08, duration: 0.35 }}
+              className="flex flex-col items-center gap-1.5 min-w-[100px] md:min-w-[120px]"
+            >
+              <div
+                className="w-11 h-11 rounded-xl flex items-center justify-center border"
+                style={{
+                  background: `linear-gradient(135deg, ${hex}22, ${hex}0a)`,
+                  borderColor: `${hex}55`,
+                  color: hex,
+                }}
+              >
+                {n.icon}
+              </div>
+              <span className="text-[10px] md:text-[11px] font-mono text-slate-300 text-center leading-tight px-1">
+                {n.label}
+              </span>
+            </motion.div>
+            {i < nodes.length - 1 && (
+              <ArrowRight
+                size={16}
+                className="shrink-0 mt-[-12px]"
+                style={{ color: `${hex}80` }}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
   return (
@@ -171,41 +338,120 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
           </>
         }
       >
-        <div className="grid lg:grid-cols-[1fr,auto,1fr] gap-6 items-start">
-          <div className="card-quantum p-6 space-y-4 lg:col-span-3">
-            <ol className="space-y-4">
-              {[
-                { step: 1, title: 'Genera semilla aleatoria', formula: <Math>{`d \\in \\{0,1\\}^{256}`}</Math>, note: '32 bytes' },
-                { step: 2, title: 'Hash de la semilla', formula: <Math>{`(\\rho, \\sigma) = \\text{SHA3-512}(d)`}</Math>, note: 'separa públicos y secretos' },
-                { step: 3, title: 'Expande ρ a la matriz pública', formula: <Math>{`\\mathbf{A} \\in R_q^{k \\times k} \\;\\leftarrow\\; \\text{SHAKE-128}(\\rho)`}</Math>, note: 'matriz determinista desde 32 bytes' },
-                { step: 4, title: 'Muestrea secretos pequeños', formula: <Math>{`\\mathbf{s}, \\mathbf{e} \\sim B_{\\eta_1}^k \\;\\leftarrow\\; \\sigma`}</Math>, note: 'distribución binomial centrada' },
-                { step: 5, title: 'Ecuación Module-LWE', formula: <Math>{`\\mathbf{t} = \\mathbf{A}\\mathbf{s} + \\mathbf{e}`}</Math>, note: 'aquí se esconde s', highlight: true },
-                { step: 6, title: 'Publica y guarda', formula: <Math>{`pk = (\\rho, \\mathbf{t}) \\quad sk = \\mathbf{s}`}</Math>, note: 'pk pública, sk privada' },
-              ].map((s) => (
-                <motion.li
-                  key={s.step}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, margin: '-40px' }}
-                  transition={{ duration: 0.4, delay: s.step * 0.05 }}
-                  className={`flex gap-4 items-start p-4 rounded-xl ${
-                    s.highlight
-                      ? 'bg-quantum-cyan/5 border border-quantum-cyan/30'
-                      : 'border border-quantum-border/30'
-                  }`}
-                >
-                  <div className="font-mono font-bold text-2xl text-gradient-static shrink-0 w-10">
-                    {s.step}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-display font-semibold text-slate-100">{s.title}</div>
-                    <div className="my-2">{s.formula}</div>
-                    <div className="text-xs text-slate-400">{s.note}</div>
-                  </div>
-                </motion.li>
-              ))}
-            </ol>
-          </div>
+        {/* Visual pipeline */}
+        <PipelineDiagram
+          palette="cyan"
+          nodes={[
+            { icon: <Dice5 size={16} />, label: 'semilla d' },
+            { icon: <Hash size={16} />, label: '(ρ, σ)' },
+            { icon: <Layers size={16} />, label: 'matriz A · secretos s, e' },
+            { icon: <Sigma size={16} />, label: 't = A·s + e' },
+            { icon: <Package size={16} />, label: '(pk, sk)' },
+          ]}
+        />
+
+        <p className="text-slate-300 max-w-3xl mb-8 mt-6 text-[16px] leading-relaxed">
+          Alice quiere publicar una <strong className="text-quantum-cyan">clave pública</strong>{' '}
+          que no revele su secreto. La estrategia: empezar de una pequeña semilla, expandirla
+          en una matriz pública, y combinar esa matriz con un secreto pequeño{' '}
+          <span className="font-mono">s</span> + un ruido <span className="font-mono">e</span>{' '}
+          que vuelve la ecuación imposible de despejar.
+        </p>
+
+        <div className="space-y-3">
+          {[
+            {
+              step: 1,
+              icon: <Dice5 size={16} />,
+              title: 'Lanza un dado',
+              plain: (
+                <>
+                  Genera <strong>32 bytes aleatorios</strong>. De ahí saldrá todo lo demás:
+                  guarda un único secreto y reproduce lo público a partir de él.
+                </>
+              ),
+              formula: <Math>{`d \\xleftarrow{\\$} \\{0,1\\}^{256}`}</Math>,
+              produces: 'd',
+            },
+            {
+              step: 2,
+              icon: <Hash size={16} />,
+              title: 'Hashea la semilla',
+              plain: (
+                <>
+                  La parte <span className="font-mono text-quantum-cyan">ρ</span> alimenta lo
+                  público; <span className="font-mono text-quantum-amber">σ</span>, lo
+                  privado. Un solo hash mezcla todo.
+                </>
+              ),
+              formula: <Math>{`(\\rho, \\sigma) = \\text{SHA3-512}(d)`}</Math>,
+              produces: 'ρ (pública) · σ (privada)',
+            },
+            {
+              step: 3,
+              icon: <Layers size={16} />,
+              title: 'Expande ρ a la matriz A',
+              plain: (
+                <>
+                  Usando <span className="font-mono">SHAKE-128</span>, alarga 32 bytes hasta
+                  llenar una matriz <Math>{`k \\times k`}</Math>. La matriz <em>no se
+                  publica</em>; solo se publica <span className="font-mono">ρ</span> y
+                  cualquiera la regenera idéntica.
+                </>
+              ),
+              formula: <Math>{`\\mathbf{A} \\leftarrow \\text{SHAKE-128}(\\rho)`}</Math>,
+              produces: 'A · pública',
+            },
+            {
+              step: 4,
+              icon: <Waves size={16} />,
+              title: 'Muestrea secretos pequeños',
+              plain: (
+                <>
+                  De <span className="font-mono">σ</span> salen el secreto{' '}
+                  <span className="font-mono text-quantum-amber">s</span> y el ruido{' '}
+                  <span className="font-mono text-quantum-amber">e</span>: ambos con
+                  coeficientes cercanos a cero ({'{−η, …, η}'}). Cuanto más pequeños,
+                  más decodificable luego.
+                </>
+              ),
+              formula: <Math>{`\\mathbf{s}, \\mathbf{e} \\sim B_{\\eta_1}^k \\leftarrow \\sigma`}</Math>,
+              produces: 's, e · privados',
+            },
+            {
+              step: 5,
+              icon: <Sigma size={16} />,
+              title: 'Mezcla todo · ecuación Module-LWE',
+              plain: (
+                <>
+                  Esta es la operación crítica: multiplicar la matriz pública por el secreto,
+                  añadirle ruido. El resultado <span className="font-mono">t</span> parece
+                  un vector aleatorio cualquiera — el ruido <em>oculta</em>{' '}
+                  <span className="font-mono">s</span> incluso si conoces{' '}
+                  <span className="font-mono">A</span> y <span className="font-mono">t</span>.
+                </>
+              ),
+              formula: <Math>{`\\mathbf{t} = \\mathbf{A}\\mathbf{s} + \\mathbf{e}`}</Math>,
+              produces: 't · pública',
+              highlight: true,
+            },
+            {
+              step: 6,
+              icon: <Package size={16} />,
+              title: 'Empaqueta y guarda',
+              plain: (
+                <>
+                  La <strong className="text-quantum-cyan">clave pública</strong> es{' '}
+                  <span className="font-mono">(ρ, t)</span>: ~1.184 bytes en ML-KEM-768.
+                  Alice guarda <span className="font-mono">s</span> a buen recaudo.
+                </>
+              ),
+              formula: <Math>{`pk = (\\rho, \\mathbf{t}) \\quad sk = \\mathbf{s}`}</Math>,
+              produces: 'pk, sk',
+            },
+          ].map((s) => (
+            <StepCard key={s.step} palette="cyan" {...s} />
+          ))}
         </div>
 
         <Callout variant="tip" title="Truco de tamaño">
@@ -225,40 +471,129 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
           </>
         }
       >
-        <div className="card-quantum p-6 space-y-4">
-          <ol className="space-y-4">
-            {[
-              { step: 1, title: 'Genera mensaje aleatorio', formula: <Math>{`m \\in \\{0,1\\}^{256}`}</Math>, note: '32 bytes · futura clave compartida' },
-              { step: 2, title: 'Hash con la clave pública (FO)', formula: <Math>{`(K, r) = \\text{Hash}(m, \\text{Hash}(pk))`}</Math>, note: 'r es determinista, no aleatorio' },
-              { step: 3, title: 'Reconstruye A desde ρ', formula: <Math>{`\\mathbf{A} \\leftarrow \\text{SHAKE-128}(\\rho)`}</Math>, note: 'misma matriz que Alice' },
-              { step: 4, title: 'Muestrea ruidos pequeños', formula: <Math>{`\\mathbf{r}, \\mathbf{e}_1 \\sim B_{\\eta_1}, \\;\\; e_2 \\sim B_{\\eta_2}`}</Math>, note: 'a partir de r' },
-              { step: 5, title: 'Primer componente', formula: <Math>{`\\mathbf{u} = \\mathbf{A}^T \\mathbf{r} + \\mathbf{e}_1`}</Math>, note: 'Module-LWE de Bob' },
-              { step: 6, title: 'Segundo componente', formula: <Math>{`v = \\mathbf{t}^T \\mathbf{r} + e_2 + \\text{Encode}(m)`}</Math>, note: 'aquí entra el código corrector', highlight: true },
-              { step: 7, title: 'Comprime y envía', formula: <Math>{`c = \\text{Compress}(\\mathbf{u}, v)`}</Math>, note: 'aprovecha el margen del corrector' },
-            ].map((s) => (
-              <motion.li
-                key={s.step}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.4, delay: s.step * 0.04 }}
-                className={`flex gap-4 items-start p-4 rounded-xl ${
-                  s.highlight
-                    ? 'bg-quantum-violet/5 border border-quantum-violet/30'
-                    : 'border border-quantum-border/30'
-                }`}
-              >
-                <div className="font-mono font-bold text-2xl text-gradient-static shrink-0 w-10">
-                  {s.step}
-                </div>
-                <div className="flex-1">
-                  <div className="font-display font-semibold text-slate-100">{s.title}</div>
-                  <div className="my-2">{s.formula}</div>
-                  <div className="text-xs text-slate-400">{s.note}</div>
-                </div>
-              </motion.li>
-            ))}
-          </ol>
+        <PipelineDiagram
+          palette="violet"
+          nodes={[
+            { icon: <Dice5 size={16} />, label: 'mensaje m' },
+            { icon: <Hash size={16} />, label: '(K, r) = Hash(m, ...)' },
+            { icon: <Shuffle size={16} />, label: 'ruidos r, e₁, e₂' },
+            { icon: <Sigma size={16} />, label: 'u, v' },
+            { icon: <Send size={16} />, label: 'c · enviar' },
+          ]}
+        />
+
+        <p className="text-slate-300 max-w-3xl mb-8 mt-6 text-[16px] leading-relaxed">
+          Bob recibe la clave pública de Alice. Genera un mensaje aleatorio{' '}
+          <span className="font-mono">m</span>, lo codifica con el círculo{' '}
+          <Math>{`\\mathbb{Z}_q`}</Math> (bit 0 → 0, bit 1 → q/2) y lo esconde dentro de su
+          propia ecuación LWE. Lo que envía no son los datos en claro; es un{' '}
+          <strong className="text-quantum-violet">paquete cifrado</strong>{' '}
+          <span className="font-mono">(u, v)</span> que solo Alice sabrá abrir.
+        </p>
+
+        <div className="space-y-3">
+          {[
+            {
+              step: 1,
+              icon: <Dice5 size={16} />,
+              title: 'Genera el mensaje aleatorio',
+              plain: (
+                <>
+                  <strong>Solo 32 bytes</strong>. Esa <em>m</em> será la futura clave
+                  compartida — pero no se transmite tal cual.
+                </>
+              ),
+              formula: <Math>{`m \\xleftarrow{\\$} \\{0,1\\}^{256}`}</Math>,
+              produces: 'm',
+            },
+            {
+              step: 2,
+              icon: <Hash size={16} />,
+              title: 'Deriva clave y aleatoriedad (FO)',
+              plain: (
+                <>
+                  Bob no usa azar bruto para el cifrado; saca todo del hash de{' '}
+                  <span className="font-mono">m</span>. Eso permite que Alice{' '}
+                  <strong>reconstruya</strong> después los cálculos de Bob y verifique
+                  que no hubo manipulación.
+                </>
+              ),
+              formula: <Math>{`(K, r) = \\text{Hash}(m, \\text{Hash}(pk))`}</Math>,
+              produces: 'K (futura clave) · r (semilla del cifrado)',
+            },
+            {
+              step: 3,
+              icon: <Layers size={16} />,
+              title: 'Recupera la matriz A',
+              plain: (
+                <>
+                  La clave pública incluía <span className="font-mono">ρ</span>; Bob expande
+                  exactamente la misma <span className="font-mono">A</span> que generó
+                  Alice. Determinismo, no aleatoriedad.
+                </>
+              ),
+              formula: <Math>{`\\mathbf{A} \\leftarrow \\text{SHAKE-128}(\\rho)`}</Math>,
+              produces: 'A · pública',
+            },
+            {
+              step: 4,
+              icon: <Waves size={16} />,
+              title: 'Muestrea ruidos pequeños',
+              plain: (
+                <>
+                  De <span className="font-mono">r</span> salen tres vectores cercanos al
+                  cero: <span className="font-mono">r</span> (aleatoriedad del cifrado),
+                  <span className="font-mono"> e₁, e₂</span> (ruidos).
+                </>
+              ),
+              formula: <Math>{`\\mathbf{r}, \\mathbf{e}_1 \\sim B_{\\eta_1}, \\quad e_2 \\sim B_{\\eta_2}`}</Math>,
+              produces: 'r, e₁, e₂',
+            },
+            {
+              step: 5,
+              icon: <Sigma size={16} />,
+              title: 'Construye u · primera mitad del paquete',
+              plain: (
+                <>
+                  Una nueva ecuación LWE — esta vez, de Bob: la incógnita oculta es{' '}
+                  <span className="font-mono">r</span>, no <span className="font-mono">s</span>.
+                </>
+              ),
+              formula: <Math>{`\\mathbf{u} = \\mathbf{A}^T\\mathbf{r} + \\mathbf{e}_1`}</Math>,
+              produces: 'u',
+            },
+            {
+              step: 6,
+              icon: <Lock size={16} />,
+              title: 'Construye v · aquí se esconde el mensaje',
+              plain: (
+                <>
+                  El mensaje codificado se suma <em>encima</em> de una ecuación LWE más.
+                  Cuando Alice reste <span className="font-mono">sᵀ·u</span>, los trozos
+                  LWE se cancelarán y emergerá <span className="font-mono">Encode(m)</span>.
+                </>
+              ),
+              formula: <Math>{`v = \\mathbf{t}^T\\mathbf{r} + e_2 + \\text{Encode}(m)`}</Math>,
+              produces: 'v',
+              highlight: true,
+            },
+            {
+              step: 7,
+              icon: <Send size={16} />,
+              title: 'Comprime y envía el ciphertext',
+              plain: (
+                <>
+                  La compresión recorta bits poco significativos:{' '}
+                  <span className="font-mono">(u, v)</span> aún cabe en{' '}
+                  <strong>~1.088 bytes</strong> en ML-KEM-768.
+                </>
+              ),
+              formula: <Math>{`c = \\text{Compress}(\\mathbf{u}, v)`}</Math>,
+              produces: 'c · ciphertext',
+            },
+          ].map((s) => (
+            <StepCard key={s.step} palette="violet" {...s} />
+          ))}
         </div>
       </ScrollSection>
 
@@ -271,52 +606,141 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
           </>
         }
       >
+        <PipelineDiagram
+          palette="pink"
+          nodes={[
+            { icon: <Package size={16} />, label: 'ciphertext c' },
+            { icon: <Unlock size={16} />, label: 'w = v − sᵀ·u' },
+            { icon: <Sparkles size={16} />, label: 'Decode → m\'' },
+            { icon: <ShieldCheck size={16} />, label: 'verifica (FO)' },
+            { icon: <KeyRound size={16} />, label: 'clave K' },
+          ]}
+        />
+
+        <p className="text-slate-300 max-w-3xl mb-8 mt-6 text-[16px] leading-relaxed">
+          Alice recibe <span className="font-mono">c</span>. Su clave privada{' '}
+          <span className="font-mono">s</span> hace que los términos LWE de Bob se cancelen
+          exactamente al restar. Lo que queda es <em>casi</em>{' '}
+          <span className="font-mono">Encode(m)</span> — basta redondear cada coeficiente
+          al más cercano (0 ó q/2) para recuperar el mensaje. Luego, una verificación FO
+          comprueba que nadie ha tocado <span className="font-mono">c</span> por el camino.
+        </p>
+
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="card-quantum p-6">
-            <h4 className="font-display text-lg font-semibold text-quantum-cyan mb-4 flex items-center gap-2">
-              <Lock size={18} /> Fase 1 · Descifrar
-            </h4>
-            <ol className="space-y-3 text-sm">
-              <li className="flex gap-3">
-                <span className="font-mono text-slate-500">1</span>
-                <span><Math>{`\\text{Descomprime}(c) \\to (\\mathbf{u}, v)`}</Math></span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-mono text-slate-500">2</span>
-                <span>
-                  <Math>{`w = v - \\mathbf{s}^T \\mathbf{u}`}</Math> · CVP con base buena
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-mono text-slate-500">3</span>
-                <span>
-                  <Math>{`m' = \\text{Decode}(w)`}</Math> · usa código corrector
-                </span>
-              </li>
-            </ol>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-2 rounded-lg bg-quantum-cyan/10 text-quantum-cyan">
+                <Unlock size={16} />
+              </div>
+              <h4 className="font-display text-lg font-semibold text-quantum-cyan">
+                Fase 1 · Descifrar
+              </h4>
+            </div>
+            {[
+              {
+                step: 1,
+                icon: <Package size={16} />,
+                title: 'Descomprime el ciphertext',
+                plain: 'Recupera los dos componentes (u, v) tal como los envió Bob.',
+                formula: <Math>{`\\text{Decompress}(c) \\to (\\mathbf{u}, v)`}</Math>,
+                produces: '(u, v)',
+              },
+              {
+                step: 2,
+                icon: <Sigma size={16} />,
+                title: 'Cancela el ruido LWE de Bob',
+                plain: (
+                  <>
+                    Resta <span className="font-mono">sᵀ·u</span> de{' '}
+                    <span className="font-mono">v</span>: los términos{' '}
+                    <span className="font-mono">sᵀ·Aᵀ·r</span> se anulan exactamente.
+                    Queda <span className="font-mono">Encode(m) + ruido</span> pequeño.
+                    Geométricamente es un <strong>CVP</strong> resoluble con la base
+                    buena (s).
+                  </>
+                ),
+                formula: <Math>{`w = v - \\mathbf{s}^T \\mathbf{u}`}</Math>,
+                produces: 'w (ruidoso)',
+                highlight: true,
+              },
+              {
+                step: 3,
+                icon: <Sparkles size={16} />,
+                title: 'Decodifica con el código corrector',
+                plain: (
+                  <>
+                    Cada coeficiente se redondea al más cercano entre 0 y q/2. Si el ruido
+                    es menor que q/4 (que lo es con probabilidad 1 − 2⁻¹⁶⁴), se recupera
+                    el bit original.
+                  </>
+                ),
+                formula: <Math>{`m' = \\text{Decode}(w)`}</Math>,
+                produces: "m'",
+              },
+            ].map((s) => (
+              <StepCard key={s.step} palette="cyan" compact {...s} />
+            ))}
           </div>
 
-          <div className="card-quantum p-6 glow-violet">
-            <h4 className="font-display text-lg font-semibold text-quantum-violet mb-4 flex items-center gap-2">
-              <ShieldCheck size={18} /> Fase 2 · Verificar (FO)
-            </h4>
-            <ol className="space-y-3 text-sm">
-              <li className="flex gap-3">
-                <span className="font-mono text-slate-500">4</span>
-                <span><Math>{`(K', r') = \\text{Hash}(m', \\text{Hash}(pk))`}</Math></span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-mono text-slate-500">5</span>
-                <span>Recifra: <Math>{`c' = \\text{Encrypt}(pk, m', r')`}</Math></span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-mono text-slate-500">6</span>
-                <span>
-                  <Math>{`c \\stackrel{?}{=} c'`}</Math>: si sí, <span className="text-quantum-mint">K = K'</span>; si no,{' '}
-                  <span className="text-quantum-rose">K = Hash(z, c)</span>.
-                </span>
-              </li>
-            </ol>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-2 rounded-lg bg-quantum-violet/10 text-quantum-violet">
+                <ShieldCheck size={16} />
+              </div>
+              <h4 className="font-display text-lg font-semibold text-quantum-violet">
+                Fase 2 · Verificar (FO)
+              </h4>
+            </div>
+            {[
+              {
+                step: 4,
+                icon: <Hash size={16} />,
+                title: 'Re-deriva la aleatoriedad de Bob',
+                plain: (
+                  <>
+                    Como Bob obtuvo <span className="font-mono">r</span> de{' '}
+                    <span className="font-mono">Hash(m)</span>, Alice — que ya tiene{' '}
+                    <span className="font-mono">m'</span> — puede recalcular el mismo{' '}
+                    <span className="font-mono">r'</span> y la misma clave{' '}
+                    <span className="font-mono">K'</span>.
+                  </>
+                ),
+                formula: <Math>{`(K', r') = \\text{Hash}(m', \\text{Hash}(pk))`}</Math>,
+                produces: "K', r'",
+              },
+              {
+                step: 5,
+                icon: <Lock size={16} />,
+                title: 'Recifra desde cero',
+                plain: (
+                  <>
+                    Con <span className="font-mono">m'</span> y{' '}
+                    <span className="font-mono">r'</span>, Alice repite literalmente el
+                    Encaps. Obtiene un <span className="font-mono">c'</span> propio.
+                  </>
+                ),
+                formula: <Math>{`c' = \\text{Encrypt}(pk, m', r')`}</Math>,
+                produces: "c'",
+              },
+              {
+                step: 6,
+                icon: <CheckCircle2 size={16} />,
+                title: 'Compara c y c\'',
+                plain: (
+                  <>
+                    Si coinciden, el ciphertext era genuino → la clave es{' '}
+                    <span className="text-quantum-mint">K = K'</span>. Si no, devuelve una
+                    clave falsa Hash(z, c){' '}
+                    <em>indistinguible</em> de una real (rechazo implícito).
+                  </>
+                ),
+                formula: <Math>{`c \\stackrel{?}{=} c'`}</Math>,
+                produces: 'K real o K falsa',
+                highlight: true,
+              },
+            ].map((s) => (
+              <StepCard key={s.step} palette="violet" compact {...s} />
+            ))}
           </div>
         </div>
       </ScrollSection>
@@ -440,6 +864,8 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
       </ScrollSection>
 
       <QuickQuiz
+        quizId="mlkem-test"
+        routeId="mlkem"
         title="Test de comprensión ML-KEM"
         questions={[
           {
@@ -535,6 +961,17 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
             Volver a aplicaciones
           </button>
         </div>
+      </ScrollSection>
+
+      <ScrollSection
+        eyebrow="Cierre"
+        title={<>Tu <span className="text-gradient-static">progreso</span></>}
+      >
+        <p className="text-slate-400 mb-6 text-[15px] max-w-2xl">
+          Cada vez que has completado un cuestionario durante el recorrido, hemos guardado
+          tu puntuación. Este es el balance global.
+        </p>
+        <QuizSummary />
       </ScrollSection>
 
       <FeedbackForm routeId="mlkem" routeName="ML-KEM y el simulador" />

@@ -3,16 +3,19 @@ import { useEffect, useRef, useState } from 'react';
 interface LatticeVizProps {
   goodBasis?: boolean;
   showTarget?: boolean;
+  showShortest?: boolean;
   size?: number;
 }
 
 const LatticeViz: React.FC<LatticeVizProps> = ({
   goodBasis = true,
   showTarget = false,
+  showShortest = false,
   size = 360,
 }) => {
   const ref = useRef<HTMLCanvasElement | null>(null);
   const [target, setTarget] = useState<{ x: number; y: number } | null>(null);
+  const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
 
   const goodB1 = { x: 50, y: 0 };
   const goodB2 = { x: 0, y: 50 };
@@ -21,6 +24,20 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
 
   const b1 = goodBasis ? goodB1 : badB1;
   const b2 = goodBasis ? goodB2 : badB2;
+
+  // pulse animation for unhinted CVP
+  const [pulseT, setPulseT] = useState(0);
+  useEffect(() => {
+    if (!showTarget || target) return;
+    let raf = 0;
+    const start = performance.now();
+    const loop = (now: number) => {
+      setPulseT((now - start) / 1000);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [showTarget, target]);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -108,6 +125,85 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
     drawArrow(b1.x, b1.y, '#f472b6');
     drawArrow(b2.x, b2.y, '#a78bfa');
 
+    // SVP: highlight shortest non-zero lattice vector
+    if (showShortest) {
+      // find shortest among all visible non-zero points
+      let bestPt: typeof pts[number] | null = null;
+      let bestD = Infinity;
+      for (const p of pts) {
+        if (p.ix === 0 && p.iy === 0) continue;
+        const d = (p.px - cx) ** 2 + (p.py - cy) ** 2;
+        if (d < bestD) {
+          bestD = d;
+          bestPt = p;
+        }
+      }
+      if (bestPt) {
+        // shortest vector arrow in mint
+        ctx.strokeStyle = '#34d399';
+        ctx.fillStyle = '#34d399';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = 'rgba(52,211,153,0.8)';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(bestPt.px, bestPt.py);
+        ctx.stroke();
+        const ang = Math.atan2(bestPt.py - cy, bestPt.px - cx);
+        const ah = 9;
+        ctx.beginPath();
+        ctx.moveTo(bestPt.px, bestPt.py);
+        ctx.lineTo(bestPt.px - ah * Math.cos(ang - Math.PI / 6), bestPt.py - ah * Math.sin(ang - Math.PI / 6));
+        ctx.lineTo(bestPt.px - ah * Math.cos(ang + Math.PI / 6), bestPt.py - ah * Math.sin(ang + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // circle around target point
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(bestPt.px, bestPt.py, 10, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // distance label
+        const midX = (cx + bestPt.px) / 2;
+        const midY = (cy + bestPt.py) / 2;
+        ctx.fillStyle = '#34d399';
+        ctx.font = 'bold 12px JetBrains Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const dist = Math.sqrt(bestD).toFixed(0);
+        ctx.fillText(`λ₁ = ${dist}`, midX + 14, midY - 10);
+      }
+    }
+
+    // CVP: pulsing hint when no target is set
+    if (showTarget && !target) {
+      const pulse = 0.35 + 0.25 * Math.sin(pulseT * 2.4);
+      // outer pulsing ring at canvas center
+      const hintX = size * 0.7;
+      const hintY = size * 0.3;
+      ctx.strokeStyle = `rgba(251, 191, 36, ${pulse})`;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.arc(hintX, hintY, 18 + pulse * 6, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // crosshair at hint
+      ctx.strokeStyle = `rgba(251, 191, 36, ${pulse + 0.2})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(hintX - 9, hintY);
+      ctx.lineTo(hintX + 9, hintY);
+      ctx.moveTo(hintX, hintY - 9);
+      ctx.lineTo(hintX, hintY + 9);
+      ctx.stroke();
+
+    }
+
     if (target && showTarget) {
       // target dot
       ctx.beginPath();
@@ -143,7 +239,15 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
       ctx.arc(best.px, best.py, 7, 0, Math.PI * 2);
       ctx.stroke();
     }
-  }, [b1.x, b1.y, b2.x, b2.y, size, target, showTarget]);
+
+    // hover preview when showTarget but no target yet
+    if (showTarget && hover && !target) {
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.55)';
+      ctx.beginPath();
+      ctx.arc(hover.x, hover.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }, [b1.x, b1.y, b2.x, b2.y, size, target, showTarget, showShortest, pulseT, hover]);
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!showTarget) return;
@@ -152,17 +256,51 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
   };
 
   return (
-    <div className="inline-block">
-      <canvas
-        ref={ref}
-        onClick={handleClick}
-        className={`rounded-xl border border-quantum-border bg-quantum-panel/40 ${
-          showTarget ? 'cursor-crosshair' : ''
-        }`}
-      />
+    <div className="flex flex-col items-center">
+      <div className="relative">
+        <canvas
+          ref={ref}
+          onClick={handleClick}
+          onMouseLeave={() => setHover(null)}
+          className={`rounded-xl border bg-quantum-panel/40 transition-colors ${
+            showTarget
+              ? `cursor-crosshair ${
+                  target
+                    ? 'border-quantum-amber/40'
+                    : 'border-quantum-amber/70 shadow-[0_0_24px_rgba(251,191,36,0.25)]'
+                }`
+              : 'border-quantum-border'
+          }`}
+        />
+        {showTarget && target && (
+          <button
+            type="button"
+            onClick={() => setTarget(null)}
+            className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-quantum-panel/80 border border-quantum-border text-[10px] text-slate-300 hover:text-quantum-amber hover:border-quantum-amber/60 transition-colors"
+          >
+            Reiniciar punto
+          </button>
+        )}
+      </div>
       {showTarget && (
         <p className="mt-2 text-xs text-slate-400 text-center">
-          Haz clic en cualquier punto del lienzo · busca el vértice del retículo más cercano
+          {target ? (
+            <>
+              <span className="text-quantum-amber">●</span> es el punto objetivo;{' '}
+              <span className="text-quantum-amber">○</span> el vértice del retículo más cercano.
+            </>
+          ) : (
+            <>
+              <span className="text-quantum-amber font-semibold">Haz clic</span> en cualquier
+              parte para colocar un punto objetivo · te marcamos el vértice más cercano.
+            </>
+          )}
+        </p>
+      )}
+      {showShortest && !showTarget && (
+        <p className="mt-2 text-xs text-slate-400 text-center">
+          La flecha <span className="text-quantum-mint font-semibold">verde</span> es el
+          vector no nulo más corto del retículo · su norma es λ₁.
         </p>
       )}
     </div>

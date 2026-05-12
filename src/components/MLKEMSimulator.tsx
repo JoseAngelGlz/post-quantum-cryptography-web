@@ -1,28 +1,29 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  ArrowRight,
   ChevronDown,
   ChevronRight,
   Eye,
   KeyRound,
+  Lightbulb,
   Lock,
+  Mail,
   RefreshCw,
-  Send,
   ShieldAlert,
+  Sparkles,
   Unlock,
 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════
-   Baby-Kyber  –  q = 23, n = 2
-   q=23 guarantees correct decryption with small noise (max ±5 < q/4 ≈ 5.75)
-   so the demo always works. Security is shown via "spy mode" instead.
+   Baby-Kyber  –  q = 23, n = 2 (didactic parameters)
+   Real ML-KEM uses n = 256, k ∈ {2,3,4}, q = 3329
    ═══════════════════════════════════════════════════════════════ */
 
 const Q = 23;
 const N = 2;
-const HALF_Q = Math.floor(Q / 2); // 11
+const HALF_Q = Math.floor(Q / 2);
 
-/* ─── Types ──────────────────────────────────────── */
 type Matrix = number[][];
 type Vector = number[];
 
@@ -44,8 +45,7 @@ interface Cipher {
 /* ─── Math helpers ───────────────────────────────── */
 const mod = (v: number, q: number): number => ((v % q) + q) % q;
 
-const transpose = (m: Matrix): Matrix =>
-  m[0].map((_, c) => m.map((r) => r[c]));
+const transpose = (m: Matrix): Matrix => m[0].map((_, c) => m.map((r) => r[c]));
 
 const matVecMul = (m: Matrix, v: Vector, q: number): Vector =>
   m.map((row) => mod(row.reduce((s, val, i) => s + val * v[i], 0), q));
@@ -69,121 +69,255 @@ const randomSmallVec = (size: number, amp: number): Vector =>
 
 const toMod = (v: Vector, q: number): Vector => v.map((x) => mod(x, q));
 
+const distMod = (x: number, target: number) => {
+  const d = Math.abs(mod(x, Q) - target);
+  return Math.min(d, Q - d);
+};
+
 const threshold = (value: number): number => {
-  const dHalf = Math.min(
-    Math.abs(value - HALF_Q),
-    Q - Math.abs(value - HALF_Q),
-  );
-  const dZero = Math.min(value, Q - value);
+  const dHalf = distMod(value, HALF_Q);
+  const dZero = distMod(value, 0);
   return dHalf < dZero ? HALF_Q : 0;
 };
 
-/* ─── Secret definitions (emojis) ────────────────── */
-const SECRETS = [
-  { emoji: '🔑', label: 'Llave', bits: [0, 0] as Vector, hue: 45 },
-  { emoji: '⭐', label: 'Estrella', bits: [0, HALF_Q] as Vector, hue: 210 },
-  { emoji: '❤️', label: 'Corazón', bits: [HALF_Q, 0] as Vector, hue: 0 },
-  { emoji: '🎵', label: 'Música', bits: [HALF_Q, HALF_Q] as Vector, hue: 280 },
+/* ─── Secrets ────────────────────────────────────── */
+type ShapeKind = 'circle' | 'hexagon' | 'triangle' | 'diamond';
+
+const SECRETS: {
+  shape: ShapeKind;
+  label: string;
+  bits: Vector;
+  palette: 'cyan' | 'blue' | 'pink' | 'violet';
+}[] = [
+  { shape: 'circle', label: 'Círculo', bits: [0, 0], palette: 'cyan' },
+  { shape: 'hexagon', label: 'Hexágono', bits: [0, HALF_Q], palette: 'blue' },
+  { shape: 'triangle', label: 'Triángulo', bits: [HALF_Q, 0], palette: 'pink' },
+  { shape: 'diamond', label: 'Rombo', bits: [HALF_Q, HALF_Q], palette: 'violet' },
 ];
 
 const bitsToSecretIdx = (bits: Vector): number =>
   SECRETS.findIndex((s) => s.bits[0] === bits[0] && s.bits[1] === bits[1]);
 
 /* ═══════════════════════════════════════════════════
-   Sub-components
+   UI primitives
    ═══════════════════════════════════════════════════ */
 
-/** Single heatmap cell with color intensity based on value */
-const HeatCell = ({
-  value,
-  hue,
-  delay = 0,
-}: {
-  value: number;
-  hue: number;
-  delay?: number;
-}) => {
-  const lightness = 88 - (mod(value, Q) / (Q - 1)) * 42;
+type Palette = 'cyan' | 'violet' | 'pink' | 'mint' | 'amber' | 'rose' | 'blue';
+
+const paletteHex: Record<Palette, string> = {
+  cyan: '#5eead4',
+  violet: '#a78bfa',
+  pink: '#f472b6',
+  mint: '#34d399',
+  amber: '#fbbf24',
+  rose: '#fb7185',
+  blue: '#60a5fa',
+};
+
+const Shape: React.FC<{
+  kind: ShapeKind;
+  palette: Palette;
+  size?: number;
+  glow?: boolean;
+}> = ({ kind, palette, size = 48, glow = true }) => {
+  const hex = paletteHex[palette];
+  const filterId = `glow-${palette}-${kind}`;
+  const stroke = hex;
+  const fill = `${hex}33`;
+
+  const shapeNode = (() => {
+    const half = 50;
+    const r = 38;
+    switch (kind) {
+      case 'circle':
+        return (
+          <circle
+            cx={half}
+            cy={half}
+            r={r}
+            fill={fill}
+            stroke={stroke}
+            strokeWidth={5}
+          />
+        );
+      case 'hexagon': {
+        const pts = [0, 1, 2, 3, 4, 5]
+          .map((i) => {
+            const angle = (Math.PI / 3) * i - Math.PI / 2;
+            return `${half + r * Math.cos(angle)},${half + r * Math.sin(angle)}`;
+          })
+          .join(' ');
+        return (
+          <polygon
+            points={pts}
+            fill={fill}
+            stroke={stroke}
+            strokeWidth={5}
+            strokeLinejoin="round"
+          />
+        );
+      }
+      case 'triangle': {
+        const pts = [0, 1, 2]
+          .map((i) => {
+            const angle = (2 * Math.PI * i) / 3 - Math.PI / 2;
+            return `${half + r * Math.cos(angle)},${half + r * Math.sin(angle)}`;
+          })
+          .join(' ');
+        return (
+          <polygon
+            points={pts}
+            fill={fill}
+            stroke={stroke}
+            strokeWidth={5}
+            strokeLinejoin="round"
+          />
+        );
+      }
+      case 'diamond':
+        return (
+          <polygon
+            points={`${half},${half - r} ${half + r},${half} ${half},${half + r} ${half - r},${half}`}
+            fill={fill}
+            stroke={stroke}
+            strokeWidth={5}
+            strokeLinejoin="round"
+          />
+        );
+    }
+  })();
+
   return (
-    <motion.div
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ delay, type: 'spring', stiffness: 300, damping: 20 }}
-      className="w-11 h-11 rounded-lg flex items-center justify-center font-mono text-xs font-bold border border-black/10 dark:border-white/10"
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
       style={{
-        backgroundColor: `hsl(${hue}, 65%, ${lightness}%)`,
-        color: lightness < 62 ? 'white' : '#1e293b',
+        filter: glow ? `drop-shadow(0 0 6px ${hex}99)` : undefined,
       }}
     >
-      {value}
-    </motion.div>
+      <defs>
+        <linearGradient id={filterId} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={`${hex}66`} />
+          <stop offset="100%" stopColor={`${hex}22`} />
+        </linearGradient>
+      </defs>
+      {shapeNode}
+    </svg>
   );
 };
 
-/** Matrix displayed as heatmap grid */
+const HeatCell = ({
+  value,
+  palette,
+  delay = 0,
+  size = 38,
+  label,
+}: {
+  value: number;
+  palette: Palette;
+  delay?: number;
+  size?: number;
+  label?: string;
+}) => {
+  const intensity = mod(value, Q) / (Q - 1);
+  const hex = paletteHex[palette];
+  return (
+    <div className="flex flex-col items-center gap-0.5">
+      <motion.div
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay, type: 'spring', stiffness: 280, damping: 22 }}
+        className="rounded-lg flex items-center justify-center font-mono text-xs font-bold border border-white/5"
+        style={{
+          width: size,
+          height: size,
+          background: `linear-gradient(135deg, ${hex}33 0%, ${hex}${(
+            0x55 +
+            Math.floor(intensity * 0x88)
+          ).toString(16).padStart(2, '0')} 100%)`,
+          color: intensity > 0.55 ? '#05060f' : hex,
+          boxShadow: `0 0 ${4 + intensity * 10}px ${hex}55`,
+        }}
+      >
+        {value}
+      </motion.div>
+      {label && (
+        <span className="text-[9px] text-slate-500 font-mono">{label}</span>
+      )}
+    </div>
+  );
+};
+
 const MatrixHeatmap = ({
   label,
   matrix,
-  hue,
+  palette,
 }: {
   label: string;
   matrix: Matrix;
-  hue: number;
+  palette: Palette;
 }) => (
   <div className="text-center space-y-1.5">
-    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+    <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
       {label}
     </p>
-    <div className="inline-grid grid-cols-2 gap-1">
+    <div className="inline-grid grid-cols-2 gap-1 p-1.5 rounded-xl bg-quantum-panel2/60 border border-quantum-border/60">
       {matrix.flat().map((v, i) => (
-        <HeatCell key={i} value={mod(v, Q)} hue={hue} delay={i * 0.07} />
+        <HeatCell key={i} value={mod(v, Q)} palette={palette} delay={i * 0.06} />
       ))}
     </div>
   </div>
 );
 
-/** Vector displayed as heatmap row */
 const VectorHeat = ({
   label,
   vector,
-  hue,
+  palette,
   baseDelay = 0,
 }: {
   label: string;
   vector: Vector;
-  hue: number;
+  palette: Palette;
   baseDelay?: number;
 }) => (
   <div className="text-center space-y-1.5">
-    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+    <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
       {label}
     </p>
-    <div className="inline-flex gap-1">
+    <div className="inline-flex gap-1 p-1.5 rounded-xl bg-quantum-panel2/60 border border-quantum-border/60">
       {vector.map((v, i) => (
         <HeatCell
           key={i}
           value={mod(v, Q)}
-          hue={hue}
-          delay={baseDelay + i * 0.07}
+          palette={palette}
+          delay={baseDelay + i * 0.06}
         />
       ))}
     </div>
   </div>
 );
 
-/** Expandable math detail */
+const MathOp = ({ children }: { children: React.ReactNode }) => (
+  <span className="text-xl md:text-2xl font-display font-bold text-slate-500 px-1">
+    {children}
+  </span>
+);
+
 const MathDetail = ({ children }: { children: React.ReactNode }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-600">
+    <div className="rounded-xl border border-dashed border-quantum-border bg-quantum-panel/30">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition"
+        className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-slate-400 hover:text-quantum-cyan transition"
       >
-        <Eye size={14} />
+        <Eye size={13} />
         {open ? 'Ocultar detalle matemático' : 'Ver detalle matemático'}
-        {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        <span className="ml-auto">
+          {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+        </span>
       </button>
       <AnimatePresence>
         {open && (
@@ -194,7 +328,7 @@ const MathDetail = ({ children }: { children: React.ReactNode }) => {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-3 pb-3 text-xs text-slate-600 dark:text-slate-300 space-y-1 font-mono">
+            <div className="px-4 pb-3 text-xs text-slate-300 space-y-1 font-mono">
               {children}
             </div>
           </motion.div>
@@ -204,23 +338,200 @@ const MathDetail = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-/** Character avatar badge */
 const Avatar = ({
   name,
   emoji,
-  color,
+  palette,
 }: {
   name: string;
   emoji: string;
-  color: string;
-}) => (
-  <div className="flex items-center gap-2">
-    <div
-      className={`w-9 h-9 rounded-full flex items-center justify-center text-lg ${color}`}
-    >
-      {emoji}
+  palette: Palette;
+}) => {
+  const hex = paletteHex[palette];
+  return (
+    <div className="flex items-center gap-2.5">
+      <div
+        className="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-inner border"
+        style={{
+          background: `linear-gradient(135deg, ${hex}22, ${hex}55)`,
+          borderColor: `${hex}66`,
+        }}
+      >
+        {emoji}
+      </div>
+      <span className="text-sm font-display font-semibold text-slate-100">
+        {name}
+      </span>
     </div>
-    <span className="text-sm font-bold">{name}</span>
+  );
+};
+
+const SectionShell: React.FC<{
+  children: React.ReactNode;
+  glow?: 'cyan' | 'violet' | 'pink';
+}> = ({ children, glow }) => (
+  <div
+    className={`relative rounded-2xl border border-quantum-border bg-quantum-panel/60 p-5 md:p-7 backdrop-blur-sm overflow-hidden ${
+      glow === 'cyan' ? 'glow-cyan' : glow === 'violet' ? 'glow-violet' : glow === 'pink' ? 'glow-pink' : ''
+    }`}
+  >
+    <div className="absolute inset-0 pointer-events-none opacity-50 bg-gradient-to-br from-quantum-cyan/5 via-transparent to-quantum-violet/5" />
+    <div className="relative">{children}</div>
+  </div>
+);
+
+/* ═══════════════════════════════════════════════════
+   Concepts in play — connects each phase to the theory
+   ═══════════════════════════════════════════════════ */
+
+interface Concept {
+  name: string;
+  kind: 'Fundamento' | 'Aplicación';
+  palette: Palette;
+  why: string;
+}
+
+const ConceptCard: React.FC<{ concept: Concept; index: number }> = ({
+  concept,
+  index,
+}) => {
+  const hex = paletteHex[concept.palette];
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.1 + index * 0.08 }}
+      className="rounded-xl border p-3 space-y-1.5"
+      style={{
+        background: `linear-gradient(135deg, ${hex}10, transparent)`,
+        borderColor: `${hex}40`,
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <span
+          className="text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
+          style={{ borderColor: `${hex}55`, color: hex }}
+        >
+          {concept.kind}
+        </span>
+        <h5
+          className="font-display font-semibold text-sm leading-tight"
+          style={{ color: hex }}
+        >
+          {concept.name}
+        </h5>
+      </div>
+      <p className="text-xs text-slate-300 leading-relaxed">{concept.why}</p>
+    </motion.div>
+  );
+};
+
+const ConceptsPanel: React.FC<{ concepts: Concept[]; title?: string }> = ({
+  concepts,
+  title = 'Conceptos en juego',
+}) => (
+  <div className="rounded-2xl border border-quantum-border bg-quantum-panel2/30 p-4 space-y-3 h-full">
+    <div className="flex items-center gap-2">
+      <div className="p-1.5 rounded-md bg-quantum-amber/15 text-quantum-amber">
+        <Lightbulb size={14} />
+      </div>
+      <h4 className="font-display font-semibold text-sm text-slate-100">
+        {title}
+      </h4>
+    </div>
+    <div className="space-y-2">
+      {concepts.map((c, i) => (
+        <ConceptCard key={c.name} concept={c} index={i} />
+      ))}
+    </div>
+  </div>
+);
+
+const IntuitionBox: React.FC<{
+  title: string;
+  children: React.ReactNode;
+  palette?: Palette;
+}> = ({ title, children, palette = 'cyan' }) => {
+  const hex = paletteHex[palette];
+  return (
+    <div
+      className="rounded-xl border p-3.5 flex gap-3 items-start"
+      style={{
+        background: `linear-gradient(135deg, ${hex}0d, transparent)`,
+        borderColor: `${hex}33`,
+      }}
+    >
+      <div
+        className="shrink-0 mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center"
+        style={{ background: `${hex}1f`, color: hex }}
+      >
+        <Sparkles size={14} />
+      </div>
+      <div>
+        <p className="text-[10px] font-mono uppercase tracking-widest mb-0.5" style={{ color: hex }}>
+          {title}
+        </p>
+        <p className="text-sm text-slate-200 leading-relaxed">{children}</p>
+      </div>
+    </div>
+  );
+};
+
+/* Step list with bullets so the user sees the chronological flow */
+const StepList: React.FC<{
+  steps: { title: React.ReactNode; desc: React.ReactNode }[];
+  palette?: Palette;
+}> = ({ steps, palette = 'cyan' }) => {
+  const hex = paletteHex[palette];
+  return (
+    <ol className="space-y-2">
+      {steps.map((s, i) => (
+        <li key={i} className="flex gap-3 items-start">
+          <span
+            className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-mono font-bold border"
+            style={{ borderColor: `${hex}55`, color: hex, background: `${hex}10` }}
+          >
+            {i + 1}
+          </span>
+          <div className="flex-1 pt-0.5">
+            <span className="text-sm font-display font-semibold text-slate-100">
+              {s.title}
+            </span>
+            <div className="text-xs text-slate-300 leading-relaxed mt-0.5">{s.desc}</div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+};
+
+/* Visual showing the encoding circle Z_q (used in Encaps) */
+const EncodingMini: React.FC = () => (
+  <div className="rounded-xl border border-quantum-border bg-quantum-panel2/40 p-3">
+    <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400 mb-2 text-center">
+      Cómo se codifica cada bit
+    </p>
+    <div className="flex items-center justify-around text-xs">
+      <div className="flex flex-col items-center gap-1">
+        <div className="w-9 h-9 rounded-full border-2 border-quantum-cyan text-quantum-cyan flex items-center justify-center font-mono font-bold">
+          0
+        </div>
+        <span className="text-quantum-cyan font-mono text-[10px]">bit 0 → 0</span>
+      </div>
+      <ArrowRight size={14} className="text-slate-500" />
+      <div className="flex flex-col items-center gap-1">
+        <div className="w-9 h-9 rounded-full border-2 border-quantum-pink text-quantum-pink flex items-center justify-center font-mono font-bold">
+          {HALF_Q}
+        </div>
+        <span className="text-quantum-pink font-mono text-[10px]">
+          bit 1 → q/2 = {HALF_Q}
+        </span>
+      </div>
+    </div>
+    <p className="text-[10px] text-slate-500 text-center mt-2 leading-tight">
+      Si el ruido residual es &lt; q/4 ≈ {Math.floor(Q / 4)}, el código recupera el bit
+      correcto.
+    </p>
   </div>
 );
 
@@ -229,29 +540,114 @@ const Avatar = ({
    ═══════════════════════════════════════════════════ */
 type Phase = 'intro' | 'keygen' | 'encaps' | 'decaps' | 'result';
 
-const PHASES: { id: Phase; label: string; icon: typeof KeyRound }[] = [
-  { id: 'intro', label: 'Inicio', icon: Eye },
-  { id: 'keygen', label: 'Generación', icon: KeyRound },
-  { id: 'encaps', label: 'Encapsulado', icon: Lock },
-  { id: 'decaps', label: 'Desencapsulado', icon: Unlock },
-  { id: 'result', label: 'Resultado', icon: ShieldAlert },
+const PHASES: { id: Phase; label: string; icon: typeof KeyRound; palette: Palette }[] = [
+  { id: 'intro', label: 'Inicio', icon: Sparkles, palette: 'cyan' },
+  { id: 'keygen', label: 'KeyGen', icon: KeyRound, palette: 'cyan' },
+  { id: 'encaps', label: 'Encaps', icon: Lock, palette: 'violet' },
+  { id: 'decaps', label: 'Decaps', icon: Unlock, palette: 'mint' },
+  { id: 'result', label: 'Resultado', icon: ShieldAlert, palette: 'pink' },
+];
+
+/* Concepts per phase */
+const KEYGEN_CONCEPTS: Concept[] = [
+  {
+    name: 'Module-LWE',
+    kind: 'Fundamento',
+    palette: 'cyan',
+    why: 'La ecuación t = A·s + e es exactamente el problema LWE. El ruido e oculta el secreto s aunque A y t sean públicos.',
+  },
+  {
+    name: 'Retículos',
+    kind: 'Fundamento',
+    palette: 'violet',
+    why: 'La matriz A define un retículo. Alice conoce una base buena (s pequeña); cualquiera más solo verá la "base mala" pública.',
+  },
+  {
+    name: 'Anillo R_q',
+    kind: 'Fundamento',
+    palette: 'pink',
+    why: 'Todo se hace módulo q. Esto evita que los números crezcan sin control y permite a los números "envolver" al cruzar q.',
+  },
+];
+
+const ENCAPS_CONCEPTS: Concept[] = [
+  {
+    name: 'Module-LWE (de Bob)',
+    kind: 'Fundamento',
+    palette: 'violet',
+    why: 'Bob crea su propia muestra LWE: u = Aᵀ·r + e₁. La aleatoriedad r y el ruido e₁ esconden sus cálculos.',
+  },
+  {
+    name: 'Código corrector',
+    kind: 'Fundamento',
+    palette: 'pink',
+    why: 'Cada bit del mensaje se codifica como 0 ó q/2. Esta distancia q/2 deja margen para que el ruido no rompa el descifrado.',
+  },
+  {
+    name: 'Hashes (omitido aquí)',
+    kind: 'Aplicación',
+    palette: 'amber',
+    why: 'En ML-KEM real, r = Hash(m) (Fujisaki-Okamoto). Eso permite a Alice verificar que el ciphertext no se manipuló.',
+  },
+];
+
+const DECAPS_CONCEPTS: Concept[] = [
+  {
+    name: 'Cancelación matemática',
+    kind: 'Fundamento',
+    palette: 'mint',
+    why: 'Al calcular v − sᵀ·u, los términos sᵀ·Aᵀ·r se cancelan exactamente. Queda Encode(m) + un ruido pequeño.',
+  },
+  {
+    name: 'CVP con base buena',
+    kind: 'Fundamento',
+    palette: 'cyan',
+    why: 'Decodificar es resolver CVP: encontrar el punto del retículo más cercano. Con la clave s (base buena) es trivial.',
+  },
+  {
+    name: 'Código corrector',
+    kind: 'Fundamento',
+    palette: 'pink',
+    why: 'Decode redondea cada coeficiente al más cercano entre 0 y q/2. Como el ruido es &lt; q/4, el redondeo acierta.',
+  },
+];
+
+const SPY_CONCEPTS: Concept[] = [
+  {
+    name: 'LWE difícil',
+    kind: 'Fundamento',
+    palette: 'rose',
+    why: 'Eva ve (A, t) pero no s. Para recuperar s necesita resolver LWE, algo que ni un ordenador cuántico sabe hacer.',
+  },
+  {
+    name: 'Base mala',
+    kind: 'Fundamento',
+    palette: 'amber',
+    why: 'Sin s, Eva sólo dispone de la base mala del retículo. Resolver CVP con base mala es astronómicamente caro.',
+  },
 ];
 
 /* ═══════════════════════════════════════════════════
    Main Component
    ═══════════════════════════════════════════════════ */
 const MLKEMSimulator: React.FC = () => {
+  const containerRef = useRef<HTMLElement>(null);
   const [phase, setPhase] = useState<Phase>('intro');
   const [keyPair, setKeyPair] = useState<KeyPair | null>(null);
   const [selectedSecret, setSelectedSecret] = useState(0);
   const [cipher, setCipher] = useState<Cipher | null>(null);
   const [message, setMessage] = useState<Vector | null>(null);
   const [decryptedBits, setDecryptedBits] = useState<Vector | null>(null);
+  const [intermediateW, setIntermediateW] = useState<Vector | null>(null);
   const [showDecrypt, setShowDecrypt] = useState(false);
   const [spyBits, setSpyBits] = useState<Vector | null>(null);
   const [spyKey, setSpyKey] = useState<Vector | null>(null);
 
   const phaseIdx = PHASES.findIndex((p) => p.id === phase);
+
+  useEffect(() => {
+    containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [phase]);
 
   /* ── Handlers ──────────────────────────────────── */
 
@@ -264,6 +660,7 @@ const MLKEMSimulator: React.FC = () => {
     setCipher(null);
     setMessage(null);
     setDecryptedBits(null);
+    setIntermediateW(null);
     setShowDecrypt(false);
     setSpyBits(null);
   };
@@ -284,6 +681,7 @@ const MLKEMSimulator: React.FC = () => {
     setCipher({ u, v, r, e1, e2 });
     setMessage(m);
     setDecryptedBits(null);
+    setIntermediateW(null);
     setShowDecrypt(false);
     setSpyBits(null);
   };
@@ -292,6 +690,7 @@ const MLKEMSimulator: React.FC = () => {
     if (!keyPair || !cipher) return;
     const sDotU = mod(dot(toMod(keyPair.s, Q), cipher.u), Q);
     const raw = cipher.v.map((vi) => mod(vi - sDotU, Q));
+    setIntermediateW(raw);
     setDecryptedBits(raw.map((v) => threshold(v)));
     setShowDecrypt(true);
   };
@@ -315,6 +714,7 @@ const MLKEMSimulator: React.FC = () => {
     setCipher(null);
     setMessage(null);
     setDecryptedBits(null);
+    setIntermediateW(null);
     setShowDecrypt(false);
     setSpyBits(null);
     setSpyKey(null);
@@ -335,20 +735,24 @@ const MLKEMSimulator: React.FC = () => {
      Render
      ═══════════════════════════════════════════════════ */
   return (
-    <section className="mx-auto max-w-4xl space-y-6 text-slate-900 dark:text-slate-100">
+    <section ref={containerRef} className="mx-auto max-w-4xl space-y-5 text-slate-200">
       {/* ── Progress indicator ────────────────────── */}
-      <nav className="flex items-center justify-center gap-0 overflow-x-auto pb-1">
+      <nav className="flex items-center justify-center gap-1 overflow-x-auto pb-1">
         {PHASES.map((p, i) => {
           const Icon = p.icon;
           const current = i === phaseIdx;
           const done = i < phaseIdx;
+          const hex = paletteHex[p.palette];
           return (
-            <div key={p.id} className="flex items-center">
+            <div key={p.id} className="flex items-center shrink-0">
               {i > 0 && (
                 <div
-                  className={`h-0.5 w-6 sm:w-10 transition-colors ${
-                    done ? 'bg-blue-400' : 'bg-slate-300 dark:bg-slate-700'
-                  }`}
+                  className="h-0.5 w-5 sm:w-8 rounded-full transition-colors"
+                  style={{
+                    background: done
+                      ? `linear-gradient(90deg, ${paletteHex[PHASES[i - 1].palette]}, ${hex})`
+                      : '#1f2750',
+                  }}
                 />
               )}
               <button
@@ -357,13 +761,20 @@ const MLKEMSimulator: React.FC = () => {
                   if (done) setPhase(p.id);
                 }}
                 disabled={!done && !current}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition whitespace-nowrap ${
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all whitespace-nowrap border ${
                   current
-                    ? 'bg-blue-500 text-white shadow-md'
+                    ? 'border-transparent text-quantum-bg shadow-md'
                     : done
-                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/60 cursor-pointer'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                    ? 'border-quantum-border bg-quantum-panel/60 text-slate-200 hover:border-current'
+                    : 'border-quantum-border bg-quantum-panel/30 text-slate-500 cursor-not-allowed'
                 }`}
+                style={
+                  current
+                    ? { background: `linear-gradient(120deg, ${hex}, ${paletteHex.violet})` }
+                    : done
+                    ? { color: hex }
+                    : undefined
+                }
               >
                 <Icon size={12} />
                 <span className="hidden sm:inline">{p.label}</span>
@@ -383,80 +794,74 @@ const MLKEMSimulator: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
-            className="space-y-6 rounded-2xl border border-white/30 bg-white/55 p-6 shadow-xl backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/45"
           >
-            <div>
-              <h2 className="text-3xl font-bold">
-                ML-KEM: Guía Visual Interactiva
-              </h2>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                Vas a recorrer paso a paso el protocolo <strong>ML-KEM</strong> (CRYSTALS-Kyber)
-                poniéndote en la piel de Alice y Bob. Elige un secreto, cifra, descifra…
-                y descubre por qué un espía no puede hacer lo mismo.
-              </p>
-            </div>
+            <SectionShell glow="cyan">
+              <div className="space-y-5">
+                <div>
+                  <div className="text-[10px] uppercase tracking-widest text-quantum-cyan font-mono mb-1">
+                    Simulador interactivo · Baby-Kyber
+                  </div>
+                  <h2 className="font-display text-2xl md:text-3xl font-bold text-slate-100">
+                    Cada paso, conectado a la teoría
+                  </h2>
+                  <p className="mt-3 text-sm md:text-base text-slate-300 leading-relaxed">
+                    A medida que avances verás un panel{' '}
+                    <span className="text-quantum-amber">«Conceptos en juego»</span> que te
+                    dice qué fundamento matemático o aplicación se está usando en cada
+                    momento, y <strong>por qué</strong>. La intención es que veas la teoría
+                    y la práctica encajar al mismo tiempo.
+                  </p>
+                </div>
 
-            {/* Characters */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4 space-y-2">
-                <Avatar
-                  name="Alice"
-                  emoji="👩‍💻"
-                  color="bg-blue-200 dark:bg-blue-800"
-                />
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Genera las claves y después desencapsula el secreto que Bob le envíe.
-                  Tiene la <strong>clave privada</strong>.
-                </p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="rounded-xl border border-quantum-cyan/30 bg-quantum-cyan/5 p-4 space-y-2">
+                    <Avatar name="Alice" emoji="👩‍💻" palette="cyan" />
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Genera el par de claves y descifra al final. Tiene la{' '}
+                      <strong className="text-quantum-cyan">clave privada</strong>.
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-quantum-violet/30 bg-quantum-violet/5 p-4 space-y-2">
+                    <Avatar name="Bob" emoji="👨‍💻" palette="violet" />
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      Elige un secreto y lo encapsula con la{' '}
+                      <strong className="text-quantum-violet">clave pública</strong> de
+                      Alice.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-quantum-border bg-quantum-panel2/40 p-3 flex items-center justify-center gap-2 text-[11px] text-slate-400 font-mono flex-wrap">
+                  <span className="text-quantum-cyan">KeyGen</span>
+                  <ArrowRight size={12} />
+                  <span className="text-quantum-violet">Encaps</span>
+                  <ArrowRight size={12} />
+                  <span className="text-quantum-mint">Decaps</span>
+                  <ArrowRight size={12} />
+                  <span className="text-quantum-pink">Resultado</span>
+                </div>
+
+                <div className="rounded-xl border border-quantum-border bg-quantum-panel/40 p-4 text-xs md:text-sm text-slate-300 leading-relaxed">
+                  <span className="font-mono text-quantum-cyan">
+                    Parámetros didácticos:
+                  </span>{' '}
+                  <span className="font-mono">
+                    q = {Q}, n = {N}
+                  </span>
+                  . El algoritmo real usa <span className="font-mono">n = 256</span> y{' '}
+                  <span className="font-mono">q = 3329</span>; solo cambia el tamaño, no la
+                  lógica.
+                </div>
+
+                <button
+                  type="button"
+                  onClick={goNext}
+                  className="btn-quantum text-sm py-2 px-5"
+                >
+                  Comenzar <ArrowRight size={14} />
+                </button>
               </div>
-              <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/20 p-4 space-y-2">
-                <Avatar
-                  name="Bob"
-                  emoji="👨‍💻"
-                  color="bg-violet-200 dark:bg-violet-800"
-                />
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Elige un secreto y lo encapsula usando la <strong>clave pública</strong> de Alice.
-                  Solo Alice podrá recuperarlo.
-                </p>
-              </div>
-            </div>
-
-            {/* Flow preview */}
-            <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-              <span className="font-semibold text-blue-600 dark:text-blue-400">
-                Alice genera claves
-              </span>
-              <span>→</span>
-              <span className="font-semibold text-violet-600 dark:text-violet-400">
-                Bob encapsula
-              </span>
-              <span>→</span>
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                Alice desencapsula
-              </span>
-            </div>
-
-            <div className="rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 p-4 text-xs text-slate-600 dark:text-slate-400 space-y-1">
-              <p>
-                <strong>Parámetros Baby-Kyber:</strong>{' '}
-                <span className="font-mono">q = {Q}</span>,{' '}
-                <span className="font-mono">n = {N}</span>{' '}
-                (versión simplificada para aprender; el real usa dimensiones mucho mayores).
-              </p>
-              <p>
-                En cada paso podrás expandir el <em>detalle matemático</em> para ver los
-                cálculos reales que ocurren tras la visualización.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={goNext}
-              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition"
-            >
-              Comenzar →
-            </button>
+            </SectionShell>
           </motion.div>
         )}
 
@@ -468,106 +873,152 @@ const MLKEMSimulator: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
-            className="space-y-5 rounded-2xl border border-white/30 bg-white/55 p-6 shadow-xl backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/45"
           >
-            <Avatar
-              name="Sé Alice – Genera tus claves"
-              emoji="👩‍💻"
-              color="bg-blue-200 dark:bg-blue-800"
-            />
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Alice crea una <strong>clave pública</strong> (que compartirá) y una{' '}
-              <strong>clave privada</strong> (que guarda). La clave pública se construye
-              mezclando una matriz aleatoria con un secreto, de forma que sea imposible
-              recuperar el secreto solo viendo el resultado.
-            </p>
-
-            <button
-              type="button"
-              onClick={handleGenerate}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
-            >
-              {keyPair ? '🔄 Regenerar claves' : '🔐 Generar claves'}
-            </button>
-
-            {keyPair && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-4"
-              >
-                {/* Visual equation with heatmaps */}
-                <div className="rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 p-5">
-                  <p className="text-xs font-bold text-center text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-wider">
-                    Clave pública: t = A × s + e (mod {Q})
-                  </p>
-                  <div className="flex flex-wrap items-center justify-center gap-3">
-                    <MatrixHeatmap label="A (pública)" matrix={keyPair.A} hue={210} />
-                    <span className="text-2xl font-bold text-slate-300">×</span>
-                    <VectorHeat label="s (secreto)" vector={keyPair.s} hue={35} />
-                    <span className="text-2xl font-bold text-slate-300">+</span>
-                    <VectorHeat
-                      label="e (error)"
-                      vector={keyPair.e}
-                      hue={35}
-                      baseDelay={0.3}
-                    />
-                    <span className="text-2xl font-bold text-slate-300">=</span>
-                    <VectorHeat
-                      label="t (pública)"
-                      vector={keyPair.t}
-                      hue={210}
-                      baseDelay={0.5}
-                    />
-                  </div>
+            <SectionShell glow="cyan">
+              <div className="space-y-5">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <Avatar name="Alice genera sus claves" emoji="👩‍💻" palette="cyan" />
+                  <span className="chip text-[10px]">Paso 1 / 3</span>
                 </div>
 
-                {/* Legend */}
-                <div className="flex flex-wrap gap-3 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <div
-                      className="w-3 h-3 rounded"
-                      style={{ backgroundColor: 'hsl(210,65%,70%)' }}
-                    />
-                    <span className="text-slate-600 dark:text-slate-400">
-                      Público – cualquiera puede verlo
-                    </span>
+                <IntuitionBox title="Intuición · qué hace Alice" palette="cyan">
+                  Alice esconde su secreto{' '}
+                  <span className="font-mono text-quantum-amber">s</span> dentro de una
+                  ecuación: lo multiplica por una matriz pública{' '}
+                  <span className="font-mono text-quantum-cyan">A</span> y le añade un
+                  ruido <span className="font-mono text-quantum-amber">e</span>. El
+                  resultado <span className="font-mono text-quantum-cyan">t</span> revela
+                  poco: sin <span className="font-mono">s</span>, despejar es imposible.
+                </IntuitionBox>
+
+                <div className="grid lg:grid-cols-[1.5fr,1fr] gap-4">
+                  <div className="space-y-4">
+                    <button
+                      type="button"
+                      onClick={handleGenerate}
+                      className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold bg-quantum-cyan/15 border border-quantum-cyan/40 text-quantum-cyan hover:bg-quantum-cyan/25 transition-all"
+                    >
+                      <KeyRound size={14} />
+                      {keyPair ? 'Regenerar claves' : 'Generar claves'}
+                    </button>
+
+                    {keyPair && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-4"
+                      >
+                        <div className="rounded-xl border border-quantum-border bg-quantum-panel2/40 p-4">
+                          <p className="text-[10px] font-mono uppercase tracking-widest text-quantum-cyan text-center mb-4">
+                            t = A · s + e (mod {Q})
+                          </p>
+                          <div className="flex flex-wrap items-end justify-center gap-3">
+                            <MatrixHeatmap label="A · pública" matrix={keyPair.A} palette="blue" />
+                            <MathOp>×</MathOp>
+                            <VectorHeat label="s · privada" vector={keyPair.s} palette="amber" />
+                            <MathOp>+</MathOp>
+                            <VectorHeat
+                              label="e · ruido"
+                              vector={keyPair.e}
+                              palette="amber"
+                              baseDelay={0.3}
+                            />
+                            <MathOp>=</MathOp>
+                            <VectorHeat
+                              label="t · pública"
+                              vector={keyPair.t}
+                              palette="cyan"
+                              baseDelay={0.5}
+                            />
+                          </div>
+                        </div>
+
+                        <StepList
+                          palette="cyan"
+                          steps={[
+                            {
+                              title: 'Genera valores pequeños',
+                              desc: (
+                                <>
+                                  El secreto <span className="font-mono">s</span> y el
+                                  ruido <span className="font-mono">e</span> son vectores
+                                  con coeficientes ∈ {'{−1, 0, 1}'}: deliberadamente cerca
+                                  del cero.
+                                </>
+                              ),
+                            },
+                            {
+                              title: 'Combina con A',
+                              desc: (
+                                <>
+                                  Multiplica por <span className="font-mono">A</span>{' '}
+                                  (pública) y suma <span className="font-mono">e</span>.
+                                  El ruido «emborrona» la relación lineal.
+                                </>
+                              ),
+                            },
+                            {
+                              title: 'Publica (A, t)',
+                              desc: (
+                                <>
+                                  La clave pública es{' '}
+                                  <span className="font-mono">(A, t)</span>. Solo Alice
+                                  guarda <span className="font-mono">s</span>.
+                                </>
+                              ),
+                            },
+                          ]}
+                        />
+
+                        <div className="flex flex-wrap gap-3 text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className="w-3 h-3 rounded"
+                              style={{ background: paletteHex.blue }}
+                            />
+                            <span className="text-slate-400">Público</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className="w-3 h-3 rounded"
+                              style={{ background: paletteHex.cyan }}
+                            />
+                            <span className="text-slate-400">Resultado público</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className="w-3 h-3 rounded"
+                              style={{ background: paletteHex.amber }}
+                            />
+                            <span className="text-slate-400">Privado · solo Alice</span>
+                          </div>
+                        </div>
+
+                        <MathDetail>
+                          <p>
+                            A = [[{keyPair.A[0].join(', ')}], [{keyPair.A[1].join(', ')}]]
+                          </p>
+                          <p>s = [{keyPair.s.join(', ')}] · e = [{keyPair.e.join(', ')}]</p>
+                          <p>
+                            t = A·s + e mod {Q} = [{keyPair.t.join(', ')}]
+                          </p>
+                        </MathDetail>
+
+                        <button
+                          type="button"
+                          onClick={goNext}
+                          className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium border border-quantum-border text-slate-200 hover:border-quantum-cyan/60 hover:text-quantum-cyan transition-all"
+                        >
+                          Continuar al encapsulado <ArrowRight size={14} />
+                        </button>
+                      </motion.div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <div
-                      className="w-3 h-3 rounded"
-                      style={{ backgroundColor: 'hsl(35,65%,70%)' }}
-                    />
-                    <span className="text-slate-600 dark:text-slate-400">
-                      Privado – solo Alice lo conoce
-                    </span>
-                  </div>
+
+                  <ConceptsPanel concepts={KEYGEN_CONCEPTS} />
                 </div>
-
-                <MathDetail>
-                  <p>
-                    A = [{keyPair.A[0].join(', ')}] [{keyPair.A[1].join(', ')}]
-                  </p>
-                  <p>s = [{keyPair.s.join(', ')}]</p>
-                  <p>e = [{keyPair.e.join(', ')}]</p>
-                  <p>
-                    t = A·s + e mod {Q} = [{keyPair.t.join(', ')}]
-                  </p>
-                  <p className="text-slate-500 mt-1">
-                    Un atacante ve A y t, pero no puede deducir s porque el error e
-                    «ensucia» la relación lineal.
-                  </p>
-                </MathDetail>
-
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-                >
-                  Continuar al encapsulado →
-                </button>
-              </motion.div>
-            )}
+              </div>
+            </SectionShell>
           </motion.div>
         )}
 
@@ -579,169 +1030,234 @@ const MLKEMSimulator: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
-            className="space-y-5 rounded-2xl border border-white/30 bg-white/55 p-6 shadow-xl backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/45"
           >
-            <Avatar
-              name="Sé Bob – Elige y encapsula un secreto"
-              emoji="👨‍💻"
-              color="bg-violet-200 dark:bg-violet-800"
-            />
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Ahora eres Bob. Elige un <strong>secreto</strong> (un emoji) y utiliza la
-              clave pública de Alice para cifrarlo. El resultado es un{' '}
-              <strong>criptograma (u, v)</strong> que solo Alice podrá abrir.
-            </p>
+            <SectionShell glow="violet">
+              <div className="space-y-5">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <Avatar name="Bob encapsula un secreto" emoji="👨‍💻" palette="violet" />
+                  <span className="chip text-[10px]">Paso 2 / 3</span>
+                </div>
 
-            {/* Secret picker */}
-            <div className="space-y-2">
-              <p className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
-                Tu secreto:
-              </p>
-              <div className="flex flex-wrap gap-3">
-                {SECRETS.map((s, idx) => (
-                  <button
-                    key={s.label}
-                    type="button"
-                    onClick={() => {
-                      setSelectedSecret(idx);
-                      setCipher(null);
-                      setDecryptedBits(null);
-                      setShowDecrypt(false);
-                      setSpyBits(null);
-                    }}
-                    className={`flex flex-col items-center gap-1 rounded-xl p-3 border-2 transition ${
-                      selectedSecret === idx
-                        ? 'border-violet-400 dark:border-violet-500 bg-violet-50 dark:bg-violet-900/30 shadow-md scale-105'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-400'
-                    }`}
-                  >
-                    <span className="text-3xl">{s.emoji}</span>
-                    <span className="text-[10px] font-medium">{s.label}</span>
-                    <span className="text-[9px] font-mono text-slate-400">
-                      [{s.bits.join(', ')}]
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
+                <IntuitionBox title="Intuición · qué hace Bob" palette="violet">
+                  Bob construye su propia ecuación LWE{' '}
+                  <span className="font-mono">u = Aᵀ·r + e₁</span>, y mezcla el mensaje{' '}
+                  <span className="font-mono">m</span> dentro de{' '}
+                  <span className="font-mono">v</span>. La gracia: cuando Alice reste{' '}
+                  <span className="font-mono">v − sᵀ·u</span>, los trozos LWE se cancelarán
+                  y solo quedará el mensaje.
+                </IntuitionBox>
 
-            <button
-              type="button"
-              disabled={!keyPair}
-              onClick={handleEncapsulate}
-              className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              🔒 Encapsular secreto
-            </button>
-
-            {cipher && message && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-4"
-              >
-                {/* Sealed package visualization */}
-                <div className="rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 p-5 text-center space-y-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Criptograma generado
-                  </p>
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="flex flex-col items-center gap-1">
-                      <motion.div
-                        initial={{ rotateY: 0 }}
-                        animate={{ rotateY: 360 }}
-                        transition={{ duration: 0.6 }}
-                        className="text-5xl"
-                      >
-                        {SECRETS[selectedSecret].emoji}
-                      </motion.div>
-                      <span className="text-[10px] text-slate-500">Tu secreto</span>
-                    </div>
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 }}
-                      className="text-2xl text-slate-300"
-                    >
-                      →
-                    </motion.span>
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.5, type: 'spring' }}
-                      className="flex flex-col items-center gap-1"
-                    >
-                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-violet-400 to-blue-500 flex items-center justify-center text-2xl text-white shadow-lg">
-                        🔒
+                <div className="grid lg:grid-cols-[1.5fr,1fr] gap-4">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
+                        Elige tu secreto
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {SECRETS.map((s, idx) => {
+                          const active = selectedSecret === idx;
+                          const hex = paletteHex[s.palette as Palette];
+                          return (
+                            <button
+                              key={s.label}
+                              type="button"
+                              onClick={() => {
+                                setSelectedSecret(idx);
+                                setCipher(null);
+                                setDecryptedBits(null);
+                                setIntermediateW(null);
+                                setShowDecrypt(false);
+                                setSpyBits(null);
+                              }}
+                              className="flex flex-col items-center gap-1 rounded-xl p-3 border transition-all"
+                              style={{
+                                borderColor: active ? hex : '#1f2750',
+                                background: active
+                                  ? `linear-gradient(135deg, ${hex}22, ${hex}11)`
+                                  : 'rgba(12, 15, 29, 0.5)',
+                                boxShadow: active ? `0 0 14px ${hex}55` : undefined,
+                              }}
+                            >
+                              <Shape kind={s.shape} palette={s.palette} size={42} />
+                              <span className="text-[10px] font-medium text-slate-200">
+                                {s.label}
+                              </span>
+                              <span className="text-[9px] font-mono text-slate-500">
+                                Encode([{s.bits.join(', ')}])
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
-                      <span className="text-[10px] text-slate-500">Cifrado (u, v)</span>
-                    </motion.div>
-                  </div>
-                </div>
+                    </div>
 
-                {/* Ciphertext values */}
-                <div className="flex flex-wrap items-center justify-center gap-4">
-                  <VectorHeat label="u (criptograma)" vector={cipher.u} hue={150} />
-                  <VectorHeat
-                    label="v (criptograma)"
-                    vector={cipher.v}
-                    hue={150}
-                    baseDelay={0.2}
-                  />
-                </div>
+                    <EncodingMini />
 
-                <MathDetail>
-                  <p>r (efímero) = [{cipher.r.join(', ')}]</p>
-                  <p>
-                    e₁ = [{cipher.e1.join(', ')}], e₂ = [{cipher.e2.join(', ')}]
-                  </p>
-                  <p>
-                    u = Aᵀr + e₁ mod {Q} = [{cipher.u.join(', ')}]
-                  </p>
-                  <p>
-                    v = tᵀr + e₂ + m mod {Q} = [{cipher.v.join(', ')}]
-                  </p>
-                  <p className="text-slate-500 mt-1">
-                    El secreto m = [{message.join(', ')}] queda mezclado con la clave
-                    pública y errores adicionales.
-                  </p>
-                </MathDetail>
-
-                {/* Send animation */}
-                <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/20 p-4 space-y-3">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span>👨‍💻 Bob</span>
-                    <span>👩‍💻 Alice</span>
-                  </div>
-                  <div className="relative h-8">
-                    <div className="absolute inset-0 top-1/2 h-0.5 -translate-y-1/2 bg-slate-200 dark:bg-slate-700 rounded-full" />
-                    <motion.div
-                      className="absolute top-1/2 -translate-y-1/2 text-xl"
-                      animate={{ left: ['5%', '85%'] }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      }}
+                    <button
+                      type="button"
+                      disabled={!keyPair}
+                      onClick={handleEncapsulate}
+                      className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold bg-quantum-violet/15 border border-quantum-violet/40 text-quantum-violet hover:bg-quantum-violet/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
-                      📨
-                    </motion.div>
-                  </div>
-                  <p className="text-center text-[10px] text-slate-500 dark:text-slate-400">
-                    Solo se envían (u, v) por el canal público. El secreto nunca viaja en
-                    claro.
-                  </p>
-                </div>
+                      <Lock size={14} />
+                      Encapsular secreto
+                    </button>
 
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-                >
-                  Enviar a Alice →
-                </button>
-              </motion.div>
-            )}
+                    {cipher && message && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-4"
+                      >
+                        <StepList
+                          palette="violet"
+                          steps={[
+                            {
+                              title: 'Genera aleatoriedad propia',
+                              desc: (
+                                <>
+                                  Bob crea un <span className="font-mono">r</span> pequeño
+                                  (efímero) y dos ruidos pequeños{' '}
+                                  <span className="font-mono">e₁, e₂</span>.
+                                </>
+                              ),
+                            },
+                            {
+                              title: (
+                                <>
+                                  Calcula <span className="font-mono">u = Aᵀ·r + e₁</span>
+                                </>
+                              ),
+                              desc: 'Otra ecuación LWE: u esconde r tal como t escondía s.',
+                            },
+                            {
+                              title: (
+                                <>
+                                  Calcula{' '}
+                                  <span className="font-mono">
+                                    v = tᵀ·r + e₂ + Encode(m)
+                                  </span>
+                                </>
+                              ),
+                              desc: 'Mezcla el mensaje codificado con la clave pública de Alice y un ruido más.',
+                            },
+                            {
+                              title: 'Envía (u, v)',
+                              desc: 'El criptograma viaja por el canal público.',
+                            },
+                          ]}
+                        />
+
+                        <div className="rounded-xl border border-quantum-border bg-quantum-panel2/40 p-5 text-center space-y-3">
+                          <p className="text-[10px] font-mono uppercase tracking-widest text-quantum-violet">
+                            Criptograma generado
+                          </p>
+                          <div className="flex items-center justify-center gap-6">
+                            <div className="flex flex-col items-center gap-1">
+                              <motion.div
+                                initial={{ rotateY: 0 }}
+                                animate={{ rotateY: 360 }}
+                                transition={{ duration: 0.6 }}
+                              >
+                                <Shape
+                                  kind={SECRETS[selectedSecret].shape}
+                                  palette={SECRETS[selectedSecret].palette}
+                                  size={52}
+                                />
+                              </motion.div>
+                              <span className="text-[10px] text-slate-500">
+                                Tu secreto
+                              </span>
+                            </div>
+                            <ArrowRight size={20} className="text-slate-500" />
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ delay: 0.4, type: 'spring' }}
+                              className="flex flex-col items-center gap-1"
+                            >
+                              <div
+                                className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shadow-lg border"
+                                style={{
+                                  background: `linear-gradient(135deg, ${paletteHex.violet}, ${paletteHex.blue})`,
+                                  borderColor: `${paletteHex.violet}66`,
+                                  color: '#05060f',
+                                }}
+                              >
+                                🔒
+                              </div>
+                              <span className="text-[10px] text-slate-500">
+                                (u, v) cifrado
+                              </span>
+                            </motion.div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-end justify-center gap-3">
+                          <VectorHeat label="u" vector={cipher.u} palette="violet" />
+                          <VectorHeat
+                            label="v"
+                            vector={cipher.v}
+                            palette="violet"
+                            baseDelay={0.2}
+                          />
+                        </div>
+
+                        <MathDetail>
+                          <p>r (efímero) = [{cipher.r.join(', ')}]</p>
+                          <p>
+                            e₁ = [{cipher.e1.join(', ')}], e₂ = [{cipher.e2.join(', ')}]
+                          </p>
+                          <p>u = Aᵀ·r + e₁ mod {Q} = [{cipher.u.join(', ')}]</p>
+                          <p>v = tᵀ·r + e₂ + m mod {Q} = [{cipher.v.join(', ')}]</p>
+                          <p className="text-slate-500 mt-1 leading-relaxed">
+                            m = Encode([{message.join(', ')}])
+                          </p>
+                        </MathDetail>
+
+                        <div className="rounded-xl border border-quantum-violet/30 bg-quantum-violet/5 p-4 space-y-3">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-display font-semibold text-quantum-violet">
+                              👨‍💻 Bob
+                            </span>
+                            <span className="font-display font-semibold text-quantum-cyan">
+                              👩‍💻 Alice
+                            </span>
+                          </div>
+                          <div className="relative h-8">
+                            <div className="absolute inset-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-quantum-violet/40 via-slate-600 to-quantum-cyan/40 rounded-full" />
+                            <motion.div
+                              className="absolute top-1/2 -translate-y-1/2"
+                              animate={{ left: ['5%', '85%'] }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                              }}
+                            >
+                              <Mail size={18} className="text-quantum-cyan" />
+                            </motion.div>
+                          </div>
+                          <p className="text-center text-[10px] text-slate-400">
+                            Canal público · solo viajan u y v
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={goNext}
+                          className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium border border-quantum-border text-slate-200 hover:border-quantum-violet/60 hover:text-quantum-violet transition-all"
+                        >
+                          Enviar a Alice <ArrowRight size={14} />
+                        </button>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  <ConceptsPanel concepts={ENCAPS_CONCEPTS} />
+                </div>
+              </div>
+            </SectionShell>
           </motion.div>
         )}
 
@@ -753,101 +1269,194 @@ const MLKEMSimulator: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
-            className="space-y-5 rounded-2xl border border-white/30 bg-white/55 p-6 shadow-xl backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/45"
           >
-            <Avatar
-              name="Sé Alice – Desencapsula el secreto"
-              emoji="👩‍💻"
-              color="bg-emerald-200 dark:bg-emerald-800"
-            />
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Alice ha recibido el criptograma{' '}
-              <span className="font-mono">(u, v)</span>. Usando su{' '}
-              <strong>clave privada s</strong>, puede eliminar la «capa» que envuelve
-              el secreto y recuperar el emoji original.
-            </p>
-
-            {/* Mystery box before decryption */}
-            {!showDecrypt && (
-              <div className="flex flex-col items-center gap-3 py-6">
-                <motion.div
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="w-24 h-24 rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center text-4xl shadow-inner"
-                >
-                  🔒
-                </motion.div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  ¿Qué secreto habrá dentro?
-                </p>
-              </div>
-            )}
-
-            <button
-              type="button"
-              disabled={!keyPair || !cipher || showDecrypt}
-              onClick={handleDecapsulate}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              🔓 Desencapsular
-            </button>
-
-            {/* Reveal animation */}
-            {showDecrypt && decryptedBits && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="space-y-4"
-              >
-                <div className="flex flex-col items-center gap-3 py-4">
-                  <motion.div
-                    initial={{ rotateY: 180, opacity: 0 }}
-                    animate={{ rotateY: 0, opacity: 1 }}
-                    transition={{ duration: 0.6, type: 'spring' }}
-                    className="w-24 h-24 rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/50 dark:to-emerald-800/50 flex items-center justify-center text-5xl shadow-lg border-2 border-emerald-300 dark:border-emerald-700"
-                  >
-                    {decryptedIdx >= 0 ? SECRETS[decryptedIdx].emoji : '❓'}
-                  </motion.div>
-                  {isCorrect ? (
-                    <motion.p
-                      initial={{ opacity: 0, y: 5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                      className="text-lg font-bold text-emerald-600 dark:text-emerald-400"
-                    >
-                      ✅ ¡Alice recuperó «{SECRETS[selectedSecret].label}»
-                      correctamente!
-                    </motion.p>
-                  ) : (
-                    <p className="text-lg font-bold text-amber-600 dark:text-amber-400">
-                      ⚠️ Resultado inesperado
-                    </p>
-                  )}
+            <SectionShell glow="violet">
+              <div className="space-y-5">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <Avatar
+                    name="Alice descifra el criptograma"
+                    emoji="👩‍💻"
+                    palette="mint"
+                  />
+                  <span className="chip text-[10px]">Paso 3 / 3</span>
                 </div>
 
-                <MathDetail>
-                  <p>
-                    m&apos; = v − sᵀu mod {Q} = [{decryptedBits.join(', ')}]
-                  </p>
-                  <p>
-                    Cada valor se «redondea» al más cercano entre 0 y {HALF_Q}:
-                  </p>
-                  <p>→ Resultado: [{decryptedBits.join(', ')}]</p>
-                  <p className="text-slate-500 mt-1">
-                    El error acumulado es lo suficientemente pequeño para que el
-                    redondeo dé el valor correcto.
-                  </p>
-                </MathDetail>
+                <IntuitionBox title="Intuición · la cancelación mágica" palette="mint">
+                  Alice resta <span className="font-mono">v − sᵀ·u</span>. Sustituyendo
+                  vuelve a aparecer <span className="font-mono">sᵀ·Aᵀ·r</span> en ambos
+                  lados — se anula. Solo queda{' '}
+                  <span className="font-mono">Encode(m) + ruido pequeño</span>. El código
+                  corrector absorbe ese ruido y devuelve el mensaje.
+                </IntuitionBox>
 
-                <button
-                  type="button"
-                  onClick={goNext}
-                  className="rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-                >
-                  Ver resultado y modo espía →
-                </button>
-              </motion.div>
-            )}
+                <div className="grid lg:grid-cols-[1.5fr,1fr] gap-4">
+                  <div className="space-y-4">
+                    {!showDecrypt && (
+                      <div className="flex flex-col items-center gap-3 py-6">
+                        <motion.div
+                          animate={{ scale: [1, 1.05, 1], rotate: [0, -2, 2, 0] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                          className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl shadow-inner border"
+                          style={{
+                            background:
+                              'linear-gradient(135deg, rgba(167,139,250,0.15), rgba(94,234,212,0.15))',
+                            borderColor: '#1f2750',
+                          }}
+                        >
+                          🔒
+                        </motion.div>
+                        <p className="text-xs text-slate-400">¿qué hay dentro?</p>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      disabled={!keyPair || !cipher || showDecrypt}
+                      onClick={handleDecapsulate}
+                      className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold bg-quantum-mint/15 border border-quantum-mint/40 text-quantum-mint hover:bg-quantum-mint/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Unlock size={14} />
+                      Desencapsular
+                    </button>
+
+                    {showDecrypt && decryptedBits && intermediateW && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="space-y-4"
+                      >
+                        <div className="rounded-xl border border-quantum-border bg-quantum-panel2/40 p-4 space-y-3">
+                          <p className="text-[10px] font-mono uppercase tracking-widest text-quantum-mint text-center">
+                            w = v − sᵀ · u (mod {Q})
+                          </p>
+                          {(() => {
+                            const sDotUVal = mod(
+                              dot(toMod(keyPair!.s, Q), cipher!.u),
+                              Q,
+                            );
+                            return (
+                              <div className="flex flex-wrap items-end justify-center gap-3">
+                                <VectorHeat
+                                  label="v"
+                                  vector={cipher!.v}
+                                  palette="violet"
+                                />
+                                <MathOp>−</MathOp>
+                                <VectorHeat
+                                  label="sᵀ · u"
+                                  vector={[sDotUVal, sDotUVal]}
+                                  palette="amber"
+                                  baseDelay={0.15}
+                                />
+                                <MathOp>=</MathOp>
+                                <VectorHeat
+                                  label="w (ruidoso)"
+                                  vector={intermediateW}
+                                  palette="mint"
+                                  baseDelay={0.3}
+                                />
+                              </div>
+                            );
+                          })()}
+                          <p className="text-[10px] text-slate-400 text-center px-3">
+                            En <span className="font-mono">w</span> ya solo queda{' '}
+                            <span className="font-mono">Encode(m)</span> + un ruido
+                            pequeño. Cada coeficiente está cerca de 0 ó de q/2 ={' '}
+                            {HALF_Q}.
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl border border-quantum-mint/30 bg-quantum-mint/5 p-4">
+                          <p className="text-[10px] font-mono uppercase tracking-widest text-quantum-mint text-center mb-3">
+                            Decode: redondeo al más cercano (0 ó q/2)
+                          </p>
+                          <div className="flex items-center justify-center gap-3 flex-wrap">
+                            {intermediateW.map((wi, i) => {
+                              const dec = decryptedBits[i];
+                              const d0 = distMod(wi, 0);
+                              const dH = distMod(wi, HALF_Q);
+                              return (
+                                <div
+                                  key={i}
+                                  className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg bg-quantum-panel/60 border border-quantum-border"
+                                >
+                                  <div className="font-mono text-xs text-slate-400">
+                                    coef {i}: {wi}
+                                  </div>
+                                  <div className="text-[10px] text-slate-500 font-mono">
+                                    d(0) = {d0} · d({HALF_Q}) = {dH}
+                                  </div>
+                                  <div className="font-mono text-sm font-bold text-quantum-mint">
+                                    → bit {dec === 0 ? '0' : '1'}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-center gap-3 py-2">
+                          <motion.div
+                            initial={{ rotateY: 180, opacity: 0 }}
+                            animate={{ rotateY: 0, opacity: 1 }}
+                            transition={{ duration: 0.6, type: 'spring' }}
+                            className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg border-2"
+                            style={{
+                              background:
+                                'linear-gradient(135deg, rgba(52,211,153,0.18), rgba(94,234,212,0.18))',
+                              borderColor: paletteHex.mint,
+                              boxShadow: `0 0 24px ${paletteHex.mint}55`,
+                            }}
+                          >
+                            {decryptedIdx >= 0 ? (
+                              <Shape
+                                kind={SECRETS[decryptedIdx].shape}
+                                palette={SECRETS[decryptedIdx].palette}
+                                size={56}
+                              />
+                            ) : (
+                              <span className="text-4xl text-slate-400">?</span>
+                            )}
+                          </motion.div>
+                          <motion.p
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className={`text-sm font-semibold ${
+                              isCorrect ? 'text-quantum-mint' : 'text-quantum-amber'
+                            }`}
+                          >
+                            {isCorrect
+                              ? `✓ Alice recuperó «${SECRETS[selectedSecret].label}» correctamente.`
+                              : '⚠ Resultado inesperado.'}
+                          </motion.p>
+                        </div>
+
+                        <MathDetail>
+                          <p>sᵀ · u = {mod(dot(toMod(keyPair!.s, Q), cipher!.u), Q)} (mod {Q})</p>
+                          <p>w = v − sᵀ·u = [{intermediateW.join(', ')}]</p>
+                          <p>Decode(w) = [{decryptedBits.join(', ')}]</p>
+                          <p className="text-slate-500 mt-1 leading-relaxed">
+                            Ruido residual &lt; q/4 = {Math.floor(Q / 4)}: el redondeo es
+                            seguro.
+                          </p>
+                        </MathDetail>
+
+                        <button
+                          type="button"
+                          onClick={goNext}
+                          className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium border border-quantum-border text-slate-200 hover:border-quantum-mint/60 hover:text-quantum-mint transition-all"
+                        >
+                          Ver resultado y modo espía <ArrowRight size={14} />
+                        </button>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  <ConceptsPanel concepts={DECAPS_CONCEPTS} />
+                </div>
+              </div>
+            </SectionShell>
           </motion.div>
         )}
 
@@ -859,176 +1468,199 @@ const MLKEMSimulator: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.25 }}
-            className="space-y-6 rounded-2xl border border-white/30 bg-white/55 p-6 shadow-xl backdrop-blur-xl dark:border-slate-700/70 dark:bg-slate-900/45"
+            className="space-y-5"
           >
-            <h3 className="text-xl font-bold">Resultado del intercambio</h3>
-
-            {/* Success summary */}
-            <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 p-5">
-              <div className="flex items-center justify-center gap-6">
-                <div className="text-center">
-                  <p className="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
-                    Bob envió
-                  </p>
-                  <div className="w-16 h-16 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    {SECRETS[selectedSecret].emoji}
+            <SectionShell glow="pink">
+              <div className="space-y-5">
+                <div className="flex items-start gap-3 flex-wrap">
+                  <div className="p-2 rounded-lg bg-quantum-pink/15 text-quantum-pink">
+                    <ShieldAlert size={18} />
                   </div>
-                  <p className="text-xs mt-1 font-medium">
-                    {SECRETS[selectedSecret].label}
-                  </p>
-                </div>
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="text-3xl"
-                >
-                  {isCorrect ? '✅' : '❌'}
-                </motion.span>
-                <div className="text-center">
-                  <p className="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
-                    Alice recibió
-                  </p>
-                  <div className="w-16 h-16 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center text-3xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    {decryptedIdx >= 0 ? SECRETS[decryptedIdx].emoji : '❓'}
-                  </div>
-                  <p className="text-xs mt-1 font-medium">
-                    {decryptedIdx >= 0
-                      ? SECRETS[decryptedIdx].label
-                      : 'Desconocido'}
-                  </p>
-                </div>
-              </div>
-              <p className="text-center text-sm font-medium text-emerald-700 dark:text-emerald-300 mt-4">
-                {isCorrect
-                  ? 'El secreto se transmitió correctamente a través de un canal público.'
-                  : 'Hubo un problema en la transmisión.'}
-              </p>
-            </div>
-
-            {/* ── SPY MODE ── */}
-            <div className="rounded-xl border-2 border-dashed border-red-300 dark:border-red-700 p-5 space-y-4">
-              <div className="flex items-center gap-2">
-                <ShieldAlert size={20} className="text-red-500" />
-                <h4 className="text-lg font-bold text-red-700 dark:text-red-300">
-                  ¿Y si alguien intenta espiar?
-                </h4>
-              </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Eva interceptó el criptograma{' '}
-                <span className="font-mono">(u, v)</span> y la información pública{' '}
-                <span className="font-mono">(A, t)</span>. Pero{' '}
-                <strong>no conoce la clave privada s</strong> de Alice. Veamos qué
-                pasa cuando intenta desencapsular con una clave inventada:
-              </p>
-
-              <button
-                type="button"
-                onClick={handleSpyAttempt}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
-              >
-                🕵️ Eva intenta descifrar
-              </button>
-
-              {spyBits && spyKey && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-4"
-                >
-                  {/* Side-by-side comparison */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Alice's result */}
-                    <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 p-4 text-center space-y-2">
-                      <Avatar
-                        name="Alice"
-                        emoji="👩‍💻"
-                        color="bg-emerald-200 dark:bg-emerald-800"
-                      />
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                        Con clave privada correcta
-                      </p>
-                      <div className="text-4xl py-2">
-                        {decryptedIdx >= 0
-                          ? SECRETS[decryptedIdx].emoji
-                          : '❓'}
-                      </div>
-                      <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                        ✅{' '}
-                        {decryptedIdx >= 0
-                          ? SECRETS[decryptedIdx].label
-                          : '?'}
-                      </p>
-                      {keyPair && (
-                        <p className="text-[10px] font-mono text-slate-400">
-                          s = [{keyPair.s.join(', ')}]
-                        </p>
-                      )}
+                  <div>
+                    <div className="text-[10px] uppercase tracking-widest text-quantum-pink font-mono">
+                      Resultado
                     </div>
+                    <h3 className="font-display text-xl font-bold text-slate-100">
+                      Intercambio completado
+                    </h3>
+                  </div>
+                </div>
 
-                    {/* Eve's result */}
-                    <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 text-center space-y-2">
-                      <Avatar
-                        name="Eva (espía)"
-                        emoji="🕵️"
-                        color="bg-red-200 dark:bg-red-800"
-                      />
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                        Con clave inventada
+                <div className="rounded-xl border border-quantum-mint/30 bg-quantum-mint/5 p-5">
+                  <div className="flex items-center justify-center gap-5 md:gap-8">
+                    <div className="text-center">
+                      <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">
+                        Bob envió
                       </p>
-                      <div className="text-4xl py-2">
-                        {spyIdx >= 0 ? SECRETS[spyIdx].emoji : '❓'}
+                      <div className="w-14 h-14 mx-auto rounded-xl bg-quantum-panel/60 border border-quantum-border flex items-center justify-center">
+                        <Shape
+                          kind={SECRETS[selectedSecret].shape}
+                          palette={SECRETS[selectedSecret].palette}
+                          size={40}
+                        />
                       </div>
-                      <p
-                        className={`text-xs font-bold ${
-                          spyIdx === selectedSecret
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-red-700 dark:text-red-300'
-                        }`}
-                      >
-                        {spyIdx === selectedSecret
-                          ? '⚠️ Coincidencia por azar (1 de 4)'
-                          : `❌ ${
-                              spyIdx >= 0 ? SECRETS[spyIdx].label : '?'
-                            } — ¡incorrecto!`}
+                      <p className="text-xs mt-1 text-slate-300 font-medium">
+                        {SECRETS[selectedSecret].label}
                       </p>
-                      <p className="text-[10px] font-mono text-slate-400">
-                        s&apos; = [{spyKey.join(', ')}]
+                    </div>
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="text-2xl"
+                    >
+                      {isCorrect ? '✓' : '✗'}
+                    </motion.span>
+                    <div className="text-center">
+                      <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">
+                        Alice recibió
+                      </p>
+                      <div className="w-14 h-14 mx-auto rounded-xl bg-quantum-panel/60 border border-quantum-border flex items-center justify-center">
+                        {decryptedIdx >= 0 ? (
+                          <Shape
+                            kind={SECRETS[decryptedIdx].shape}
+                            palette={SECRETS[decryptedIdx].palette}
+                            size={40}
+                          />
+                        ) : (
+                          <span className="text-xl text-slate-400">?</span>
+                        )}
+                      </div>
+                      <p className="text-xs mt-1 text-slate-300 font-medium">
+                        {decryptedIdx >= 0 ? SECRETS[decryptedIdx].label : '?'}
                       </p>
                     </div>
                   </div>
+                  <p className="text-center text-xs text-quantum-mint mt-4">
+                    {isCorrect
+                      ? 'El secreto se transmitió por un canal público sin que viaje en claro.'
+                      : 'Hubo un problema en la transmisión.'}
+                  </p>
+                </div>
+              </div>
+            </SectionShell>
 
-                  <div className="rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 p-3 text-xs text-slate-600 dark:text-slate-400 space-y-1">
-                    <p>
-                      <strong>¿Por qué Eva no puede descifrar?</strong> Sin la
-                      clave privada <span className="font-mono">s</span>, la
-                      operación{' '}
-                      <span className="font-mono">v − s&apos;ᵀu</span> produce un
-                      resultado aleatorio. Incluso si acierta por azar (probabilidad
-                      del 25%),{' '}
-                      <em>no sabe que ha acertado</em>.
-                    </p>
-                    <p>
-                      En ML-KEM real (n = 256), la probabilidad de acertar por
-                      fuerza bruta es de 1 entre 2²⁵⁶ — prácticamente imposible.
-                    </p>
+            <SectionShell>
+              <div className="grid lg:grid-cols-[1.5fr,1fr] gap-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-lg bg-quantum-rose/15 text-quantum-rose">
+                      <ShieldAlert size={16} />
+                    </div>
+                    <h4 className="font-display text-lg font-bold text-slate-100">
+                      ¿Y si alguien intenta espiar?
+                    </h4>
                   </div>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    Eva intercepta <span className="font-mono">(u, v)</span> y conoce{' '}
+                    <span className="font-mono">(A, t)</span>. Pero{' '}
+                    <strong>no tiene la clave privada s</strong>. Veamos qué pasa cuando
+                    inventa una clave.
+                  </p>
 
                   <button
                     type="button"
                     onClick={handleSpyAttempt}
-                    className="rounded-lg border border-red-300 dark:border-red-700 px-4 py-2 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                    className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold bg-quantum-rose/15 border border-quantum-rose/40 text-quantum-rose hover:bg-quantum-rose/25 transition-all"
                   >
-                    🕵️ Otro intento de Eva (clave diferente)
+                    🕵️ Eva intenta descifrar
                   </button>
-                </motion.div>
-              )}
-            </div>
+
+                  {spyBits && spyKey && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-4"
+                    >
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <div className="rounded-xl border border-quantum-mint/30 bg-quantum-mint/5 p-4 text-center space-y-2">
+                          <Avatar name="Alice" emoji="👩‍💻" palette="mint" />
+                          <p className="text-[10px] text-slate-400">Con clave correcta</p>
+                          <div className="flex justify-center py-1">
+                            {decryptedIdx >= 0 ? (
+                              <Shape
+                                kind={SECRETS[decryptedIdx].shape}
+                                palette={SECRETS[decryptedIdx].palette}
+                                size={44}
+                              />
+                            ) : (
+                              <span className="text-3xl text-slate-400">?</span>
+                            )}
+                          </div>
+                          <p className="text-xs font-medium text-quantum-mint">
+                            ✓ {decryptedIdx >= 0 ? SECRETS[decryptedIdx].label : '?'}
+                          </p>
+                          {keyPair && (
+                            <p className="text-[10px] font-mono text-slate-500">
+                              s = [{keyPair.s.join(', ')}]
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="rounded-xl border border-quantum-rose/30 bg-quantum-rose/5 p-4 text-center space-y-2">
+                          <Avatar name="Eva (espía)" emoji="🕵️" palette="rose" />
+                          <p className="text-[10px] text-slate-400">Con clave inventada</p>
+                          <div className="flex justify-center py-1">
+                            {spyIdx >= 0 ? (
+                              <Shape
+                                kind={SECRETS[spyIdx].shape}
+                                palette={SECRETS[spyIdx].palette}
+                                size={44}
+                              />
+                            ) : (
+                              <span className="text-3xl text-slate-400">?</span>
+                            )}
+                          </div>
+                          <p
+                            className={`text-xs font-medium ${
+                              spyIdx === selectedSecret
+                                ? 'text-quantum-amber'
+                                : 'text-quantum-rose'
+                            }`}
+                          >
+                            {spyIdx === selectedSecret
+                              ? '⚠ Coincide por azar (1 / 4)'
+                              : `✗ ${spyIdx >= 0 ? SECRETS[spyIdx].label : '?'}`}
+                          </p>
+                          <p className="text-[10px] font-mono text-slate-500">
+                            s' = [{spyKey.join(', ')}]
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-quantum-border bg-quantum-panel2/30 p-3 text-xs text-slate-300 leading-relaxed space-y-1">
+                        <p>
+                          <strong className="text-quantum-cyan">¿Por qué no funciona?</strong>{' '}
+                          Sin <span className="font-mono">s</span>, la resta{' '}
+                          <span className="font-mono">v − s'ᵀ·u</span> deja un valor casi
+                          aleatorio. Si acierta por casualidad (≈25% con 4 opciones), no
+                          tiene forma de saberlo.
+                        </p>
+                        <p className="text-slate-500">
+                          En ML-KEM real, el espacio de secretos posibles está en torno a
+                          2²⁵⁶: la fuerza bruta es inviable incluso con cuántica.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleSpyAttempt}
+                        className="text-xs inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-quantum-rose/40 text-quantum-rose hover:bg-quantum-rose/10 transition-all"
+                      >
+                        <RefreshCw size={12} /> Otro intento de Eva
+                      </button>
+                    </motion.div>
+                  )}
+                </div>
+
+                <ConceptsPanel concepts={SPY_CONCEPTS} title="Por qué Eva fracasa" />
+              </div>
+            </SectionShell>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* ── Bottom navigation ─────────────────────── */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 items-center">
         {phaseIdx > 0 && (
           <button
             type="button"
@@ -1036,7 +1668,7 @@ const MLKEMSimulator: React.FC = () => {
               const prev = PHASES[phaseIdx - 1];
               if (prev) setPhase(prev.id);
             }}
-            className="rounded-lg border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border border-quantum-border text-slate-300 hover:border-quantum-cyan/60 hover:text-quantum-cyan transition-all"
           >
             ← Paso anterior
           </button>
@@ -1044,129 +1676,12 @@ const MLKEMSimulator: React.FC = () => {
         <button
           type="button"
           onClick={handleReset}
-          className="ml-auto flex items-center gap-2 rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-900 transition dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-white"
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border border-quantum-border text-slate-300 hover:border-quantum-rose/60 hover:text-quantum-rose transition-all"
         >
-          <RefreshCw size={14} />
-          Reiniciar
+          <RefreshCw size={12} /> Reiniciar
         </button>
       </div>
-
-      {/* ── Feedback form (only after result) ─────── */}
-      {phase === 'result' && <FeedbackForm />}
     </section>
-  );
-};
-
-/* ═══════ Feedback Form ═══════ */
-const FEEDBACK_QUESTIONS = [
-  {
-    id: 'clarity',
-    label: '¿Las explicaciones del simulador fueron claras?',
-    options: ['Muy claras', 'Bastante claras', 'Algo confusas', 'Muy confusas'],
-  },
-  {
-    id: 'difficulty',
-    label: '¿Cómo valoras la dificultad del contenido?',
-    options: ['Muy fácil', 'Adecuada', 'Algo difícil', 'Muy difícil'],
-  },
-  {
-    id: 'useful',
-    label: '¿Te ha resultado útil la comparación con Eva (espía)?',
-    options: ['Muy útil', 'Bastante útil', 'Poco útil', 'Nada útil'],
-  },
-];
-
-const FeedbackForm: React.FC = () => {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [comment, setComment] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = () => {
-    // In a real app, send data to backend
-    console.log('Feedback:', { answers, comment });
-    setSubmitted(true);
-  };
-
-  if (submitted) {
-    return (
-      <div className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 p-6 text-center space-y-2">
-        <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">
-          ¡Gracias por tu valoración!
-        </p>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          Tu opinión nos ayuda a mejorar este recurso educativo.
-        </p>
-      </div>
-    );
-  }
-
-  const allAnswered = FEEDBACK_QUESTIONS.every((q) => answers[q.id]);
-
-  return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm space-y-5">
-      <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-        Cuestionario de satisfacción
-      </h3>
-      <p className="text-sm text-slate-600 dark:text-slate-400">
-        Ahora que has completado el simulador, nos gustaría conocer tu opinión.
-      </p>
-
-      {FEEDBACK_QUESTIONS.map((q) => (
-        <div key={q.id} className="space-y-2">
-          <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-            {q.label}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {q.options.map((opt) => {
-              const selected = answers[q.id] === opt;
-              return (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() =>
-                    setAnswers((prev) => ({ ...prev, [q.id]: opt }))
-                  }
-                  className={`rounded-lg px-3 py-1.5 text-xs font-medium border transition ${
-                    selected
-                      ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                      : 'border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  {opt}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
-          ¿Algún comentario o sugerencia adicional?
-        </p>
-        <textarea
-          value={comment}
-          onChange={(ev) => setComment(ev.target.value)}
-          placeholder="Escribe aquí tu comentario (opcional)…"
-          rows={3}
-          className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-        />
-      </div>
-
-      <button
-        type="button"
-        disabled={!allAnswered}
-        onClick={handleSubmit}
-        className={`flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-medium transition ${
-          allAnswered
-            ? 'bg-blue-600 text-white hover:bg-blue-700'
-            : 'bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed'
-        }`}
-      >
-        <Send size={14} />
-        Enviar valoración
-      </button>
-    </div>
   );
 };
 

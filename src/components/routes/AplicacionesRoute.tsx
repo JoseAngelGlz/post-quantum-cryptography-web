@@ -194,6 +194,8 @@ const AplicacionesRoute: React.FC<RouteProps> = ({ onChange }) => {
       </ScrollSection>
 
       <QuickQuiz
+        quizId="aplicaciones-shor"
+        routeId="aplicaciones"
         title="Mini-test rápido"
         questions={[
           {
@@ -487,6 +489,8 @@ const AplicacionesRoute: React.FC<RouteProps> = ({ onChange }) => {
       </ScrollSection>
 
       <QuickQuiz
+        quizId="aplicaciones-fo"
+        routeId="aplicaciones"
         title="Comprobación final"
         questions={[
           {

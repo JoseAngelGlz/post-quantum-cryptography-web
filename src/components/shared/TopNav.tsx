@@ -12,9 +12,16 @@ const routeLabels: Record<RouteId, string> = {
   fundamentos: 'Fundamentos',
   aplicaciones: 'Aplicaciones',
   mlkem: 'ML-KEM',
+  noticias: 'Noticias',
 };
 
-const order: RouteId[] = ['intro', 'fundamentos', 'aplicaciones', 'mlkem'];
+const order: RouteId[] = [
+  'intro',
+  'fundamentos',
+  'aplicaciones',
+  'mlkem',
+  'noticias',
+];
 
 const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
   return (
@@ -27,13 +34,15 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3">
         <button
           onClick={() => onChange('intro')}
-          className="flex items-center gap-2 group"
+          className="flex items-center gap-2.5 group"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-quantum-cyan to-quantum-violet flex items-center justify-center font-bold text-quantum-bg text-sm">
-            Q
-          </div>
+          <img
+            src={`${import.meta.env.BASE_URL}logo.png`}
+            alt="PQC"
+            className="w-9 h-9 rounded-lg object-contain group-hover:scale-105 transition-transform"
+          />
           <span className="font-display font-semibold text-slate-100 group-hover:text-quantum-cyan transition-colors hidden sm:block">
-            PQC · TFG
+            PQC · ML-KEM
           </span>
         </button>
 

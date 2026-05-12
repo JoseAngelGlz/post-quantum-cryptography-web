@@ -7,6 +7,7 @@ import IntroRoute from './components/routes/IntroRoute';
 import FundamentosRoute from './components/routes/FundamentosRoute';
 import AplicacionesRoute from './components/routes/AplicacionesRoute';
 import MLKEMRoute from './components/routes/MLKEMRoute';
+import NoticiasRoute from './components/routes/NoticiasRoute';
 
 function App() {
   const [route, setRoute] = useState<RouteId>('intro');
@@ -32,6 +33,8 @@ function App() {
         return <AplicacionesRoute onChange={changeRoute} />;
       case 'mlkem':
         return <MLKEMRoute onChange={changeRoute} />;
+      case 'noticias':
+        return <NoticiasRoute onChange={changeRoute} />;
     }
   };
 
@@ -54,7 +57,7 @@ function App() {
 
       <footer className="border-t border-quantum-border mt-20 py-10 text-center text-sm text-slate-500">
         <p>
-          Trabajo de Fin de Grado · Criptografía Post-Cuántica · ML-KEM (FIPS 203, NIST 2024)
+          Criptografía Post-Cuántica · ML-KEM (FIPS 203, NIST 2024)
         </p>
         <p className="mt-1 text-xs">
           José Ángel González Álamo · Universidad de La Laguna

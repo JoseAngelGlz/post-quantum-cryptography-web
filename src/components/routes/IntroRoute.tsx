@@ -75,7 +75,7 @@ const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
   return (
     <div>
       <Hero
-        eyebrow="Trabajo de Fin de Grado"
+        eyebrow="Recorrido interactivo"
         title={
           <>
             Criptografía
@@ -236,6 +236,8 @@ const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
       </ScrollSection>
 
       <QuickQuiz
+        quizId="intro-quick"
+        routeId="intro"
         title="Comprobación rápida"
         questions={[
           {
@@ -316,7 +318,7 @@ const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
           Pertenece a la familia de <strong className="text-quantum-cyan">retículos</strong>.
           Su seguridad descansa en el problema <em>Module-LWE</em>, que el algoritmo de Shor
           no sabe atacar. Es el primer KEM post-cuántico estandarizado por el NIST y será
-          el protagonista del resto de este TFG.
+          el protagonista del resto del recorrido.
         </Callout>
       </ScrollSection>
 

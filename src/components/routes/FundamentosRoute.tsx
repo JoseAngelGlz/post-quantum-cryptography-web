@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Hash, Key, Layers3, Sigma, Target, Workflow } from 'lucide-react';
+import {
+  ArrowRight,
+  Hash,
+  Key,
+  Layers3,
+  Sigma,
+  Target,
+  Workflow,
+} from 'lucide-react';
 import Hero from '../shared/Hero';
 import ScrollSection from '../shared/ScrollSection';
 import Callout from '../shared/Callout';
@@ -8,6 +16,7 @@ import QuickQuiz from '../shared/QuickQuiz';
 import FeedbackForm from '../shared/FeedbackForm';
 import LatticeViz from '../shared/LatticeViz';
 import ZqCircle from '../shared/ZqCircle';
+import LWENoisePlayground from '../shared/LWENoisePlayground';
 import Math from '../shared/Math';
 import type { RouteId } from '../../routes';
 
@@ -49,7 +58,7 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
             <p>
               Imagínalo como una cuadrícula infinita de puntos en el espacio,
               <span className="text-quantum-violet"> no necesariamente</span> alineada con
-              los ejes.
+              los ejes. Siempre que sus bases no sean nulas.
             </p>
             <Math display>
               {`\\Lambda = \\left\\{ \\sum_{i=1}^n a_i \\, \\mathbf{b}_i \\;\\middle|\\; a_i \\in \\mathbb{Z} \\right\\}`}
@@ -139,52 +148,62 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
         eyebrow="03 · SVP"
         title="Shortest Vector Problem"
       >
-        <div className="grid lg:grid-cols-3 gap-6 items-start">
-          <div className="lg:col-span-2 space-y-4 text-slate-300 leading-relaxed text-[17px]">
+        <div className="grid lg:grid-cols-2 gap-10 items-start">
+          <div className="flex flex-col items-center">
+            <LatticeViz goodBasis showShortest size={380} />
+            <p className="mt-3 text-xs text-slate-400 text-center max-w-sm">
+              En 2D parece obvio. Con cientos de dimensiones y vectores «malos», ningún
+              algoritmo conocido lo resuelve en tiempo razonable.
+            </p>
+          </div>
+          <div className="space-y-4 text-slate-300 leading-relaxed text-[17px]">
             <p>
               <strong className="text-quantum-cyan">Pregunta:</strong> dado un retículo,
               encuentra el vector no nulo más corto.
             </p>
             <Math display>{`\\text{SVP}(\\Lambda) = \\arg\\min_{\\mathbf{v} \\in \\Lambda \\setminus \\{0\\}} \\|\\mathbf{v}\\|`}</Math>
             <p>
-              En 2 dimensiones es trivial visualmente. Pero la dificultad{' '}
-              <span className="text-quantum-violet">crece exponencialmente</span> con la
-              dimensión, especialmente si solo dispones de una base mala.
+              La flecha <span className="text-quantum-mint font-semibold">verde</span> de la
+              izquierda es la solución: el vector más corto que llega a otro punto del
+              retículo sin pasar por el origen. Su norma se llama <Math>{`\\lambda_1`}</Math>.
             </p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="rounded-xl border border-quantum-mint/30 bg-quantum-mint/5 p-3 flex items-start gap-2.5">
+                <div className="p-1.5 rounded-md bg-quantum-mint/15 text-quantum-mint shrink-0">
+                  <Target size={14} />
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  <span className="text-quantum-mint font-semibold">Base buena:</span> el
+                  vector corto es uno de la propia base.
+                </p>
+              </div>
+              <div className="rounded-xl border border-quantum-rose/30 bg-quantum-rose/5 p-3 flex items-start gap-2.5">
+                <div className="p-1.5 rounded-md bg-quantum-rose/15 text-quantum-rose shrink-0">
+                  <Target size={14} />
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  <span className="text-quantum-rose font-semibold">Base mala:</span> hay
+                  que combinar vectores con coeficientes enteros muy específicos.
+                </p>
+              </div>
+            </div>
             <p className="text-slate-400 text-sm">
               SVP es <span className="font-mono">NP-difícil</span> bajo reducciones
-              aleatorias. Es el problema más estudiado de la geometría de retículos.
+              aleatorias. La dificultad{' '}
+              <span className="text-quantum-violet">crece exponencialmente</span> con la
+              dimensión.
             </p>
-          </div>
-          <div className="card-quantum p-6 space-y-3">
-            <div className="text-xs uppercase tracking-widest text-slate-400">Intuición</div>
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-quantum-mint/10 text-quantum-mint shrink-0">
-                <Target size={18} />
-              </div>
-              <p className="text-sm text-slate-300">
-                Con base buena: el vector corto es uno de la propia base.
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-quantum-rose/10 text-quantum-rose shrink-0">
-                <Target size={18} />
-              </div>
-              <p className="text-sm text-slate-300">
-                Con base mala: hay que combinar vectores con coeficientes enteros muy específicos.
-              </p>
-            </div>
           </div>
         </div>
       </ScrollSection>
 
       {/* CVP */}
       <ScrollSection
-        eyebrow="04 · CVP"
+        eyebrow="04 · CVP · Interactivo"
         title="Closest Vector Problem"
       >
         <div className="grid lg:grid-cols-2 gap-10 items-start">
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center gap-3">
             <LatticeViz goodBasis showTarget size={380} />
           </div>
           <div className="space-y-4 text-slate-300 leading-relaxed text-[17px]">
@@ -259,6 +278,8 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
               garantía mucho más fuerte que la de RSA.
             </p>
           </div>
+
+          <LWENoisePlayground />
         </div>
       </ScrollSection>
 
@@ -353,6 +374,8 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
       </ScrollSection>
 
       <QuickQuiz
+        quizId="fundamentos-reticulos"
+        routeId="fundamentos"
         title="Mini-test de retículos"
         questions={[
           {
