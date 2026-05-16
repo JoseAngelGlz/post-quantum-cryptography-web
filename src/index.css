@@ -227,14 +227,13 @@
 }
 
 /* ─── Ambient constellation ─────────────────────────────────────
- * On dark themes "screen" blending makes the bright particles glow against
- * the deep background.  On light themes the SAME approach with "multiply"
- * makes them visible by darkening the area underneath — otherwise screen
- * blending against a near-white bg is invisible.                            */
+ * Dark theme: "screen" makes bright particles glow against deep bg.
+ * Light theme: "soft-light" lays a delicate cyan/violet tint without the
+ * dark-stain effect that "multiply" produced.                              */
 .dark .constellation-bg     { mix-blend-mode: screen; }
 :root:not(.dark) .constellation-bg {
   mix-blend-mode: multiply;
-  opacity: 0.45 !important; /* slightly lower since multiply darkens */
+  opacity: 0.1 !important; /* soft-light is very subtle, so raise alpha */
 }
 
 .constellation-gradient {
@@ -245,9 +244,9 @@
 }
 :root:not(.dark) .constellation-gradient {
   background:
-    radial-gradient(ellipse at 30% 20%, rgb(8 145 178 / 0.18), transparent 55%),
-    radial-gradient(ellipse at 70% 80%, rgb(124 58 237 / 0.22), transparent 55%),
-    radial-gradient(ellipse at 50% 50%, rgb(37 99 235 / 0.12), transparent 60%);
+    radial-gradient(ellipse at 30% 20%, rgb(8 145 178 / 0.25), transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgb(124 58 237 / 0.30), transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgb(37 99 235 / 0.25), transparent 60%);
 }
 
 .katex { color: rgb(var(--fg-strong)) !important; }
