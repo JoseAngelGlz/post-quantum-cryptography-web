@@ -19,11 +19,6 @@ const Hero: React.FC<HeroProps> = ({
 }) => {
   return (
     <section className="relative min-h-[100vh] flex flex-col justify-center items-center overflow-hidden">
-      {/* very subtle grid only — the global constellation provides the ambient look */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 grid-bg opacity-40" />
-      </div>
-
       <div className="relative z-10 max-w-5xl px-6 text-center">
         {eyebrow && (
           <motion.div

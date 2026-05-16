@@ -226,13 +226,28 @@
   50% { transform: translateY(-12px); }
 }
 
-/* Route transition: quick fade-in to PEAK, then a single LINEAR fade-out to 0.
- * Three keyframes only so the browser interpolates linearly throughout.
- * Total: 5000 ms.  fill-mode forwards keeps it transparent at the end. */
-@keyframes route-transition-fade {
-  0%   { opacity: 0; }
-  6%   { opacity: 0.30; }
-  100% { opacity: 0; }
+/* ─── Ambient constellation ─────────────────────────────────────
+ * On dark themes "screen" blending makes the bright particles glow against
+ * the deep background.  On light themes the SAME approach with "multiply"
+ * makes them visible by darkening the area underneath — otherwise screen
+ * blending against a near-white bg is invisible.                            */
+.dark .constellation-bg     { mix-blend-mode: screen; }
+:root:not(.dark) .constellation-bg {
+  mix-blend-mode: multiply;
+  opacity: 0.45 !important; /* slightly lower since multiply darkens */
+}
+
+.constellation-gradient {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgb(94 234 212 / 0.22), transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgb(167 139 250 / 0.28), transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgb(96 165 250 / 0.14), transparent 60%);
+}
+:root:not(.dark) .constellation-gradient {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgb(8 145 178 / 0.18), transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgb(124 58 237 / 0.22), transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgb(37 99 235 / 0.12), transparent 60%);
 }
 
 .katex { color: rgb(var(--fg-strong)) !important; }

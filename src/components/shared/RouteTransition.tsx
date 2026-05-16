@@ -8,20 +8,11 @@ import { useEffect, useRef } from 'react';
 const RouteTransition: React.FC = () => {
   return (
     <div
-      className="fixed inset-0 z-0 pointer-events-none"
-      style={{
-        opacity: 0.55,
-        mixBlendMode: 'screen',
-      }}
+      className="fixed inset-0 z-0 pointer-events-none constellation-bg"
+      style={{ opacity: 0.55 }}
     >
       <ConstellationCanvas />
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(ellipse at 30% 20%, rgb(94 234 212 / 0.22), transparent 55%), radial-gradient(ellipse at 70% 80%, rgb(167 139 250 / 0.28), transparent 55%), radial-gradient(ellipse at 50% 50%, rgb(96 165 250 / 0.14), transparent 60%)',
-        }}
-      />
+      <div className="absolute inset-0 constellation-gradient" />
     </div>
   );
 };
