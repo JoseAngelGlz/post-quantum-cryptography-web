@@ -1,126 +1,71 @@
 import { motion } from 'framer-motion';
 import { BookOpen, ExternalLink, FlaskConical, GraduationCap, Shield, Wrench } from 'lucide-react';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n/translations';
 
 type ResourceType = 'standard' | 'paper' | 'course' | 'tool';
 
-interface Resource {
-  title: string;
-  description: string;
+interface ResourceKey {
+  id: string;
   url: string;
   type: ResourceType;
 }
 
-const resources: Resource[] = [
-  {
-    title: 'NIST FIPS 203 – ML-KEM',
-    description:
-      'Estándar oficial del NIST para el mecanismo de encapsulamiento de claves basado en Module-Lattice. Define ML-KEM-512, ML-KEM-768 y ML-KEM-1024.',
-    url: 'https://doi.org/10.6028/NIST.FIPS.203',
-    type: 'standard',
-  },
-  {
-    title: 'NIST FIPS 204 – ML-DSA',
-    description:
-      'Estándar NIST para el esquema de firma digital basado en Module-Lattice (anteriormente CRYSTALS-Dilithium).',
-    url: 'https://doi.org/10.6028/NIST.FIPS.204',
-    type: 'standard',
-  },
-  {
-    title: 'NIST FIPS 205 – SLH-DSA',
-    description:
-      'Estándar NIST para el esquema de firma digital sin estado basado en funciones hash (anteriormente SPHINCS+).',
-    url: 'https://doi.org/10.6028/NIST.FIPS.205',
-    type: 'standard',
-  },
-  {
-    title: 'On Lattices, Learning with Errors… (Regev, 2005)',
-    description:
-      'Artículo seminal que introduce el problema LWE y su reducción desde SVP, estableciendo las bases teóricas de la criptografía de retículos moderna.',
-    url: 'https://cims.nyu.edu/~regev/papers/qcrypto.pdf',
-    type: 'paper',
-  },
-  {
-    title: 'CRYSTALS-Kyber Algorithm Specification',
-    description:
-      'Especificación técnica completa del algoritmo Kyber (ahora ML-KEM), incluyendo parámetros, algoritmos y análisis de seguridad.',
-    url: 'https://pq-crystals.org/kyber/data/kyber-specification-round3-20210804.pdf',
-    type: 'paper',
-  },
-  {
-    title: 'PQCrypto 2024 – Conference Proceedings',
-    description:
-      'Actas de la conferencia internacional sobre Criptografía Post-Cuántica, con los últimos avances en investigación del área.',
-    url: 'https://pqcrypto.org',
-    type: 'paper',
-  },
-  {
-    title: 'Curso MIT – Mathematics for Computer Science',
-    description:
-      'Fundamentos matemáticos necesarios para comprender los retículos: álgebra lineal, teoría de números y complejidad computacional.',
-    url: 'https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-fall-2010/',
-    type: 'course',
-  },
-  {
-    title: 'The Learning with Errors Problem (Peikert)',
-    description:
-      'Encuesta detallada sobre el problema LWE, sus variantes y aplicaciones criptográficas, ideal para profundizar en la base teórica de ML-KEM.',
-    url: 'https://web.eecs.umich.edu/~cpeikert/pubs/lwesurvey.pdf',
-    type: 'course',
-  },
-  {
-    title: 'Open Quantum Safe (liboqs)',
-    description:
-      'Biblioteca C de referencia con implementaciones de algoritmos PQC estándar, mantenida por la comunidad para investigación y experimentación.',
-    url: 'https://openquantumsafe.org',
-    type: 'tool',
-  },
-  {
-    title: 'NIST PQC Project',
-    description:
-      'Página oficial del proyecto de estandarización de criptografía post-cuántica del NIST, con todas las rondas, documentos y actualizaciones.',
-    url: 'https://csrc.nist.gov/projects/post-quantum-cryptography',
-    type: 'tool',
-  },
+const resources: ResourceKey[] = [
+  { id: 'fips203', url: 'https://doi.org/10.6028/NIST.FIPS.203', type: 'standard' },
+  { id: 'fips204', url: 'https://doi.org/10.6028/NIST.FIPS.204', type: 'standard' },
+  { id: 'fips205', url: 'https://doi.org/10.6028/NIST.FIPS.205', type: 'standard' },
+  { id: 'regev', url: 'https://cims.nyu.edu/~regev/papers/qcrypto.pdf', type: 'paper' },
+  { id: 'kyber', url: 'https://pq-crystals.org/kyber/data/kyber-specification-round3-20210804.pdf', type: 'paper' },
+  { id: 'dilithium', url: 'https://pq-crystals.org/dilithium/', type: 'paper' },
+  { id: 'smartlearning', url: 'https://web.eecs.umich.edu/~cpeikert/pubs/lwesurvey.pdf', type: 'course' },
+  { id: 'bookpqc', url: 'https://pqcrypto.org/', type: 'course' },
+  { id: 'youtubedan', url: 'https://www.coursera.org/learn/crypto', type: 'course' },
+  { id: 'libpqcrypto', url: 'https://openquantumsafe.org', type: 'tool' },
+  { id: 'pqclean', url: 'https://github.com/PQClean/PQClean', type: 'tool' },
+  { id: 'cryptohack', url: 'https://cryptohack.org/', type: 'tool' },
 ];
 
 interface TypeMeta {
-  label: string;
+  labelKey: string;
   hex: string;
   icon: React.ReactNode;
-  description: string;
+  descKey: string;
 }
 
 const typeMeta: Record<ResourceType, TypeMeta> = {
   standard: {
-    label: 'Estándares',
+    labelKey: 'res.cat.norm',
+    descKey: 'res.cat.norm.desc',
     hex: '#5eead4',
     icon: <Shield size={16} />,
-    description: 'Documentos oficiales NIST y organismos de estandarización.',
   },
   paper: {
-    label: 'Papers y artículos',
+    labelKey: 'res.cat.papers',
+    descKey: 'res.cat.papers.desc',
     hex: '#a78bfa',
     icon: <FlaskConical size={16} />,
-    description: 'Investigación académica fundamental en criptografía de retículos.',
   },
   course: {
-    label: 'Cursos y libros',
+    labelKey: 'res.cat.learn',
+    descKey: 'res.cat.learn.desc',
     hex: '#34d399',
     icon: <GraduationCap size={16} />,
-    description: 'Material formativo para aprender los fundamentos matemáticos.',
   },
   tool: {
-    label: 'Herramientas y proyectos',
+    labelKey: 'res.cat.tools',
+    descKey: 'res.cat.tools.desc',
     hex: '#fbbf24',
     icon: <Wrench size={16} />,
-    description: 'Implementaciones de referencia, bibliotecas y recursos de la comunidad.',
   },
 };
 
 const ORDER: ResourceType[] = ['standard', 'paper', 'course', 'tool'];
 
-const ResourceCard: React.FC<{ item: Resource; index: number }> = ({ item, index }) => {
-  const { hex } = typeMeta[item.type];
+const ResourceCard: React.FC<{ item: ResourceKey; index: number }> = ({ item, index }) => {
+  const t = useT();
+  const meta = typeMeta[item.type];
+  const { hex } = meta;
 
   return (
     <motion.a
@@ -133,36 +78,31 @@ const ResourceCard: React.FC<{ item: Resource; index: number }> = ({ item, index
       whileHover={{ y: -4, borderColor: hex }}
       transition={{ duration: 0.35, delay: index * 0.04 }}
       className="group relative flex flex-col rounded-2xl border bg-quantum-panel/60 backdrop-blur-sm overflow-hidden cursor-pointer p-5 transition-all"
-      style={{ borderColor: '#1f2750' }}
+      style={{ borderColor: 'rgb(var(--border))' }}
     >
-      {/* accent stripe */}
       <div
         className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl"
         style={{ background: `linear-gradient(180deg, ${hex}, ${hex}33)` }}
       />
-      {/* radial glow */}
       <div
         className="absolute inset-0 opacity-40 pointer-events-none"
-        style={{
-          background: `radial-gradient(circle at top right, ${hex}18, transparent 55%)`,
-        }}
+        style={{ background: `radial-gradient(circle at top right, ${hex}18, transparent 55%)` }}
       />
 
       <div className="relative flex-1">
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h4
-            className="font-display font-semibold text-slate-100 text-base leading-snug group-hover:transition-colors"
-            style={{ ['--hover-color' as string]: hex }}
-          >
-            {item.title}
+          <h4 className="font-display font-semibold text-quantum-fg-strong text-base leading-snug">
+            {t(`res.${item.id}.title` as TranslationKey)}
           </h4>
           <ExternalLink
             size={14}
-            className="shrink-0 mt-0.5 text-slate-500 group-hover:text-current transition-colors"
+            className="shrink-0 mt-0.5 transition-colors"
             style={{ color: hex }}
           />
         </div>
-        <p className="text-sm text-slate-400 leading-relaxed">{item.description}</p>
+        <p className="text-sm text-quantum-fg-soft leading-relaxed">
+          {t(`res.${item.id}.desc` as TranslationKey)}
+        </p>
       </div>
 
       <div className="relative mt-4">
@@ -174,8 +114,8 @@ const ResourceCard: React.FC<{ item: Resource; index: number }> = ({ item, index
             color: hex,
           }}
         >
-          {typeMeta[item.type].icon}
-          {typeMeta[item.type].label}
+          {meta.icon}
+          {t(meta.labelKey as TranslationKey)}
         </span>
       </div>
     </motion.a>
@@ -183,6 +123,7 @@ const ResourceCard: React.FC<{ item: Resource; index: number }> = ({ item, index
 };
 
 const PQCResources: React.FC = () => {
+  const t = useT();
   const grouped = ORDER.map((type) => ({
     type,
     meta: typeMeta[type],
@@ -193,7 +134,6 @@ const PQCResources: React.FC = () => {
     <div className="space-y-16">
       {grouped.map(({ type, meta, items }) => (
         <div key={type}>
-          {/* section header */}
           <div className="flex items-center gap-3 mb-6">
             <div
               className="p-2 rounded-lg border"
@@ -206,26 +146,26 @@ const PQCResources: React.FC = () => {
               {meta.icon}
             </div>
             <div className="flex-1">
-              <h3 className="font-display text-xl font-bold text-slate-100">{meta.label}</h3>
-              <p className="text-xs text-slate-400">{meta.description}</p>
+              <h3 className="font-display text-xl font-bold text-quantum-fg-strong">
+                {t(meta.labelKey as TranslationKey)}
+              </h3>
+              <p className="text-xs text-quantum-fg-mute">
+                {t(meta.descKey as TranslationKey)}
+              </p>
             </div>
-            <span className="hidden sm:inline-flex chip text-[10px]">
-              {items.length} {items.length === 1 ? 'recurso' : 'recursos'}
-            </span>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {items.map((item, i) => (
-              <ResourceCard key={item.title} item={item} index={i} />
+              <ResourceCard key={item.id} item={item} index={i} />
             ))}
           </div>
         </div>
       ))}
 
-      <p className="text-xs text-slate-500 flex items-center gap-2 pt-4 border-t border-quantum-border/60">
+      <p className="text-xs text-quantum-fg-mute flex items-center gap-2 pt-4 border-t border-quantum-border/60">
         <BookOpen size={12} />
-        Selección curada con fines didácticos. Los enlaces apuntan a las fuentes originales;
-        verifica su disponibilidad antes de citarlos.
+        {t('news.footer')}
       </p>
     </div>
   );

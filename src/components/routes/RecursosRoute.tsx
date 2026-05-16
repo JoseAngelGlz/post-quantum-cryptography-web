@@ -3,46 +3,46 @@ import ScrollSection from '../shared/ScrollSection';
 import PQCResources from '../shared/PQCResources';
 import FeedbackForm from '../shared/FeedbackForm';
 import type { RouteId } from '../../routes';
+import { useT } from '../../i18n';
 
 interface RouteProps {
   onChange: (r: RouteId) => void;
 }
 
 const RecursosRoute: React.FC<RouteProps> = (_props) => {
+  const t = useT();
   return (
     <div>
       <Hero
-        eyebrow="Para profundizar"
+        eyebrow={t('recursos.hero.eyebrow')}
         hueA={220}
         hueB={160}
         title={
           <>
-            <span className="text-gradient-quantum">Recursos</span>
+            <span className="text-gradient-quantum">{t('recursos.hero.titleLine1')}</span>
             <br />
-            y referencias
+            {t('recursos.hero.titleLine2')}
           </>
         }
-        subtitle="Estándares oficiales, papers seminales, cursos y herramientas. Todo lo que necesitas para ir más allá de esta web y construir sobre bases sólidas."
+        subtitle={t('recursos.hero.subtitle')}
       />
 
       <ScrollSection
-        eyebrow="Biblioteca curada"
+        eyebrow={t('recursos.s01.eyebrow')}
         title={
           <>
-            Dónde <span className="text-gradient-static">seguir aprendiendo</span>
+            {t('recursos.s01.title.a')}
+            <span className="text-gradient-static">{t('recursos.s01.title.b')}</span>
           </>
         }
       >
-        <p className="text-slate-300 max-w-3xl mb-10 text-[17px] leading-relaxed">
-          Desde los documentos normativos del{' '}
-          <span className="text-quantum-cyan">NIST</span> hasta el paper original de Regev,
-          pasando por implementaciones de referencia y material formativo. Ordenado por tipo
-          para que encuentres rápido lo que buscas.
+        <p className="text-quantum-fg max-w-3xl mb-10 text-[17px] leading-relaxed">
+          {t('recursos.s01.lead.a')}
         </p>
         <PQCResources />
       </ScrollSection>
 
-      <FeedbackForm routeId="recursos" routeName="la sección de recursos" />
+      <FeedbackForm routeId="recursos" />
     </div>
   );
 };

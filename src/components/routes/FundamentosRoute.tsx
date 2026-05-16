@@ -19,61 +19,62 @@ import ZqCircle from '../shared/ZqCircle';
 import LWENoisePlayground from '../shared/LWENoisePlayground';
 import Math from '../shared/Math';
 import type { RouteId } from '../../routes';
+import { useT } from '../../i18n';
 
 interface RouteProps {
   onChange: (r: RouteId) => void;
 }
 
 const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
+  const t = useT();
   const [basisToggle, setBasisToggle] = useState<'good' | 'bad'>('good');
 
   return (
     <div>
       <Hero
-        eyebrow="Camino lineal"
+        eyebrow={t('fund.hero.eyebrow')}
         hueA={170}
         hueB={210}
         title={
           <>
-            <span className="text-gradient-quantum">Fundamentos</span>
+            <span className="text-gradient-quantum">{t('fund.hero.titleLine1')}</span>
             <br />
-            matemáticos
+            {t('fund.hero.titleLine2')}
           </>
         }
-        subtitle="Antes del algoritmo, las piezas: retículos, vectores cortos, ruido controlado y polinomios. Cada concepto es una pieza de ML-KEM."
+        subtitle={t('fund.hero.subtitle')}
       />
 
-      {/* RETÍCULOS */}
       <ScrollSection
-        eyebrow="01 · Retículos"
-        title={<>El tablero donde sucede todo</>}
+        eyebrow={t('fund.s01.eyebrow')}
+        title={<>{t('fund.s01.title')}</>}
       >
         <div className="grid lg:grid-cols-2 gap-10 items-start">
           <div className="space-y-4 text-slate-300 leading-relaxed text-[17px]">
             <p>
-              Un <span className="text-quantum-cyan font-semibold">retículo</span> es el
-              conjunto de todas las combinaciones lineales <em>enteras</em> de un conjunto
-              de vectores linealmente independientes (la <em>base</em>).
+              {t('fund.s01.p1.a')}
+              <span className="text-quantum-cyan font-semibold">{t('fund.s01.p1.b')}</span>
+              {t('fund.s01.p1.c')}
             </p>
             <p>
-              Imagínalo como una cuadrícula infinita de puntos en el espacio,
-              <span className="text-quantum-violet"> no necesariamente</span> alineada con
-              los ejes. Siempre que sus bases no sean nulas.
+              {t('fund.s01.p2.a')}
+              <span className="text-quantum-violet">{t('fund.s01.p2.b')}</span>
+              {t('fund.s01.p2.c')}
             </p>
             <Math display>
               {`\\Lambda = \\left\\{ \\sum_{i=1}^n a_i \\, \\mathbf{b}_i \\;\\middle|\\; a_i \\in \\mathbb{Z} \\right\\}`}
             </Math>
-            <p className="text-slate-400 text-sm">
-              Los vectores <Math>{`\\mathbf{b}_i`}</Math> forman la base; las combinaciones
-              con coeficientes enteros generan el retículo.
-            </p>
+            <p className="text-slate-400 text-sm">{t('fund.s01.formula.caption')}</p>
           </div>
 
           <div className="flex flex-col items-center">
             <LatticeViz goodBasis size={360} />
             <p className="mt-3 text-xs text-slate-400 text-center max-w-xs">
-              Los vectores rosa y violeta son la <span className="text-quantum-pink">base</span>.
-              Los puntos cian son <span className="text-quantum-cyan">todo el retículo</span>.
+              {t('fund.s01.viz.caption.a')}
+              <span className="text-quantum-pink">{t('fund.s01.viz.caption.b')}</span>
+              {t('fund.s01.viz.caption.c')}
+              <span className="text-quantum-cyan">{t('fund.s01.viz.caption.d')}</span>
+              {t('fund.s01.viz.caption.e')}
             </p>
           </div>
         </div>
@@ -81,11 +82,11 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
 
       {/* BASES BUENAS VS MALAS */}
       <ScrollSection
-        eyebrow="02 · El truco fundamental"
+        eyebrow={t('fund.s02.eyebrow')}
         title={
           <>
-            Bases <span className="text-quantum-mint">buenas</span> vs{' '}
-            <span className="text-quantum-rose">malas</span>
+            {t('fund.s02.title.a')}<span className="text-quantum-mint">{t('fund.s02.title.b')}</span>{t('fund.s02.title.c')}
+            <span className="text-quantum-rose">{t('fund.s02.title.d')}</span>
           </>
         }
       >
@@ -100,7 +101,7 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
                     : 'border-quantum-border text-slate-400'
                 }`}
               >
-                Base buena
+                {t('fund.s02.toggle.good')}
               </button>
               <button
                 onClick={() => setBasisToggle('bad')}
@@ -110,34 +111,34 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
                     : 'border-quantum-border text-slate-400'
                 }`}
               >
-                Base mala
+                {t('fund.s02.toggle.bad')}
               </button>
             </div>
             <LatticeViz goodBasis={basisToggle === 'good'} size={360} />
             <p className="text-xs text-slate-400 text-center max-w-xs">
-              {basisToggle === 'good'
-                ? 'Vectores cortos, casi ortogonales: las cosas son fáciles.'
-                : 'Vectores largos, casi paralelos: las cosas se vuelven imposibles.'}
+              {basisToggle === 'good' ? t('fund.s02.viz.good') : t('fund.s02.viz.bad')}
             </p>
           </div>
 
           <div className="space-y-4 text-slate-300 leading-relaxed text-[17px]">
             <p>
-              Lo más curioso: <span className="text-quantum-cyan font-semibold">ambas bases generan exactamente el mismo retículo</span>.
-              Los puntos cian son los mismos. Lo que cambia son los <em>vectores</em> con
-              los que describes esos puntos.
+              {t('fund.s02.p1.a')}
+              <span className="text-quantum-cyan font-semibold">{t('fund.s02.p1.b')}</span>
+              {t('fund.s02.p1.c')}
             </p>
             <p>
-              Con una base <span className="text-quantum-mint">buena</span> (corta y casi
-              ortogonal) los problemas computacionales son fáciles. Con una base{' '}
-              <span className="text-quantum-rose">mala</span> (larga y paralela) son
-              astronómicamente difíciles.
+              {t('fund.s02.p2.a')}
+              <span className="text-quantum-mint">{t('fund.s02.p2.b')}</span>
+              {t('fund.s02.p2.c')}
+              <span className="text-quantum-rose">{t('fund.s02.p2.d')}</span>
+              {t('fund.s02.p2.e')}
             </p>
-            <Callout variant="tip" title="Esta es la clave criptográfica">
-              La <strong className="text-quantum-cyan">clave privada</strong> es una base buena.
-              La <strong className="text-quantum-violet">clave pública</strong> es una base mala
-              del mismo retículo. Quien tiene la base buena resuelve los problemas; quien
-              solo ve la mala no puede.
+            <Callout variant="tip" title={t('fund.s02.callout.title')}>
+              {t('fund.s02.callout.a')}
+              <strong className="text-quantum-cyan">{t('fund.s02.callout.b')}</strong>
+              {t('fund.s02.callout.c')}
+              <strong className="text-quantum-violet">{t('fund.s02.callout.d')}</strong>
+              {t('fund.s02.callout.e')}
             </Callout>
           </div>
         </div>
@@ -145,62 +146,49 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
 
       {/* SVP */}
       <ScrollSection
-        eyebrow="03 · SVP"
-        title="Shortest Vector Problem"
+        eyebrow={t('fund.s03.eyebrow')}
+        title={t('fund.s03.title')}
       >
         <div className="grid lg:grid-cols-2 gap-10 items-start">
           <div className="flex flex-col items-center">
             <LatticeViz goodBasis showShortest size={380} />
             <p className="mt-3 text-xs text-slate-400 text-center max-w-sm">
-              En 2D parece obvio. Con cientos de dimensiones y vectores «malos», ningún
-              algoritmo conocido lo resuelve en tiempo razonable.
+              {t('fund.s03.viz.caption')}
             </p>
           </div>
           <div className="space-y-4 text-slate-300 leading-relaxed text-[17px]">
             <p>
-              <strong className="text-quantum-cyan">Pregunta:</strong> dado un retículo,
-              encuentra el vector no nulo más corto.
+              <strong className="text-quantum-cyan">{t('fund.s03.p1.a')}</strong>
+              {t('fund.s03.p1.b')}
             </p>
             <Math display>{`\\text{SVP}(\\Lambda) = \\arg\\min_{\\mathbf{v} \\in \\Lambda \\setminus \\{0\\}} \\|\\mathbf{v}\\|`}</Math>
             <p>
-              La flecha <span className="text-quantum-mint font-semibold">verde</span> de la
-              izquierda es la solución: el vector más corto que llega a otro punto del
-              retículo sin pasar por el origen. Su norma se llama <Math>{`\\lambda_1`}</Math>.
+              {t('fund.s03.p2.a')}
+              <span className="text-quantum-mint font-semibold">{t('fund.s03.p2.b')}</span>
+              {t('fund.s03.p2.c')}
             </p>
             <div className="grid sm:grid-cols-2 gap-3">
               <div className="rounded-xl border border-quantum-mint/30 bg-quantum-mint/5 p-3 flex items-start gap-2.5">
                 <div className="p-1.5 rounded-md bg-quantum-mint/15 text-quantum-mint shrink-0">
                   <Target size={14} />
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  <span className="text-quantum-mint font-semibold">Base buena:</span> el
-                  vector corto es uno de la propia base.
-                </p>
+                <p className="text-xs text-slate-300 leading-relaxed">{t('fund.s03.card.good')}</p>
               </div>
               <div className="rounded-xl border border-quantum-rose/30 bg-quantum-rose/5 p-3 flex items-start gap-2.5">
                 <div className="p-1.5 rounded-md bg-quantum-rose/15 text-quantum-rose shrink-0">
                   <Target size={14} />
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  <span className="text-quantum-rose font-semibold">Base mala:</span> hay
-                  que combinar vectores con coeficientes enteros muy específicos.
-                </p>
+                <p className="text-xs text-slate-300 leading-relaxed">{t('fund.s03.card.bad')}</p>
               </div>
             </div>
-            <p className="text-slate-400 text-sm">
-              SVP es <span className="font-mono">NP-difícil</span> bajo reducciones
-              aleatorias. La dificultad{' '}
-              <span className="text-quantum-violet">crece exponencialmente</span> con la
-              dimensión.
-            </p>
           </div>
         </div>
       </ScrollSection>
 
       {/* CVP */}
       <ScrollSection
-        eyebrow="04 · CVP · Interactivo"
-        title="Closest Vector Problem"
+        eyebrow={t('fund.s04.eyebrow')}
+        title={t('fund.s04.title')}
       >
         <div className="grid lg:grid-cols-2 gap-10 items-start">
           <div className="flex flex-col items-center gap-3">
@@ -208,20 +196,13 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
           </div>
           <div className="space-y-4 text-slate-300 leading-relaxed text-[17px]">
             <p>
-              <strong className="text-quantum-cyan">Pregunta:</strong> dado un punto{' '}
-              <Math>{`\\mathbf{t}`}</Math> del espacio (no necesariamente del retículo),
-              encuentra el punto del retículo más cercano a <Math>{`\\mathbf{t}`}</Math>.
+              <strong className="text-quantum-cyan">{t('fund.s04.p1.a')}</strong>
+              {t('fund.s04.p1.b')}
             </p>
             <Math display>{`\\text{CVP}(\\Lambda, \\mathbf{t}) = \\arg\\min_{\\mathbf{v} \\in \\Lambda} \\|\\mathbf{v} - \\mathbf{t}\\|`}</Math>
-            <p>
-              Es la versión "con objetivo" de SVP. CVP es{' '}
-              <span className="text-quantum-violet">al menos tan difícil</span> como SVP.
-            </p>
-            <Callout variant="info" title="Por qué importa para ML-KEM">
-              Descifrar en ML-KEM es{' '}
-              <strong className="text-quantum-cyan">esencialmente resolver un CVP</strong>.
-              Alice, con base buena, lo hace trivialmente. Un atacante, con base mala, no
-              puede.
+            <p>{t('fund.s04.p2')}</p>
+            <Callout variant="info" title={t('fund.s04.callout.title')}>
+              {t('fund.s04.callout.body')}
             </Callout>
           </div>
         </div>
@@ -229,37 +210,31 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
 
       {/* LWE */}
       <ScrollSection
-        eyebrow="05 · LWE"
-        title={<>Learning <span className="text-gradient-static">With Errors</span></>}
+        eyebrow={t('fund.s05.eyebrow')}
+        title={<>{t('fund.s05.title.a')}<span className="text-gradient-static">{t('fund.s05.title.b')}</span></>}
       >
         <div className="space-y-6 text-slate-300 leading-relaxed text-[17px]">
           <p>
-            Es <span className="text-quantum-cyan font-semibold">el</span> problema directamente conectado a ML-KEM. Funciona así:
+            {t('fund.s05.lead.a')}
+            <span className="text-quantum-cyan font-semibold">{t('fund.s05.lead.b')}</span>
+            {t('fund.s05.lead.c')}
           </p>
 
           <div className="grid md:grid-cols-2 gap-6">
             <div className="card-quantum p-6">
-              <div className="text-xs uppercase tracking-widest text-quantum-rose mb-3">Sin ruido</div>
+              <div className="text-xs uppercase tracking-widest text-quantum-rose mb-3">{t('fund.s05.noNoise')}</div>
               <Math display>{`b_i = \\mathbf{a}_i \\cdot \\mathbf{s} \\pmod{q}`}</Math>
-              <p className="text-sm text-slate-400 mt-3">
-                Trivial: con suficientes muestras, eliminación gaussiana recupera{' '}
-                <Math>{`\\mathbf{s}`}</Math> al instante.
-              </p>
+              <p className="text-sm text-slate-400 mt-3">{t('fund.s05.noNoise.body')}</p>
             </div>
             <div className="card-quantum p-6 glow-cyan">
-              <div className="text-xs uppercase tracking-widest text-quantum-cyan mb-3">Con ruido</div>
+              <div className="text-xs uppercase tracking-widest text-quantum-cyan mb-3">{t('fund.s05.withNoise')}</div>
               <Math display>{`b_i = \\mathbf{a}_i \\cdot \\mathbf{s} + e_i \\pmod{q}`}</Math>
-              <p className="text-sm text-slate-400 mt-3">
-                Astronómicamente difícil. El ruido <Math>{`e_i`}</Math> se amplifica al
-                despejar y destruye cualquier intento.
-              </p>
+              <p className="text-sm text-slate-400 mt-3">{t('fund.s05.withNoise.body')}</p>
             </div>
           </div>
 
-          <Callout variant="quote" title="LWE = CVP geométricamente">
-            Las muestras LWE definen un retículo. Encontrar{' '}
-            <Math>{`\\mathbf{s}`}</Math> equivale a encontrar el punto del retículo más
-            cercano a un objetivo. Resolver LWE <em>es</em> resolver CVP.
+          <Callout variant="quote" title={t('fund.s05.callout.title')}>
+            {t('fund.s05.callout.body')}
           </Callout>
 
           <div className="card-quantum p-7 mt-8">
@@ -268,15 +243,10 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
                 <Sigma size={18} />
               </div>
               <h4 className="font-display text-lg font-semibold text-slate-100">
-                Teorema de Regev (2005)
+                {t('fund.s05.regev.title')}
               </h4>
             </div>
-            <p className="text-slate-300 text-[15px] leading-relaxed">
-              Si existe un algoritmo eficiente que resuelve LWE en el caso medio, entonces
-              existe un algoritmo eficiente que resuelve los problemas de retículos
-              (SVP, CVP) en el peor caso. Esta reducción "peor-caso a caso-medio" da una
-              garantía mucho más fuerte que la de RSA.
-            </p>
+            <p className="text-slate-300 text-[15px] leading-relaxed">{t('fund.s05.regev.body')}</p>
           </div>
 
           <LWENoisePlayground />
@@ -285,20 +255,20 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
 
       {/* Module-LWE */}
       <ScrollSection
-        eyebrow="06 · Module-LWE"
-        title="La variante eficiente"
+        eyebrow={t('fund.s06.eyebrow')}
+        title={t('fund.s06.title')}
       >
         <div className="grid lg:grid-cols-2 gap-10 items-center">
           <div className="space-y-4 text-slate-300 leading-relaxed text-[17px]">
             <p>
-              ML-KEM no usa LWE puro. Usa{' '}
-              <span className="text-quantum-cyan font-semibold">Module-LWE</span>: en lugar de
-              vectores de enteros, vectores de polinomios del anillo{' '}
-              <Math>{`R_q`}</Math>.
+              {t('fund.s06.p1.a')}
+              <span className="text-quantum-cyan font-semibold">{t('fund.s06.p1.b')}</span>
+              {t('fund.s06.p1.c')}
             </p>
             <p>
-              Misma seguridad, claves <span className="text-quantum-mint">mucho más pequeñas</span>:
-              de megabytes a kilobytes.
+              {t('fund.s06.p2.a')}
+              <span className="text-quantum-mint">{t('fund.s06.p2.b')}</span>
+              {t('fund.s06.p2.c')}
             </p>
             <Math display>{`\\mathbf{t} = \\mathbf{A}\\mathbf{s} + \\mathbf{e} \\quad \\text{donde } \\mathbf{A} \\in R_q^{k \\times k}`}</Math>
           </div>
@@ -309,21 +279,21 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
                 <Layers3 size={18} />
               </div>
               <h4 className="font-display text-lg font-semibold text-slate-100">
-                Anillo <Math>{`R_q = \\mathbb{Z}_q[x]/(x^n+1)`}</Math>
+                {t('fund.s06.ring.title')} · <Math>{`R_q = \\mathbb{Z}_q[x]/(x^n+1)`}</Math>
               </h4>
             </div>
             <ul className="space-y-2 text-sm text-slate-300">
               <li className="flex gap-2">
                 <span className="text-quantum-cyan">•</span>
-                <span><strong>Suma:</strong> coeficiente a coeficiente módulo <Math>{`q`}</Math>.</span>
+                <span>{t('fund.s06.ring.b1')}</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-quantum-violet">•</span>
-                <span><strong>Multiplicación:</strong> producto de polinomios; cuando aparece <Math>{`x^n`}</Math>, se sustituye por <Math>{`-1`}</Math>.</span>
+                <span>{t('fund.s06.ring.b2')}</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-quantum-pink">•</span>
-                <span>En ML-KEM: <Math>{`n=256`}</Math>, <Math>{`q=3329`}</Math>.</span>
+                <span>{t('fund.s06.ring.b3')}</span>
               </li>
             </ul>
           </div>
@@ -332,8 +302,8 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
 
       {/* CÓDIGOS CORRECTORES */}
       <ScrollSection
-        eyebrow="07 · Códigos correctores"
-        title={<>El más simple posible: <span className="text-quantum-cyan">el círculo</span></>}
+        eyebrow={t('fund.s07.eyebrow')}
+        title={<>{t('fund.s07.title.a')}<span className="text-quantum-cyan">{t('fund.s07.title.b')}</span></>}
       >
         <div className="grid lg:grid-cols-2 gap-10 items-start">
           <div className="flex justify-center">
@@ -341,33 +311,28 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
           </div>
           <div className="space-y-4 text-slate-300 leading-relaxed text-[17px]">
             <p>
-              ML-KEM codifica cada bit del mensaje en{' '}
-              <span className="text-quantum-cyan font-semibold">lados opuestos del círculo</span>{' '}
-              <Math>{`\\mathbb{Z}_q`}</Math>:
+              {t('fund.s07.p1.a')}
+              <span className="text-quantum-cyan font-semibold">{t('fund.s07.p1.b')}</span>
+              {t('fund.s07.p1.c')}
             </p>
             <div className="card-quantum p-5 grid grid-cols-2 gap-4">
               <div className="text-center">
-                <div className="text-xs uppercase tracking-widest text-quantum-cyan mb-1">bit 0</div>
+                <div className="text-xs uppercase tracking-widest text-quantum-cyan mb-1">{t('fund.s07.bit0')}</div>
                 <Math display>{`0`}</Math>
               </div>
               <div className="text-center">
-                <div className="text-xs uppercase tracking-widest text-quantum-pink mb-1">bit 1</div>
+                <div className="text-xs uppercase tracking-widest text-quantum-pink mb-1">{t('fund.s07.bit1')}</div>
                 <Math display>{`\\lceil q/2 \\rceil`}</Math>
               </div>
             </div>
+            <p>{t('fund.s07.p2')}</p>
             <p>
-              Distancia entre las dos palabras código: <Math>{`q/2`}</Math>. Capacidad de
-              corrección: cualquier ruido menor que <Math>{`q/4`}</Math>.
+              {t('fund.s07.p3.a')}
+              <span className="text-quantum-violet">{t('fund.s07.p3.b')}</span>
+              {t('fund.s07.p3.c')}
             </p>
-            <p>
-              El mensaje son 256 bits y cada uno se mete en un coeficiente distinto del
-              polinomio. El "código corrector" actúa{' '}
-              <span className="text-quantum-violet">256 veces en paralelo</span>.
-            </p>
-            <Callout variant="info" title="Probabilidad de fallo">
-              En ML-KEM-768 los parámetros están elegidos para que el ruido total esté por
-              debajo de <Math>{`q/4`}</Math> con probabilidad astronómicamente alta:
-              aproximadamente <Math>{`2^{-164}`}</Math>.
+            <Callout variant="info" title={t('fund.s07.callout.title')}>
+              {t('fund.s07.callout.body')}
             </Callout>
           </div>
         </div>
@@ -376,73 +341,40 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
       <QuickQuiz
         quizId="fundamentos-reticulos"
         routeId="fundamentos"
-        title="Mini-test de retículos"
+        titleKey="fund.quiz.title"
+        title={t('fund.quiz.title')}
         questions={[
           {
-            question:
-              'Si dos bases distintas generan el mismo retículo, ¿por qué importa cuál tenemos?',
-            options: [
-              'Porque cambia la posición de los puntos del retículo.',
-              'Porque solo una base buena (corta y casi ortogonal) hace fáciles los problemas SVP/CVP.',
-              'Porque las bases malas no contienen al vector cero.',
-              'Porque ML-KEM solo funciona con bases ortonormales.',
-            ],
+            question: t('fund.quiz.q1.q'),
+            options: [t('fund.quiz.q1.o1'), t('fund.quiz.q1.o2'), t('fund.quiz.q1.o3'), t('fund.quiz.q1.o4')],
             correctIndex: 1,
-            explanation:
-              'Los puntos del retículo son los mismos. Lo que cambia es la dificultad de moverte por él: la base buena es la clave privada, la mala es la pública.',
+            explanation: t('fund.quiz.q1.exp'),
           },
           {
-            question: '¿Qué relación hay entre LWE y CVP?',
-            options: [
-              'LWE es un problema sobre números primos; CVP es sobre vectores.',
-              'Resolver LWE equivale geométricamente a resolver CVP en un retículo asociado.',
-              'CVP solo aplica en dimensión 2; LWE en cualquier dimensión.',
-              'Son problemas no relacionados.',
-            ],
+            question: t('fund.quiz.q2.q'),
+            options: [t('fund.quiz.q2.o1'), t('fund.quiz.q2.o2'), t('fund.quiz.q2.o3'), t('fund.quiz.q2.o4')],
             correctIndex: 1,
-            explanation:
-              'Las muestras LWE definen un retículo, y encontrar el secreto s equivale a encontrar el punto del retículo más cercano a un objetivo: exactamente CVP.',
+            explanation: t('fund.quiz.q2.exp'),
           },
           {
-            question: '¿Por qué ML-KEM puede tolerar el ruido en el descifrado?',
-            options: [
-              'Porque el algoritmo cuántico de Shor lo elimina.',
-              'Porque el código corrector basado en el círculo Z_q absorbe ruidos menores que q/4.',
-              'Porque la matriz A se publica entera para cancelarlo.',
-              'Porque ML-KEM no usa ruido en descifrado.',
-            ],
+            question: t('fund.quiz.q3.q'),
+            options: [t('fund.quiz.q3.o1'), t('fund.quiz.q3.o2'), t('fund.quiz.q3.o3'), t('fund.quiz.q3.o4')],
             correctIndex: 1,
-            explanation:
-              'El bit 0 va a la posición 0, el bit 1 va a q/2. Mientras el ruido sea menor que q/4 en cada coeficiente, la decodificación es correcta.',
+            explanation: t('fund.quiz.q3.exp'),
           },
         ]}
       />
 
       {/* HASHES */}
       <ScrollSection
-        eyebrow="08 · Funciones hash"
-        title="SHA-3, SHAKE y la magia de las semillas"
+        eyebrow={t('fund.s08.eyebrow')}
+        title={t('fund.s08.title')}
       >
         <div className="grid md:grid-cols-3 gap-5 mb-8">
           {[
-            {
-              icon: <Hash size={20} />,
-              title: 'SHA3-256 / SHA3-512',
-              desc: 'Hashes de tamaño fijo. Toman cualquier entrada y producen 256 ó 512 bits.',
-              color: 'text-quantum-cyan',
-            },
-            {
-              icon: <Workflow size={20} />,
-              title: 'SHAKE-128 / SHAKE-256',
-              desc: 'XOF (Extendable Output Function): producen tantos bytes como pidas desde una semilla.',
-              color: 'text-quantum-violet',
-            },
-            {
-              icon: <Key size={20} />,
-              title: 'Determinismo',
-              desc: 'Misma entrada → misma salida. Cambiar un bit cambia toda la salida (efecto avalancha).',
-              color: 'text-quantum-pink',
-            },
+            { icon: <Hash size={20} />, title: t('fund.s08.c1.title'), desc: t('fund.s08.c1.desc'), color: 'text-quantum-cyan' },
+            { icon: <Workflow size={20} />, title: t('fund.s08.c2.title'), desc: t('fund.s08.c2.desc'), color: 'text-quantum-violet' },
+            { icon: <Key size={20} />, title: t('fund.s08.c3.title'), desc: t('fund.s08.c3.desc'), color: 'text-quantum-pink' },
           ].map((c, i) => (
             <motion.div
               key={c.title}
@@ -460,30 +392,14 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
         </div>
 
         <h3 className="font-display text-xl font-semibold text-slate-100 mb-4">
-          Cuatro roles que juegan los hashes en ML-KEM
+          {t('fund.s08.roles.title')}
         </h3>
         <div className="space-y-3">
           {[
-            {
-              n: '1',
-              title: 'Expandir semilla → matriz A',
-              desc: 'Alice publica solo 32 bytes (ρ). SHAKE-128 regenera la matriz completa de forma determinista.',
-            },
-            {
-              n: '2',
-              title: 'Generar secretos pseudoaleatorios',
-              desc: 'Vectores s, e, r se muestrean expandiendo otra semilla con SHAKE.',
-            },
-            {
-              n: '3',
-              title: 'Derivar la clave compartida final',
-              desc: 'K = Hash(m, otros datos) para uniformizar la salida.',
-            },
-            {
-              n: '4',
-              title: 'Detectar manipulaciones (Fujisaki-Okamoto)',
-              desc: 'r = Hash(m) permite a Alice rehacer los cálculos de Bob y verificar.',
-            },
+            { n: '1', title: t('fund.s08.role1.title'), desc: t('fund.s08.role1.desc') },
+            { n: '2', title: t('fund.s08.role2.title'), desc: t('fund.s08.role2.desc') },
+            { n: '3', title: t('fund.s08.role3.title'), desc: t('fund.s08.role3.desc') },
+            { n: '4', title: t('fund.s08.role4.title'), desc: t('fund.s08.role4.desc') },
           ].map((r) => (
             <div key={r.n} className="card-quantum p-5 flex gap-4 items-start">
               <div className="font-mono text-2xl font-bold text-gradient-static shrink-0 w-10">
@@ -499,11 +415,11 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
       </ScrollSection>
 
       <ScrollSection
-        eyebrow="Cadena lógica"
-        title="Por qué todo encaja"
+        eyebrow={t('fund.s09.eyebrow')}
+        title={t('fund.s09.title')}
       >
         <div className="card-quantum p-8 md:p-10 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-          {['SVP difícil', 'CVP difícil', 'LWE difícil', 'ML-KEM seguro'].map((s, i) => (
+          {[t('fund.s09.step1'), t('fund.s09.step2'), t('fund.s09.step3'), t('fund.s09.step4')].map((s, i) => (
             <motion.div
               key={s}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -525,8 +441,7 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
           ))}
         </div>
         <p className="mt-6 text-center text-slate-400 max-w-2xl mx-auto">
-          La seguridad de ML-KEM se reduce, paso a paso, a la dificultad de un problema
-          geométrico que llevamos décadas estudiando y que la cuántica no sabe atacar.
+          {t('fund.s09.foot')}
         </p>
       </ScrollSection>
 
@@ -535,11 +450,11 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
           onClick={() => onChange('aplicaciones')}
           className="btn-quantum"
         >
-          Continuar a Aplicaciones <ArrowRight size={18} />
+          {t('fund.continue')} <ArrowRight size={18} />
         </button>
       </div>
 
-      <FeedbackForm routeId="fundamentos" routeName="los fundamentos matemáticos" />
+      <FeedbackForm routeId="fundamentos" />
     </div>
   );
 };

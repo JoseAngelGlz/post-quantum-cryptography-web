@@ -1,25 +1,32 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Check } from 'lucide-react';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n/translations';
 
 interface FeedbackFormProps {
   routeId: string;
-  routeName: string;
+  /** Legacy free-text name. If absent, uses the i18n key `feedback.route.<routeId>`. */
+  routeName?: string;
 }
 
 const scaleLabels = ['😩', '😕', '😐', '🙂', '🤩'];
 
 const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName }) => {
+  const t = useT();
   const [difficulty, setDifficulty] = useState<number | null>(null);
   const [clarity, setClarity] = useState<number | null>(null);
   const [recommend, setRecommend] = useState<number | null>(null);
   const [comment, setComment] = useState('');
   const [sent, setSent] = useState(false);
 
+  const resolvedName =
+    routeName ?? t(`feedback.route.${routeId}` as TranslationKey);
+
   const submit = () => {
     const payload = {
       routeId,
-      routeName,
+      routeName: resolvedName,
       difficulty,
       clarity,
       recommend,
@@ -46,7 +53,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName }) => {
     onChange: (n: number) => void;
   }) => (
     <div>
-      <p className="text-sm text-slate-300 mb-3">{label}</p>
+      <p className="text-sm text-quantum-fg mb-3">{label}</p>
       <div className="flex gap-2">
         {scaleLabels.map((emo, i) => {
           const v = i + 1;
@@ -70,6 +77,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName }) => {
   );
 
   if (sent) {
+    const sentBody = t('feedback.sent.body').replace('{name}', resolvedName);
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -79,11 +87,15 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName }) => {
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-quantum-mint/15 text-quantum-mint mb-4">
           <Check size={28} />
         </div>
-        <h3 className="font-display text-2xl font-semibold text-slate-100 mb-2">¡Gracias!</h3>
-        <p className="text-slate-300">Tu opinión sobre <span className="text-quantum-cyan">{routeName}</span> queda guardada localmente.</p>
+        <h3 className="font-display text-2xl font-semibold text-quantum-fg-strong mb-2">
+          {t('feedback.sent.title')}
+        </h3>
+        <p className="text-quantum-fg">{sentBody}</p>
       </motion.div>
     );
   }
+
+  const lead = t('feedback.lead').replace('{name}', resolvedName);
 
   return (
     <motion.div
@@ -93,25 +105,23 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName }) => {
       transition={{ duration: 0.7 }}
       className="card-quantum p-8 md:p-10 my-20"
     >
-      <h3 className="font-display text-2xl font-semibold text-slate-100 mb-2">
-        ¿Qué te ha parecido?
+      <h3 className="font-display text-2xl font-semibold text-quantum-fg-strong mb-2">
+        {t('feedback.title')}
       </h3>
-      <p className="text-slate-400 mb-8 text-sm">
-        Una opinión rápida sobre <span className="text-quantum-cyan">{routeName}</span> ayuda a mejorar el material.
-      </p>
+      <p className="text-quantum-fg-soft mb-8 text-sm">{lead}</p>
 
       <div className="grid md:grid-cols-3 gap-6 mb-6">
-        <Scale label="¿Cómo de fácil te ha resultado?" value={difficulty} onChange={setDifficulty} />
-        <Scale label="¿Sientes que estás aprendiendo?" value={clarity} onChange={setClarity} />
-        <Scale label="¿Lo recomendarías?" value={recommend} onChange={setRecommend} />
+        <Scale label={t('feedback.q.difficulty')} value={difficulty} onChange={setDifficulty} />
+        <Scale label={t('feedback.q.clarity')} value={clarity} onChange={setClarity} />
+        <Scale label={t('feedback.q.recommend')} value={recommend} onChange={setRecommend} />
       </div>
 
       <textarea
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder="Comentario libre (opcional)…"
+        placeholder={t('feedback.placeholder')}
         rows={3}
-        className="w-full bg-quantum-panel/40 border border-quantum-border rounded-xl px-4 py-3 text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-quantum-cyan/60 resize-none"
+        className="w-full bg-quantum-panel/40 border border-quantum-border rounded-xl px-4 py-3 text-quantum-fg placeholder:text-quantum-fg-mute focus:outline-none focus:border-quantum-cyan/60 resize-none"
       />
 
       <div className="mt-6 flex justify-end">
@@ -120,7 +130,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName }) => {
           disabled={!difficulty || !clarity || !recommend}
           className="btn-quantum disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          <Send size={16} /> Enviar opinión
+          <Send size={16} /> {t('feedback.send')}
         </button>
       </div>
     </motion.div>

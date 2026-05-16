@@ -22,11 +22,11 @@ import Hero from '../shared/Hero';
 import ScrollSection from '../shared/ScrollSection';
 import Callout from '../shared/Callout';
 import QuickQuiz from '../shared/QuickQuiz';
-import QuizSummary from '../shared/QuizSummary';
 import FeedbackForm from '../shared/FeedbackForm';
 import Math from '../shared/Math';
 import MLKEMSimulator from '../MLKEMSimulator';
 import type { RouteId } from '../../routes';
+import { useT } from '../../i18n';
 
 interface RouteProps {
   onChange: (r: RouteId) => void;
@@ -197,59 +197,35 @@ const PipelineDiagram: React.FC<{
 };
 
 const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
+  const t = useT();
   return (
     <div>
       <Hero
-        eyebrow="El plato fuerte"
+        eyebrow={t('mlkem.hero.eyebrow')}
         hueA={300}
         hueB={350}
         title={
           <>
             <span className="text-gradient-quantum">ML-KEM</span>
             <br />
-            paso a paso
+            {t('mlkem.hero.titleLine2')}
           </>
         }
-        subtitle="El primer mecanismo de encapsulación de claves estandarizado por el NIST. Aquí lo destripamos pieza por pieza, y al final lo verás funcionar en directo."
+        subtitle={t('mlkem.hero.subtitle')}
       />
 
-      {/* VISIÓN GENERAL */}
-      <ScrollSection eyebrow="01 · Visión general" title="¿Qué hace ML-KEM?">
+      <ScrollSection eyebrow={t('mlkem.s01.eyebrow')} title={t('mlkem.s01.title')}>
         <p className="text-slate-300 leading-relaxed text-[17px] mb-8">
-          ML-KEM es un{' '}
-          <span className="text-quantum-cyan font-semibold">
-            mecanismo de encapsulación de claves (KEM)
-          </span>
-          . Permite a dos partes acordar una clave secreta compartida{' '}
-          <Math>{`K`}</Math> a través de un canal totalmente público.
+          {t('mlkem.s01.lead.a')}
+          <span className="text-quantum-cyan font-semibold">{t('mlkem.s01.lead.b')}</span>
+          {t('mlkem.s01.lead.c')}
         </p>
 
         <div className="grid md:grid-cols-3 gap-5 mb-8">
           {[
-            {
-              n: '01',
-              op: 'KeyGen()',
-              produces: '(pk, sk)',
-              who: 'Alice',
-              icon: <KeyRound size={22} />,
-              color: 'text-quantum-cyan',
-            },
-            {
-              n: '02',
-              op: 'Encaps(pk)',
-              produces: '(c, K)',
-              who: 'Bob',
-              icon: <Send size={22} />,
-              color: 'text-quantum-violet',
-            },
-            {
-              n: '03',
-              op: 'Decaps(sk, c)',
-              produces: 'K',
-              who: 'Alice',
-              icon: <Unlock size={22} />,
-              color: 'text-quantum-pink',
-            },
+            { n: '01', op: 'KeyGen()', produces: '(pk, sk)', who: t('mlkem.s01.alice'), icon: <KeyRound size={22} />, color: 'text-quantum-cyan' },
+            { n: '02', op: 'Encaps(pk)', produces: '(c, K)', who: t('mlkem.s01.bob'), icon: <Send size={22} />, color: 'text-quantum-violet' },
+            { n: '03', op: 'Decaps(sk, c)', produces: 'K', who: t('mlkem.s01.alice'), icon: <Unlock size={22} />, color: 'text-quantum-pink' },
           ].map((s, i) => (
             <motion.div
               key={s.n}
@@ -266,27 +242,25 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
               <div className="font-mono font-bold text-slate-100 text-lg mb-1">{s.op}</div>
               <div className="text-sm text-slate-400 mb-3">→ {s.produces}</div>
               <div className="text-xs uppercase tracking-widest text-slate-500">
-                Lo ejecuta · <span className={s.color}>{s.who}</span>
+                {t('mlkem.s01.executes')} · <span className={s.color}>{s.who}</span>
               </div>
             </motion.div>
           ))}
         </div>
 
-        <Callout variant="quote" title="Detalle clave">
-          La aleatoriedad la introduce <strong>Bob</strong>, no Alice. Una clave pública
-          se genera una vez y se puede usar muchas veces. Cada cifrado de Bob es
-          independiente.
+        <Callout variant="quote" title={t('mlkem.s01.callout.title')}>
+          {t('mlkem.s01.callout.body')}
         </Callout>
       </ScrollSection>
 
       {/* PARÁMETROS */}
-      <ScrollSection eyebrow="02 · Parámetros" title="Tres niveles de seguridad">
+      <ScrollSection eyebrow={t('mlkem.s02.eyebrow')} title={t('mlkem.s02.title')}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-quantum-border text-left">
-                <th className="py-3 pr-4 text-slate-400 font-medium uppercase text-xs tracking-widest">Variante</th>
-                <th className="py-3 pr-4 text-slate-400 font-medium uppercase text-xs tracking-widest">Seguridad</th>
+                <th className="py-3 pr-4 text-slate-400 font-medium uppercase text-xs tracking-widest">{t('mlkem.s02.col.variant')}</th>
+                <th className="py-3 pr-4 text-slate-400 font-medium uppercase text-xs tracking-widest">{t('mlkem.s02.col.security')}</th>
                 <th className="py-3 pr-4 text-slate-400 font-medium uppercase text-xs tracking-widest">k</th>
                 <th className="py-3 pr-4 text-slate-400 font-medium uppercase text-xs tracking-widest">η₁</th>
                 <th className="py-3 text-slate-400 font-medium uppercase text-xs tracking-widest">η₂</th>
@@ -316,25 +290,25 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
         <div className="mt-8 grid md:grid-cols-3 gap-4 text-sm">
           <div className="card-quantum p-5">
             <div className="text-quantum-cyan font-mono font-bold mb-1">n = 256</div>
-            <p className="text-slate-400">Coeficientes por polinomio. Conecta con el código corrector: 256 bits del mensaje en 256 coeficientes.</p>
+            <p className="text-slate-400">{t('mlkem.s02.note.n')}</p>
           </div>
           <div className="card-quantum p-5">
             <div className="text-quantum-violet font-mono font-bold mb-1">q = 3329</div>
-            <p className="text-slate-400">Módulo. Elegido para que <Math>{`q/4`}</Math> absorba el ruido. Primo, permite NTT eficiente.</p>
+            <p className="text-slate-400">{t('mlkem.s02.note.q')}</p>
           </div>
           <div className="card-quantum p-5">
             <div className="text-quantum-pink font-mono font-bold mb-1">k</div>
-            <p className="text-slate-400">Dimensión del módulo. Más alto = más seguro y más lento. Determina la variante.</p>
+            <p className="text-slate-400">{t('mlkem.s02.note.k')}</p>
           </div>
         </div>
       </ScrollSection>
 
       {/* KEYGEN */}
       <ScrollSection
-        eyebrow="03 · Alice ejecuta"
+        eyebrow={t('mlkem.s03.eyebrow')}
         title={
           <>
-            <span className="text-quantum-cyan">KeyGen</span> · generar claves
+            <span className="text-quantum-cyan">KeyGen</span> · {t('mlkem.s03.titleAfter')}
           </>
         }
       >
@@ -351,123 +325,33 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
         />
 
         <p className="text-slate-300 max-w-3xl mb-8 mt-6 text-[16px] leading-relaxed">
-          Alice quiere publicar una <strong className="text-quantum-cyan">clave pública</strong>{' '}
-          que no revele su secreto. La estrategia: empezar de una pequeña semilla, expandirla
-          en una matriz pública, y combinar esa matriz con un secreto pequeño{' '}
-          <span className="font-mono">s</span> + un ruido <span className="font-mono">e</span>{' '}
-          que vuelve la ecuación imposible de despejar.
+          {t('mlkem.s03.lead')}
         </p>
 
         <div className="space-y-3">
           {[
-            {
-              step: 1,
-              icon: <Dice5 size={16} />,
-              title: 'Lanza un dado',
-              plain: (
-                <>
-                  Genera <strong>32 bytes aleatorios</strong>. De ahí saldrá todo lo demás:
-                  guarda un único secreto y reproduce lo público a partir de él.
-                </>
-              ),
-              formula: <Math>{`d \\xleftarrow{\\$} \\{0,1\\}^{256}`}</Math>,
-              produces: 'd',
-            },
-            {
-              step: 2,
-              icon: <Hash size={16} />,
-              title: 'Hashea la semilla',
-              plain: (
-                <>
-                  La parte <span className="font-mono text-quantum-cyan">ρ</span> alimenta lo
-                  público; <span className="font-mono text-quantum-amber">σ</span>, lo
-                  privado. Un solo hash mezcla todo.
-                </>
-              ),
-              formula: <Math>{`(\\rho, \\sigma) = \\text{SHA3-512}(d)`}</Math>,
-              produces: 'ρ (pública) · σ (privada)',
-            },
-            {
-              step: 3,
-              icon: <Layers size={16} />,
-              title: 'Expande ρ a la matriz A',
-              plain: (
-                <>
-                  Usando <span className="font-mono">SHAKE-128</span>, alarga 32 bytes hasta
-                  llenar una matriz <Math>{`k \\times k`}</Math>. La matriz <em>no se
-                  publica</em>; solo se publica <span className="font-mono">ρ</span> y
-                  cualquiera la regenera idéntica.
-                </>
-              ),
-              formula: <Math>{`\\mathbf{A} \\leftarrow \\text{SHAKE-128}(\\rho)`}</Math>,
-              produces: 'A · pública',
-            },
-            {
-              step: 4,
-              icon: <Waves size={16} />,
-              title: 'Muestrea secretos pequeños',
-              plain: (
-                <>
-                  De <span className="font-mono">σ</span> salen el secreto{' '}
-                  <span className="font-mono text-quantum-amber">s</span> y el ruido{' '}
-                  <span className="font-mono text-quantum-amber">e</span>: ambos con
-                  coeficientes cercanos a cero ({'{−η, …, η}'}). Cuanto más pequeños,
-                  más decodificable luego.
-                </>
-              ),
-              formula: <Math>{`\\mathbf{s}, \\mathbf{e} \\sim B_{\\eta_1}^k \\leftarrow \\sigma`}</Math>,
-              produces: 's, e · privados',
-            },
-            {
-              step: 5,
-              icon: <Sigma size={16} />,
-              title: 'Mezcla todo · ecuación Module-LWE',
-              plain: (
-                <>
-                  Esta es la operación crítica: multiplicar la matriz pública por el secreto,
-                  añadirle ruido. El resultado <span className="font-mono">t</span> parece
-                  un vector aleatorio cualquiera — el ruido <em>oculta</em>{' '}
-                  <span className="font-mono">s</span> incluso si conoces{' '}
-                  <span className="font-mono">A</span> y <span className="font-mono">t</span>.
-                </>
-              ),
-              formula: <Math>{`\\mathbf{t} = \\mathbf{A}\\mathbf{s} + \\mathbf{e}`}</Math>,
-              produces: 't · pública',
-              highlight: true,
-            },
-            {
-              step: 6,
-              icon: <Package size={16} />,
-              title: 'Empaqueta y guarda',
-              plain: (
-                <>
-                  La <strong className="text-quantum-cyan">clave pública</strong> es{' '}
-                  <span className="font-mono">(ρ, t)</span>: ~1.184 bytes en ML-KEM-768.
-                  Alice guarda <span className="font-mono">s</span> a buen recaudo.
-                </>
-              ),
-              formula: <Math>{`pk = (\\rho, \\mathbf{t}) \\quad sk = \\mathbf{s}`}</Math>,
-              produces: 'pk, sk',
-            },
+            { step: 1, icon: <Dice5 size={16} />, title: t('mlkem.keygen.s1.title'), plain: t('mlkem.keygen.s1.plain'), formula: <Math>{`d \\xleftarrow{\\$} \\{0,1\\}^{256}`}</Math>, produces: 'd' },
+            { step: 2, icon: <Hash size={16} />, title: t('mlkem.keygen.s2.title'), plain: t('mlkem.keygen.s2.plain'), formula: <Math>{`(\\rho, \\sigma) = \\text{SHA3-512}(d)`}</Math>, produces: 'ρ · σ' },
+            { step: 3, icon: <Layers size={16} />, title: t('mlkem.keygen.s3.title'), plain: t('mlkem.keygen.s3.plain'), formula: <Math>{`\\mathbf{A} \\leftarrow \\text{SHAKE-128}(\\rho)`}</Math>, produces: 'A' },
+            { step: 4, icon: <Waves size={16} />, title: t('mlkem.keygen.s4.title'), plain: t('mlkem.keygen.s4.plain'), formula: <Math>{`\\mathbf{s}, \\mathbf{e} \\sim B_{\\eta_1}^k \\leftarrow \\sigma`}</Math>, produces: 's, e' },
+            { step: 5, icon: <Sigma size={16} />, title: t('mlkem.keygen.s5.title'), plain: t('mlkem.keygen.s5.plain'), formula: <Math>{`\\mathbf{t} = \\mathbf{A}\\mathbf{s} + \\mathbf{e}`}</Math>, produces: 't', highlight: true },
+            { step: 6, icon: <Package size={16} />, title: t('mlkem.keygen.s6.title'), plain: t('mlkem.keygen.s6.plain'), formula: <Math>{`pk = (\\rho, \\mathbf{t}) \\quad sk = \\mathbf{s}`}</Math>, produces: 'pk, sk' },
           ].map((s) => (
             <StepCard key={s.step} palette="cyan" {...s} />
           ))}
         </div>
 
-        <Callout variant="tip" title="Truco de tamaño">
-          La matriz <Math>{`\\mathbf{A}`}</Math> ocupa kilobytes pero{' '}
-          <strong className="text-quantum-cyan">no se publica entera</strong>: solo los 32
-          bytes de <Math>{`\\rho`}</Math>. Bob la regenera idénticamente con SHAKE-128.
-          Por eso la clave pública de ML-KEM-768 cabe en ~1.184 bytes.
+        <Callout variant="tip" title={t('mlkem.s03.tip.title')}>
+          {t('mlkem.s03.tip.body')}
         </Callout>
       </ScrollSection>
 
       {/* ENCAPS */}
       <ScrollSection
-        eyebrow="04 · Bob ejecuta"
+        eyebrow={t('mlkem.s04.eyebrow')}
         title={
           <>
-            <span className="text-quantum-violet">Encaps</span> · encapsular la clave
+            <span className="text-quantum-violet">Encaps</span> · {t('mlkem.s04.titleAfter')}
           </>
         }
       >
@@ -483,114 +367,18 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
         />
 
         <p className="text-slate-300 max-w-3xl mb-8 mt-6 text-[16px] leading-relaxed">
-          Bob recibe la clave pública de Alice. Genera un mensaje aleatorio{' '}
-          <span className="font-mono">m</span>, lo codifica con el círculo{' '}
-          <Math>{`\\mathbb{Z}_q`}</Math> (bit 0 → 0, bit 1 → q/2) y lo esconde dentro de su
-          propia ecuación LWE. Lo que envía no son los datos en claro; es un{' '}
-          <strong className="text-quantum-violet">paquete cifrado</strong>{' '}
-          <span className="font-mono">(u, v)</span> que solo Alice sabrá abrir.
+          {t('mlkem.s04.lead')}
         </p>
 
         <div className="space-y-3">
           {[
-            {
-              step: 1,
-              icon: <Dice5 size={16} />,
-              title: 'Genera el mensaje aleatorio',
-              plain: (
-                <>
-                  <strong>Solo 32 bytes</strong>. Esa <em>m</em> será la futura clave
-                  compartida — pero no se transmite tal cual.
-                </>
-              ),
-              formula: <Math>{`m \\xleftarrow{\\$} \\{0,1\\}^{256}`}</Math>,
-              produces: 'm',
-            },
-            {
-              step: 2,
-              icon: <Hash size={16} />,
-              title: 'Deriva clave y aleatoriedad (FO)',
-              plain: (
-                <>
-                  Bob no usa azar bruto para el cifrado; saca todo del hash de{' '}
-                  <span className="font-mono">m</span>. Eso permite que Alice{' '}
-                  <strong>reconstruya</strong> después los cálculos de Bob y verifique
-                  que no hubo manipulación.
-                </>
-              ),
-              formula: <Math>{`(K, r) = \\text{Hash}(m, \\text{Hash}(pk))`}</Math>,
-              produces: 'K (futura clave) · r (semilla del cifrado)',
-            },
-            {
-              step: 3,
-              icon: <Layers size={16} />,
-              title: 'Recupera la matriz A',
-              plain: (
-                <>
-                  La clave pública incluía <span className="font-mono">ρ</span>; Bob expande
-                  exactamente la misma <span className="font-mono">A</span> que generó
-                  Alice. Determinismo, no aleatoriedad.
-                </>
-              ),
-              formula: <Math>{`\\mathbf{A} \\leftarrow \\text{SHAKE-128}(\\rho)`}</Math>,
-              produces: 'A · pública',
-            },
-            {
-              step: 4,
-              icon: <Waves size={16} />,
-              title: 'Muestrea ruidos pequeños',
-              plain: (
-                <>
-                  De <span className="font-mono">r</span> salen tres vectores cercanos al
-                  cero: <span className="font-mono">r</span> (aleatoriedad del cifrado),
-                  <span className="font-mono"> e₁, e₂</span> (ruidos).
-                </>
-              ),
-              formula: <Math>{`\\mathbf{r}, \\mathbf{e}_1 \\sim B_{\\eta_1}, \\quad e_2 \\sim B_{\\eta_2}`}</Math>,
-              produces: 'r, e₁, e₂',
-            },
-            {
-              step: 5,
-              icon: <Sigma size={16} />,
-              title: 'Construye u · primera mitad del paquete',
-              plain: (
-                <>
-                  Una nueva ecuación LWE — esta vez, de Bob: la incógnita oculta es{' '}
-                  <span className="font-mono">r</span>, no <span className="font-mono">s</span>.
-                </>
-              ),
-              formula: <Math>{`\\mathbf{u} = \\mathbf{A}^T\\mathbf{r} + \\mathbf{e}_1`}</Math>,
-              produces: 'u',
-            },
-            {
-              step: 6,
-              icon: <Lock size={16} />,
-              title: 'Construye v · aquí se esconde el mensaje',
-              plain: (
-                <>
-                  El mensaje codificado se suma <em>encima</em> de una ecuación LWE más.
-                  Cuando Alice reste <span className="font-mono">sᵀ·u</span>, los trozos
-                  LWE se cancelarán y emergerá <span className="font-mono">Encode(m)</span>.
-                </>
-              ),
-              formula: <Math>{`v = \\mathbf{t}^T\\mathbf{r} + e_2 + \\text{Encode}(m)`}</Math>,
-              produces: 'v',
-              highlight: true,
-            },
-            {
-              step: 7,
-              icon: <Send size={16} />,
-              title: 'Comprime y envía el ciphertext',
-              plain: (
-                <>
-                  La compresión recorta bits poco significativos:{' '}
-                  <span className="font-mono">(u, v)</span> aún cabe en{' '}
-                  <strong>~1.088 bytes</strong> en ML-KEM-768.
-                </>
-              ),
-              formula: <Math>{`c = \\text{Compress}(\\mathbf{u}, v)`}</Math>,
-              produces: 'c · ciphertext',
-            },
+            { step: 1, icon: <Dice5 size={16} />, title: t('mlkem.encaps.s1'), plain: t('mlkem.encaps.s1.plain'), formula: <Math>{`m \\xleftarrow{\\$} \\{0,1\\}^{256}`}</Math>, produces: 'm' },
+            { step: 2, icon: <Hash size={16} />, title: t('mlkem.encaps.s2'), plain: t('mlkem.encaps.s2.plain'), formula: <Math>{`(K, r) = \\text{Hash}(m, \\text{Hash}(pk))`}</Math>, produces: 'K, r' },
+            { step: 3, icon: <Layers size={16} />, title: t('mlkem.encaps.s3'), plain: t('mlkem.encaps.s3.plain'), formula: <Math>{`\\mathbf{A} \\leftarrow \\text{SHAKE-128}(\\rho)`}</Math>, produces: 'A' },
+            { step: 4, icon: <Waves size={16} />, title: t('mlkem.encaps.s4'), plain: t('mlkem.encaps.s4.plain'), formula: <Math>{`\\mathbf{r}, \\mathbf{e}_1 \\sim B_{\\eta_1}, \\; e_2 \\sim B_{\\eta_2}`}</Math>, produces: 'r, e₁, e₂' },
+            { step: 5, icon: <Sigma size={16} />, title: t('mlkem.encaps.s5'), plain: t('mlkem.encaps.s5.plain'), formula: <Math>{`\\mathbf{u} = \\mathbf{A}^T\\mathbf{r} + \\mathbf{e}_1`}</Math>, produces: 'u' },
+            { step: 6, icon: <Lock size={16} />, title: t('mlkem.encaps.s6'), plain: t('mlkem.encaps.s6.plain'), formula: <Math>{`v = \\mathbf{t}^T\\mathbf{r} + e_2 + \\text{Encode}(m)`}</Math>, produces: 'v', highlight: true },
+            { step: 7, icon: <Send size={16} />, title: t('mlkem.encaps.s7'), plain: t('mlkem.encaps.s7.plain'), formula: <Math>{`c = \\text{Compress}(\\mathbf{u}, v)`}</Math>, produces: 'c' },
           ].map((s) => (
             <StepCard key={s.step} palette="violet" {...s} />
           ))}
@@ -599,10 +387,10 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
 
       {/* DECAPS */}
       <ScrollSection
-        eyebrow="05 · Alice recibe"
+        eyebrow={t('mlkem.s05.eyebrow')}
         title={
           <>
-            <span className="text-quantum-pink">Decaps</span> · recuperar la clave
+            <span className="text-quantum-pink">Decaps</span> · {t('mlkem.s05.titleAfter')}
           </>
         }
       >
@@ -618,12 +406,7 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
         />
 
         <p className="text-slate-300 max-w-3xl mb-8 mt-6 text-[16px] leading-relaxed">
-          Alice recibe <span className="font-mono">c</span>. Su clave privada{' '}
-          <span className="font-mono">s</span> hace que los términos LWE de Bob se cancelen
-          exactamente al restar. Lo que queda es <em>casi</em>{' '}
-          <span className="font-mono">Encode(m)</span> — basta redondear cada coeficiente
-          al más cercano (0 ó q/2) para recuperar el mensaje. Luego, una verificación FO
-          comprueba que nadie ha tocado <span className="font-mono">c</span> por el camino.
+          {t('mlkem.s05.lead')}
         </p>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -633,50 +416,13 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
                 <Unlock size={16} />
               </div>
               <h4 className="font-display text-lg font-semibold text-quantum-cyan">
-                Fase 1 · Descifrar
+                {t('mlkem.decaps.phase1')}
               </h4>
             </div>
             {[
-              {
-                step: 1,
-                icon: <Package size={16} />,
-                title: 'Descomprime el ciphertext',
-                plain: 'Recupera los dos componentes (u, v) tal como los envió Bob.',
-                formula: <Math>{`\\text{Decompress}(c) \\to (\\mathbf{u}, v)`}</Math>,
-                produces: '(u, v)',
-              },
-              {
-                step: 2,
-                icon: <Sigma size={16} />,
-                title: 'Cancela el ruido LWE de Bob',
-                plain: (
-                  <>
-                    Resta <span className="font-mono">sᵀ·u</span> de{' '}
-                    <span className="font-mono">v</span>: los términos{' '}
-                    <span className="font-mono">sᵀ·Aᵀ·r</span> se anulan exactamente.
-                    Queda <span className="font-mono">Encode(m) + ruido</span> pequeño.
-                    Geométricamente es un <strong>CVP</strong> resoluble con la base
-                    buena (s).
-                  </>
-                ),
-                formula: <Math>{`w = v - \\mathbf{s}^T \\mathbf{u}`}</Math>,
-                produces: 'w (ruidoso)',
-                highlight: true,
-              },
-              {
-                step: 3,
-                icon: <Sparkles size={16} />,
-                title: 'Decodifica con el código corrector',
-                plain: (
-                  <>
-                    Cada coeficiente se redondea al más cercano entre 0 y q/2. Si el ruido
-                    es menor que q/4 (que lo es con probabilidad 1 − 2⁻¹⁶⁴), se recupera
-                    el bit original.
-                  </>
-                ),
-                formula: <Math>{`m' = \\text{Decode}(w)`}</Math>,
-                produces: "m'",
-              },
+              { step: 1, icon: <Package size={16} />, title: t('mlkem.decaps.s1.title'), plain: t('mlkem.decaps.s1.plain'), formula: <Math>{`\\text{Decompress}(c) \\to (\\mathbf{u}, v)`}</Math>, produces: '(u, v)' },
+              { step: 2, icon: <Sigma size={16} />, title: t('mlkem.decaps.s2.title'), plain: t('mlkem.decaps.s2.plain'), formula: <Math>{`w = v - \\mathbf{s}^T \\mathbf{u}`}</Math>, produces: 'w', highlight: true },
+              { step: 3, icon: <Sparkles size={16} />, title: t('mlkem.decaps.s3.title'), plain: t('mlkem.decaps.s3.plain'), formula: <Math>{`m' = \\text{Decode}(w)`}</Math>, produces: "m'" },
             ].map((s) => (
               <StepCard key={s.step} palette="cyan" compact {...s} />
             ))}
@@ -688,56 +434,13 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
                 <ShieldCheck size={16} />
               </div>
               <h4 className="font-display text-lg font-semibold text-quantum-violet">
-                Fase 2 · Verificar (FO)
+                {t('mlkem.decaps.phase2')}
               </h4>
             </div>
             {[
-              {
-                step: 4,
-                icon: <Hash size={16} />,
-                title: 'Re-deriva la aleatoriedad de Bob',
-                plain: (
-                  <>
-                    Como Bob obtuvo <span className="font-mono">r</span> de{' '}
-                    <span className="font-mono">Hash(m)</span>, Alice — que ya tiene{' '}
-                    <span className="font-mono">m'</span> — puede recalcular el mismo{' '}
-                    <span className="font-mono">r'</span> y la misma clave{' '}
-                    <span className="font-mono">K'</span>.
-                  </>
-                ),
-                formula: <Math>{`(K', r') = \\text{Hash}(m', \\text{Hash}(pk))`}</Math>,
-                produces: "K', r'",
-              },
-              {
-                step: 5,
-                icon: <Lock size={16} />,
-                title: 'Recifra desde cero',
-                plain: (
-                  <>
-                    Con <span className="font-mono">m'</span> y{' '}
-                    <span className="font-mono">r'</span>, Alice repite literalmente el
-                    Encaps. Obtiene un <span className="font-mono">c'</span> propio.
-                  </>
-                ),
-                formula: <Math>{`c' = \\text{Encrypt}(pk, m', r')`}</Math>,
-                produces: "c'",
-              },
-              {
-                step: 6,
-                icon: <CheckCircle2 size={16} />,
-                title: 'Compara c y c\'',
-                plain: (
-                  <>
-                    Si coinciden, el ciphertext era genuino → la clave es{' '}
-                    <span className="text-quantum-mint">K = K'</span>. Si no, devuelve una
-                    clave falsa Hash(z, c){' '}
-                    <em>indistinguible</em> de una real (rechazo implícito).
-                  </>
-                ),
-                formula: <Math>{`c \\stackrel{?}{=} c'`}</Math>,
-                produces: 'K real o K falsa',
-                highlight: true,
-              },
+              { step: 4, icon: <Hash size={16} />, title: t('mlkem.decaps.s4.title'), plain: t('mlkem.decaps.s4.plain'), formula: <Math>{`(K', r') = \\text{Hash}(m', \\text{Hash}(pk))`}</Math>, produces: "K', r'" },
+              { step: 5, icon: <Lock size={16} />, title: t('mlkem.decaps.s5.title'), plain: t('mlkem.decaps.s5.plain'), formula: <Math>{`c' = \\text{Encrypt}(pk, m', r')`}</Math>, produces: "c'" },
+              { step: 6, icon: <CheckCircle2 size={16} />, title: t('mlkem.decaps.s6.title'), plain: t('mlkem.decaps.s6.plain'), formula: <Math>{`c \\stackrel{?}{=} c'`}</Math>, produces: 'K', highlight: true },
             ].map((s) => (
               <StepCard key={s.step} palette="violet" compact {...s} />
             ))}
@@ -747,24 +450,21 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
 
       {/* CANCELACIÓN MATEMÁTICA */}
       <ScrollSection
-        eyebrow="06 · La magia"
-        title="La cancelación matemática"
+        eyebrow={t('mlkem.s06.eyebrow')}
+        title={t('mlkem.s06.title')}
       >
-        <p className="text-slate-300 mb-8 text-[17px] leading-relaxed">
-          ¿Por qué Alice consigue recuperar el mensaje? Sustituyendo <Math>{`v`}</Math> y{' '}
-          <Math>{`\\mathbf{u}`}</Math> en <Math>{`w = v - \\mathbf{s}^T \\mathbf{u}`}</Math>:
-        </p>
+        <p className="text-slate-300 mb-8 text-[17px] leading-relaxed">{t('mlkem.s06.lead')}</p>
 
         <div className="card-quantum p-7 space-y-5 font-mono text-sm md:text-base text-slate-200">
           <div>
-            <div className="text-xs uppercase tracking-widest text-slate-500 mb-2">Sustituyendo</div>
+            <div className="text-xs uppercase tracking-widest text-slate-500 mb-2">{t('mlkem.s06.step.sub')}</div>
             <Math display>
               {`w = (\\mathbf{t}^T\\mathbf{r} + e_2 + \\text{Encode}(m)) - \\mathbf{s}^T(\\mathbf{A}^T\\mathbf{r} + \\mathbf{e}_1)`}
             </Math>
           </div>
           <div>
             <div className="text-xs uppercase tracking-widest text-slate-500 mb-2">
-              Como <Math>{`\\mathbf{t} = \\mathbf{A}\\mathbf{s} + \\mathbf{e}`}</Math>:
+              {t('mlkem.s06.step.expand')}
             </div>
             <Math display>
               {`\\mathbf{t}^T\\mathbf{r} = \\mathbf{s}^T\\mathbf{A}^T\\mathbf{r} + \\mathbf{e}^T\\mathbf{r}`}
@@ -772,7 +472,7 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
           </div>
           <div>
             <div className="text-xs uppercase tracking-widest text-quantum-cyan mb-2">
-              Los términos <Math>{`\\mathbf{s}^T\\mathbf{A}^T\\mathbf{r}`}</Math> se cancelan:
+              {t('mlkem.s06.step.cancel')}
             </div>
             <Math display>
               {`w = \\text{Encode}(m) + \\underbrace{(\\mathbf{e}^T\\mathbf{r} - \\mathbf{s}^T\\mathbf{e}_1 + e_2)}_{\\text{ruido pequeño}}`}
@@ -780,18 +480,18 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
           </div>
         </div>
 
-        <Callout variant="tip" title="¿Por qué funciona?">
-          Todos los vectores con ruido son <strong className="text-quantum-cyan">pequeños</strong>.
-          El producto de cosas pequeñas da una cosa pequeña. El código corrector absorbe
-          ese ruido residual y recupera <Math>{`m`}</Math> exactamente.
+        <Callout variant="tip" title={t('mlkem.s06.callout.title')}>
+          {t('mlkem.s06.callout.body.a')}
+          <strong className="text-quantum-cyan">{t('mlkem.s06.callout.body.b')}</strong>
+          {t('mlkem.s06.callout.body.c')}
         </Callout>
 
         <div className="mt-8 grid md:grid-cols-4 gap-3 text-center text-sm">
           {[
-            { label: 'Module-LWE', desc: 't = As + e protege s' },
-            { label: 'Anillo R_q', desc: 'todo se opera aquí' },
-            { label: 'Código corrector', desc: 'absorbe ruido residual' },
-            { label: 'CVP', desc: 'fácil con base buena' },
+            { label: t('mlkem.s06.chip.mlwe'), desc: t('mlkem.s06.chip.mlwe.d') },
+            { label: t('mlkem.s06.chip.ring'), desc: t('mlkem.s06.chip.ring.d') },
+            { label: t('mlkem.s06.chip.corr'), desc: t('mlkem.s06.chip.corr.d') },
+            { label: t('mlkem.s06.chip.cvp'), desc: t('mlkem.s06.chip.cvp.d') },
           ].map((c, i) => (
             <motion.div
               key={c.label}
@@ -810,46 +510,47 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
 
       {/* TRES ROLES DE r */}
       <ScrollSection
-        eyebrow="07 · Una sutileza"
-        title={<>¿Necesita Alice <Math>{`r`}</Math> para descifrar?</>}
+        eyebrow={t('mlkem.s07.eyebrow')}
+        title={
+          <>
+            {t('mlkem.s07.title.a')}<Math>{`r`}</Math>{t('mlkem.s07.title.c')}
+          </>
+        }
       >
         <div className="grid md:grid-cols-2 gap-6">
           <div className="card-quantum p-7">
             <div className="flex items-center gap-3 mb-3 text-quantum-rose">
               <Eye size={20} />
-              <span className="font-display font-semibold">Mito</span>
+              <span className="font-display font-semibold">{t('mlkem.s07.myth.title')}</span>
             </div>
             <p className="text-slate-300 text-[15px] leading-relaxed">
-              "Si Bob necesita <Math>{`r`}</Math> para cifrar, Alice también lo necesitará
-              para descifrar".
+              {t('mlkem.s07.myth.body')}
             </p>
           </div>
           <div className="card-quantum p-7 glow-cyan">
             <div className="flex items-center gap-3 mb-3 text-quantum-cyan">
               <CheckCircle2 size={20} />
-              <span className="font-display font-semibold">Realidad</span>
+              <span className="font-display font-semibold">{t('mlkem.s07.reality.title')}</span>
             </div>
             <p className="text-slate-300 text-[15px] leading-relaxed">
-              Para descifrar, Alice solo necesita <Math>{`\\mathbf{s}`}</Math>. La
-              aleatoriedad <Math>{`\\mathbf{r}`}</Math> queda atrapada en{' '}
-              <Math>{`\\mathbf{u}`}</Math> y <Math>{`v`}</Math> y{' '}
-              <strong className="text-quantum-cyan">se cancela</strong> al calcular{' '}
-              <Math>{`v - \\mathbf{s}^T \\mathbf{u}`}</Math>.
+              {t('mlkem.s07.reality.body.a')}
+              <strong className="text-quantum-cyan">{t('mlkem.s07.reality.body.b')}</strong>
+              {t('mlkem.s07.reality.body.c')}
             </p>
           </div>
         </div>
 
         <div className="mt-8">
           <p className="text-slate-300 text-[17px] leading-relaxed mb-4">
-            En FO, Alice <strong className="text-quantum-cyan">reconstruye</strong>{' '}
-            <Math>{`r`}</Math> después de descifrar (vía <Math>{`\\text{Hash}(m')`}</Math>),
-            no antes. El orden mental es:
+            {t('mlkem.s07.order.lead.a')}
+            <strong className="text-quantum-cyan">{t('mlkem.s07.order.lead.b')}</strong>
+            {t('mlkem.s07.order.lead.c')}
           </p>
           <div className="space-y-2">
             {[
-              'Descifrar con s → obtener m\'',
-              'Calcular r\' = Hash(m\')',
-              'Usar r\' para recifrar y verificar',
+              t('mlkem.s07.order.s1'),
+              t('mlkem.s07.order.s2'),
+              t('mlkem.s07.order.s3'),
             ].map((s, i) => (
               <div key={i} className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-quantum-cyan/15 text-quantum-cyan flex items-center justify-center font-mono font-bold text-sm shrink-0">
@@ -866,66 +567,59 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
       <QuickQuiz
         quizId="mlkem-test"
         routeId="mlkem"
-        title="Test de comprensión ML-KEM"
+        title={t('mlkem.quiz.title')}
+        titleKey="mlkem.quiz.title"
         questions={[
           {
-            question:
-              '¿Por qué Alice puede descifrar y un atacante no, si ambos ven la misma matriz A y el mismo ciphertext?',
+            question: t('mlkem.quiz.q1.q'),
             options: [
-              'Porque Alice tiene un canal cuántico privado.',
-              'Porque Alice posee el secreto s y los términos sᵀAᵀr se cancelan al calcular v − sᵀu.',
-              'Porque Alice conoce el mensaje m de antemano.',
-              'Porque Alice usa otra matriz A distinta.',
+              t('mlkem.quiz.q1.o1'),
+              t('mlkem.quiz.q1.o2'),
+              t('mlkem.quiz.q1.o3'),
+              t('mlkem.quiz.q1.o4'),
             ],
             correctIndex: 1,
-            explanation:
-              'Justo eso es la cancelación matemática. Sin s no puedes hacer la resta correctamente y solo te queda LWE para resolver — que es duro.',
+            explanation: t('mlkem.quiz.q1.exp'),
           },
           {
-            question:
-              '¿Qué hace Bob con la "aleatoriedad" r en ML-KEM con FO?',
+            question: t('mlkem.quiz.q2.q'),
             options: [
-              'La envía cifrada junto con el ciphertext.',
-              'La elige como un número verdaderamente aleatorio independiente.',
-              'La deriva determinísticamente como Hash(m), para que Alice pueda recalcularla al verificar.',
-              'No la usa.',
+              t('mlkem.quiz.q2.o1'),
+              t('mlkem.quiz.q2.o2'),
+              t('mlkem.quiz.q2.o3'),
+              t('mlkem.quiz.q2.o4'),
             ],
             correctIndex: 2,
-            explanation:
-              'FO obliga a r = Hash(m). Esto permite a Alice rehacer los cálculos de Bob al verificar el ciphertext y detectar manipulaciones.',
+            explanation: t('mlkem.quiz.q2.exp'),
           },
           {
-            question:
-              '¿Cuál de estas afirmaciones describe el papel del código corrector en ML-KEM?',
+            question: t('mlkem.quiz.q3.q'),
             options: [
-              'Detecta errores en la matriz A pública.',
-              'Codifica cada bit del mensaje en posiciones del círculo Z_q separadas q/2, para que el ruido residual menor que q/4 no impida recuperarlo.',
-              'Reduce la dimensión del retículo durante el cifrado.',
-              'Cifra cuánticamente el mensaje.',
+              t('mlkem.quiz.q3.o1'),
+              t('mlkem.quiz.q3.o2'),
+              t('mlkem.quiz.q3.o3'),
+              t('mlkem.quiz.q3.o4'),
             ],
             correctIndex: 1,
-            explanation:
-              'El bit 0 va a 0 y el bit 1 va a q/2. Ese margen de q/4 es exactamente la tolerancia al ruido que aparece tras la cancelación matemática.',
+            explanation: t('mlkem.quiz.q3.exp'),
           },
         ]}
       />
 
       {/* SIMULADOR */}
       <ScrollSection
-        eyebrow="08 · Manos a la obra"
-        title={<>Simulador <span className="text-gradient-static">interactivo</span></>}
+        eyebrow={t('mlkem.s08.eyebrow')}
+        title={<>{t('mlkem.s08.title.a')}<span className="text-gradient-static">{t('mlkem.s08.title.b')}</span></>}
       >
         <p className="text-slate-300 mb-8 text-[17px] leading-relaxed max-w-3xl">
-          Una versión didáctica de ML-KEM (Baby-Kyber) con parámetros pequeños{' '}
-          (<Math>{`q=23`}</Math>, <Math>{`n=2`}</Math>) que cabe en pantalla. La lógica es
-          idéntica al algoritmo real: solo cambian los tamaños.
+          {t('mlkem.s08.lead')}
         </p>
         <div className="card-quantum p-2 md:p-4">
           <MLKEMSimulator />
         </div>
       </ScrollSection>
 
-      <ScrollSection eyebrow="Final" title="Lo has visto entero">
+      <ScrollSection eyebrow={t('mlkem.s09.eyebrow')} title={t('mlkem.s09.title')}>
         <div className="card-quantum p-8 md:p-10">
           <div className="flex items-start gap-4 mb-5">
             <div className="p-3 rounded-xl bg-quantum-cyan/10 text-quantum-cyan">
@@ -933,18 +627,10 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
             </div>
             <div>
               <h3 className="font-display text-2xl font-bold text-slate-100 mb-2">
-                ML-KEM en una idea
+                {t('mlkem.s09.subtitle')}
               </h3>
               <p className="text-slate-300 text-[16px] leading-relaxed">
-                Alice publica una ecuación con ruido que esconde su clave privada. Bob
-                construye un ciphertext que mezcla el mensaje con esa misma ecuación
-                ruidosa. Cuando Alice usa su clave privada al descifrar, los términos
-                ruidosos grandes <strong className="text-quantum-cyan">se cancelan exactamente</strong> y solo queda el mensaje
-                más un poco de ruido residual. Ese ruido residual es lo bastante pequeño
-                para que el código corrector lo absorba. Al final, Alice añade una
-                verificación (FO) recifrando para detectar manipulaciones. La seguridad
-                descansa en que extraer la clave privada desde la pública es el problema
-                LWE, que es duro incluso para ordenadores cuánticos.
+                {t('mlkem.s09.body')}
               </p>
             </div>
           </div>
@@ -952,29 +638,18 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
 
         <div className="mt-10 flex flex-wrap gap-3 justify-center">
           <button onClick={() => onChange('intro')} className="btn-ghost">
-            Volver al inicio
+            {t('mlkem.back.intro')}
           </button>
           <button onClick={() => onChange('fundamentos')} className="btn-ghost">
-            Repasar fundamentos
+            {t('mlkem.back.fund')}
           </button>
           <button onClick={() => onChange('aplicaciones')} className="btn-ghost">
-            Volver a aplicaciones
+            {t('mlkem.back.apps')}
           </button>
         </div>
       </ScrollSection>
 
-      <ScrollSection
-        eyebrow="Cierre"
-        title={<>Tu <span className="text-gradient-static">progreso</span></>}
-      >
-        <p className="text-slate-400 mb-6 text-[15px] max-w-2xl">
-          Cada vez que has completado un cuestionario durante el recorrido, hemos guardado
-          tu puntuación. Este es el balance global.
-        </p>
-        <QuizSummary />
-      </ScrollSection>
-
-      <FeedbackForm routeId="mlkem" routeName="ML-KEM y el simulador" />
+      <FeedbackForm routeId="mlkem" />
     </div>
   );
 };

@@ -7,15 +7,12 @@ import {
   subscribeToQuizResults,
   type QuizResult,
 } from './quizStore';
-
-const routeLabels: Record<string, string> = {
-  intro: 'Introducción',
-  fundamentos: 'Fundamentos',
-  aplicaciones: 'Aplicaciones',
-  mlkem: 'ML-KEM',
-};
+import { useT, useI18n } from '../../i18n';
+import type { TranslationKey } from '../../i18n/translations';
 
 const QuizSummary: React.FC = () => {
+  const t = useT();
+  const { locale } = useI18n();
   const [results, setResults] = useState<QuizResult[]>(() => getAllQuizResults());
 
   useEffect(() => {
@@ -24,6 +21,11 @@ const QuizSummary: React.FC = () => {
       unsub();
     };
   }, []);
+
+  const routeLabel = (routeId: string): string => {
+    const key = `nav.${routeId}` as TranslationKey;
+    return t(key) ?? routeId;
+  };
 
   if (!results.length) {
     return (
@@ -37,12 +39,11 @@ const QuizSummary: React.FC = () => {
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-quantum-violet/10 text-quantum-violet mb-3">
           <BarChart3 size={22} />
         </div>
-        <h3 className="font-display text-lg md:text-xl font-semibold text-slate-100 mb-1">
-          Resumen de cuestionarios
+        <h3 className="font-display text-lg md:text-xl font-semibold text-quantum-fg-strong mb-1">
+          {t('quizsum.empty.title')}
         </h3>
-        <p className="text-sm text-slate-400 max-w-md mx-auto">
-          Aún no has completado ningún cuestionario. A medida que avances por las secciones,
-          los resultados aparecerán aquí.
+        <p className="text-sm text-quantum-fg-soft max-w-md mx-auto">
+          {t('quizsum.empty.body')}
         </p>
       </motion.div>
     );
@@ -59,6 +60,7 @@ const QuizSummary: React.FC = () => {
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.6 }}
       className="card-quantum p-7 md:p-10 my-12 relative overflow-hidden"
+      data-locale={locale}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-quantum-cyan/5 via-transparent to-quantum-violet/5 pointer-events-none" />
 
@@ -68,17 +70,15 @@ const QuizSummary: React.FC = () => {
             <Award size={26} />
           </div>
           <div className="flex-1">
-            <h3 className="font-display text-xl md:text-2xl font-bold text-slate-100">
-              Resumen de cuestionarios
+            <h3 className="font-display text-xl md:text-2xl font-bold text-quantum-fg-strong">
+              {t('quizsum.title')}
             </h3>
-            <p className="text-sm text-slate-400">
-              Recopilación de todos los mini-tests que has completado durante el recorrido.
-            </p>
+            <p className="text-sm text-quantum-fg-soft">{t('quizsum.lead')}</p>
           </div>
           <button
             onClick={() => clearAllQuizResults()}
-            title="Borrar resultados"
-            className="p-2 rounded-lg text-slate-500 hover:text-quantum-rose hover:bg-quantum-rose/10 transition-colors"
+            title={t('quizsum.clear')}
+            className="p-2 rounded-lg text-quantum-fg-mute hover:text-quantum-rose hover:bg-quantum-rose/10 transition-colors"
           >
             <Trash2 size={16} />
           </button>
@@ -86,17 +86,17 @@ const QuizSummary: React.FC = () => {
 
         <div className="grid sm:grid-cols-3 gap-3 mb-6">
           <div className="rounded-xl border border-quantum-border bg-quantum-panel/40 p-4 text-center">
-            <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">
-              Aciertos
+            <div className="text-[10px] uppercase tracking-widest text-quantum-fg-mute mb-1">
+              {t('quizsum.col.hits')}
             </div>
             <div className="font-display text-3xl font-bold text-gradient-quantum">
               {totalScore}
-              <span className="text-slate-500 text-lg">/{totalQuestions}</span>
+              <span className="text-quantum-fg-mute text-lg">/{totalQuestions}</span>
             </div>
           </div>
           <div className="rounded-xl border border-quantum-border bg-quantum-panel/40 p-4 text-center">
-            <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">
-              Porcentaje
+            <div className="text-[10px] uppercase tracking-widest text-quantum-fg-mute mb-1">
+              {t('quizsum.col.pct')}
             </div>
             <div
               className={`font-display text-3xl font-bold ${
@@ -111,10 +111,10 @@ const QuizSummary: React.FC = () => {
             </div>
           </div>
           <div className="rounded-xl border border-quantum-border bg-quantum-panel/40 p-4 text-center">
-            <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">
-              Tests completados
+            <div className="text-[10px] uppercase tracking-widest text-quantum-fg-mute mb-1">
+              {t('quizsum.col.tests')}
             </div>
-            <div className="font-display text-3xl font-bold text-slate-100">
+            <div className="font-display text-3xl font-bold text-quantum-fg-strong">
               {results.length}
             </div>
           </div>
@@ -140,10 +140,10 @@ const QuizSummary: React.FC = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2 flex-wrap">
                     <span className="text-[10px] uppercase tracking-widest text-quantum-violet font-mono">
-                      {routeLabels[r.routeId] ?? r.routeId}
+                      {routeLabel(r.routeId)}
                     </span>
-                    <span className="font-display text-sm font-semibold text-slate-100 truncate">
-                      {r.title}
+                    <span className="font-display text-sm font-semibold text-quantum-fg-strong truncate">
+                      {r.titleKey ? t(r.titleKey as TranslationKey) : r.title}
                     </span>
                   </div>
                   <div className="mt-1.5 h-1 rounded-full bg-quantum-panel2/80 overflow-hidden">
@@ -160,10 +160,10 @@ const QuizSummary: React.FC = () => {
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="font-mono font-semibold text-slate-100 text-sm">
+                  <div className="font-mono font-semibold text-quantum-fg-strong text-sm">
                     {r.score}/{r.total}
                   </div>
-                  <div className="text-[10px] text-slate-500">{pct}%</div>
+                  <div className="text-[10px] text-quantum-fg-mute">{pct}%</div>
                 </div>
               </div>
             );

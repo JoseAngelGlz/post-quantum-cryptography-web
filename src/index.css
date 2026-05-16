@@ -4,57 +4,109 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── THEME VARIABLES (RGB triplets so Tailwind opacity modifiers work) ─── */
+:root {
+  /* light theme (default) */
+  --bg: 246 248 255;
+  --panel: 255 255 255;
+  --panel2: 238 241 251;
+  --border: 210 216 234;
+  --fg-strong: 6 11 33;
+  --fg: 19 25 56;
+  --fg-soft: 41 49 82;
+  --fg-mute: 72 81 113;
+
+  --cyan: 8 145 178;
+  --violet: 124 58 237;
+  --pink: 219 39 119;
+  --blue: 37 99 235;
+  --mint: 5 150 105;
+  --amber: 217 119 6;
+  --rose: 225 29 72;
+
+  --bg-radial-a: 8 145 178 / 0.07;
+  --bg-radial-b: 124 58 237 / 0.07;
+  --bg-grid: 8 145 178 / 0.07;
+}
+
+.dark {
+  --bg: 5 6 15;
+  --panel: 12 15 29;
+  --panel2: 18 23 51;
+  --border: 31 39 80;
+  --fg-strong: 241 245 249;
+  --fg: 226 232 240;
+  --fg-soft: 203 213 225;
+  --fg-mute: 148 163 184;
+
+  --cyan: 94 234 212;
+  --violet: 167 139 250;
+  --pink: 244 114 182;
+  --blue: 96 165 250;
+  --mint: 52 211 153;
+  --amber: 251 191 36;
+  --rose: 251 113 133;
+
+  --bg-radial-a: 96 165 250 / 0.10;
+  --bg-radial-b: 167 139 250 / 0.10;
+  --bg-grid: 94 234 212 / 0.05;
+}
+
 @layer base {
-  html {
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
 
   body {
-    @apply bg-quantum-bg text-slate-200 font-sans antialiased;
+    background-color: rgb(var(--bg));
+    color: rgb(var(--fg));
     background-image:
-      radial-gradient(circle at 20% 0%, rgba(96, 165, 250, 0.10), transparent 50%),
-      radial-gradient(circle at 80% 100%, rgba(167, 139, 250, 0.10), transparent 50%);
+      radial-gradient(circle at 20% 0%, rgb(var(--bg-radial-a)), transparent 50%),
+      radial-gradient(circle at 80% 100%, rgb(var(--bg-radial-b)), transparent 50%);
     background-attachment: fixed;
+    @apply font-sans antialiased;
+    transition: background-color 0.35s ease, color 0.35s ease;
   }
 
   ::selection {
-    background: rgba(94, 234, 212, 0.30);
-    color: #fff;
+    background: rgb(var(--cyan) / 0.30);
+    color: rgb(var(--fg-strong));
   }
 
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #05060f;
-  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: rgb(var(--bg)); }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #1f2750, #2a3170);
+    background: rgb(var(--border));
     border-radius: 5px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, #5eead4, #a78bfa);
+    background: linear-gradient(180deg, rgb(var(--cyan)), rgb(var(--violet)));
   }
+
+  /* In light mode, slate-100/200/300/400/500 are washed out. Remap to themed colors. */
+  :root:not(.dark) .text-slate-100,
+  :root:not(.dark) .text-slate-200 { color: rgb(var(--fg-strong)) !important; }
+  :root:not(.dark) .text-slate-300 { color: rgb(var(--fg)) !important; }
+  :root:not(.dark) .text-slate-400 { color: rgb(var(--fg-soft)) !important; }
+  :root:not(.dark) .text-slate-500 { color: rgb(var(--fg-soft)) !important; }
+  :root:not(.dark) .text-slate-600 { color: rgb(var(--fg-mute)) !important; }
 }
 
 @layer components {
   .glass {
-    @apply backdrop-blur-md bg-quantum-panel/60 border border-quantum-border/60;
+    backdrop-filter: blur(12px);
+    background: rgb(var(--panel) / 0.70);
+    border: 1px solid rgb(var(--border) / 0.60);
   }
 
-  .glow-cyan {
-    box-shadow: 0 0 24px rgba(94, 234, 212, 0.25);
-  }
-  .glow-violet {
-    box-shadow: 0 0 24px rgba(167, 139, 250, 0.30);
-  }
-  .glow-pink {
-    box-shadow: 0 0 24px rgba(244, 114, 182, 0.30);
-  }
+  .glow-cyan   { box-shadow: 0 0 24px rgb(var(--cyan) / 0.25); }
+  .glow-violet { box-shadow: 0 0 24px rgb(var(--violet) / 0.30); }
+  .glow-pink   { box-shadow: 0 0 24px rgb(var(--pink) / 0.30); }
 
   .text-gradient-quantum {
-    background: linear-gradient(120deg, #5eead4 0%, #60a5fa 40%, #a78bfa 70%, #f472b6 100%);
+    background: linear-gradient(120deg,
+      rgb(var(--cyan)) 0%,
+      rgb(var(--blue)) 40%,
+      rgb(var(--violet)) 70%,
+      rgb(var(--pink)) 100%);
     background-size: 200% 200%;
     -webkit-background-clip: text;
     background-clip: text;
@@ -63,14 +115,20 @@
   }
 
   .text-gradient-static {
-    background: linear-gradient(120deg, #5eead4, #a78bfa);
+    background: linear-gradient(120deg, rgb(var(--cyan)), rgb(var(--violet)));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
   .card-quantum {
-    @apply relative rounded-2xl border border-quantum-border bg-quantum-panel/70 backdrop-blur-sm overflow-hidden;
+    position: relative;
+    border-radius: 1rem;
+    border: 1px solid rgb(var(--border));
+    background: rgb(var(--panel) / 0.78);
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+    transition: border-color 0.25s ease, background 0.25s ease;
   }
   .card-quantum::before {
     content: '';
@@ -78,7 +136,10 @@
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background: linear-gradient(140deg, rgba(94, 234, 212, 0.25), transparent 40%, rgba(167, 139, 250, 0.25));
+    background: linear-gradient(140deg,
+      rgb(var(--cyan) / 0.25),
+      transparent 40%,
+      rgb(var(--violet) / 0.25));
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
             mask-composite: exclude;
@@ -86,38 +147,92 @@
   }
 
   .btn-quantum {
-    @apply inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold tracking-wide transition-all;
-    background: linear-gradient(120deg, #5eead4, #60a5fa, #a78bfa);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: all 0.25s ease;
+    background: linear-gradient(120deg, rgb(var(--cyan)), rgb(var(--blue)), rgb(var(--violet)));
     background-size: 200% 200%;
-    color: #05060f;
-    box-shadow: 0 0 20px rgba(96, 165, 250, 0.35);
+    color: #ffffff;
+    box-shadow: 0 0 20px rgb(var(--blue) / 0.35);
   }
   .btn-quantum:hover {
     background-position: 100% 50%;
-    box-shadow: 0 0 30px rgba(167, 139, 250, 0.55);
+    box-shadow: 0 0 30px rgb(var(--violet) / 0.55);
   }
 
   .btn-ghost {
-    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-medium border border-quantum-border bg-quantum-panel/60 text-slate-200 hover:border-quantum-cyan/60 hover:text-quantum-cyan transition-all;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    border: 1px solid rgb(var(--border));
+    background: rgb(var(--panel) / 0.60);
+    color: rgb(var(--fg));
+    transition: all 0.2s ease;
+  }
+  .btn-ghost:hover {
+    border-color: rgb(var(--cyan) / 0.60);
+    color: rgb(var(--cyan));
   }
 
   .chip {
-    @apply inline-flex items-center gap-2 px-3 py-1 text-xs font-medium uppercase tracking-widest rounded-full border border-quantum-border bg-quantum-panel/60 text-quantum-cyan;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    border-radius: 9999px;
+    border: 1px solid rgb(var(--border));
+    background: rgb(var(--panel) / 0.60);
+    color: rgb(var(--cyan));
   }
 
   .grid-bg {
     background-image:
-      linear-gradient(rgba(94, 234, 212, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(94, 234, 212, 0.05) 1px, transparent 1px);
+      linear-gradient(rgb(var(--bg-grid)) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--bg-grid)) 1px, transparent 1px);
     background-size: 60px 60px;
   }
 
   .section-y {
-    @apply py-24 md:py-32;
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+  @media (min-width: 768px) {
+    .section-y { padding-top: 8rem; padding-bottom: 8rem; }
   }
 }
 
-/* KaTeX dark adjustments */
-.katex {
-  color: #e2e8f0 !important;
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+/* Route transition: quick fade-in to PEAK, then a single LINEAR fade-out to 0.
+ * Three keyframes only so the browser interpolates linearly throughout.
+ * Total: 5000 ms.  fill-mode forwards keeps it transparent at the end. */
+@keyframes route-transition-fade {
+  0%   { opacity: 0; }
+  6%   { opacity: 0.30; }
+  100% { opacity: 0; }
+}
+
+.katex { color: rgb(var(--fg-strong)) !important; }

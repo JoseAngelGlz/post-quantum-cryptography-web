@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import ParticleField from './ParticleField';
 
 interface HeroProps {
   eyebrow?: string;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
+  /** kept for backwards compatibility, ignored now that the constellation is global */
   hueA?: number;
   hueB?: number;
   scrollHint?: boolean;
@@ -15,25 +15,14 @@ const Hero: React.FC<HeroProps> = ({
   eyebrow,
   title,
   subtitle,
-  hueA = 175,
-  hueB = 265,
   scrollHint = true,
 }) => {
   return (
     <section className="relative min-h-[100vh] flex flex-col justify-center items-center overflow-hidden">
-      {/* animated radial gradient bg */}
+      {/* very subtle grid only — the global constellation provides the ambient look */}
       <div className="absolute inset-0 -z-10">
-        <div
-          className="absolute inset-0 opacity-70"
-          style={{
-            background:
-              'radial-gradient(ellipse at 30% 20%, rgba(94,234,212,0.20), transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(167,139,250,0.25), transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(96,165,250,0.10), transparent 60%)',
-          }}
-        />
-        <div className="absolute inset-0 grid-bg opacity-50" />
+        <div className="absolute inset-0 grid-bg opacity-40" />
       </div>
-
-      <ParticleField hueA={hueA} hueB={hueB} density={90} />
 
       <div className="relative z-10 max-w-5xl px-6 text-center">
         {eyebrow && (

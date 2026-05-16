@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, RefreshCw, Shuffle, Eye, EyeOff } from 'lucide-react';
 import KMath from './Math';
+import { useT } from '../../i18n';
 
 const Q = 11; // pequeño y bonito para la visualización
 
@@ -40,6 +41,7 @@ const seedToSample = (seed: Seed, s: [number, number], eta: number): Sample => {
 const INITIAL_SECRET: [number, number] = [4, 7];
 
 const LWENoisePlayground: React.FC = () => {
+  const t = useT();
   const [secret, setSecret] = useState<[number, number]>(INITIAL_SECRET);
   const [eta, setEta] = useState(0);
   const [seeds, setSeeds] = useState<Seed[]>(() => [
@@ -193,36 +195,39 @@ const LWENoisePlayground: React.FC = () => {
       <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div>
           <div className="text-[10px] uppercase tracking-widest text-quantum-cyan font-mono mb-1">
-            Playground
+            {t('lweSim.eyebrow')}
           </div>
           <h3 className="font-display text-xl md:text-2xl font-bold text-slate-100">
-            LWE en directo · juega con el ruido
+            {t('lweSim.title')}
           </h3>
           <p className="text-sm text-slate-400 mt-1 max-w-2xl">
-            Cada muestra es{' '}
-            <KMath>{`b_i = \\mathbf{a}_i \\cdot \\mathbf{s} + e_i \\pmod{q}`}</KMath> con{' '}
-            <KMath>{`q = 11`}</KMath>. Sube el ruido y observa cómo deja de existir un único{' '}
-            <KMath>{`\\mathbf{s}`}</KMath> consistente.
+            {t('lweSim.lead.a')}
+            <KMath>{`b_i = \\mathbf{a}_i \\cdot \\mathbf{s} + e_i \\pmod{q}`}</KMath>
+            {t('lweSim.lead.b')}
+            <KMath>{`q = 11`}</KMath>
+            {t('lweSim.lead.c')}
+            <KMath>{`\\mathbf{s}`}</KMath>
+            {t('lweSim.lead.d')}
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setShowSecret((s) => !s)}
-            title="Mostrar/ocultar secreto"
+            title={t('lweSim.toggleSecret')}
             className="p-2 rounded-lg border border-quantum-border text-slate-300 hover:border-quantum-cyan/60 hover:text-quantum-cyan transition-all"
           >
             {showSecret ? <Eye size={14} /> : <EyeOff size={14} />}
           </button>
           <button
             onClick={randomSecret}
-            title="Nuevo secreto"
+            title={t('lweSim.newSecret')}
             className="p-2 rounded-lg border border-quantum-border text-slate-300 hover:border-quantum-violet/60 hover:text-quantum-violet transition-all"
           >
             <Shuffle size={14} />
           </button>
           <button
             onClick={reset}
-            title="Reiniciar muestras"
+            title={t('lweSim.reset')}
             className="p-2 rounded-lg border border-quantum-border text-slate-300 hover:border-quantum-rose/60 hover:text-quantum-rose transition-all"
           >
             <RefreshCw size={14} />
@@ -239,15 +244,15 @@ const LWENoisePlayground: React.FC = () => {
           <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-slate-400">
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-sm bg-quantum-mint/60 inline-block" />
-              Compatible (|residual| ≤ η)
+              {t('lweSim.legend.compatible')}
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-sm bg-quantum-rose/30 inline-block" />
-              Incompatible
+              {t('lweSim.legend.incompatible')}
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full border-2 border-quantum-amber inline-block" />
-              Secreto real
+              {t('lweSim.legend.real')}
             </div>
           </div>
         </div>
@@ -258,7 +263,7 @@ const LWENoisePlayground: React.FC = () => {
           <div className="grid sm:grid-cols-2 gap-3">
             <div className="rounded-lg border border-quantum-border bg-quantum-panel/40 p-3">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">
-                Secreto <KMath>{`\\mathbf{s}`}</KMath>
+                {t('lweSim.secret.title')} <KMath>{`\\mathbf{s}`}</KMath>
               </div>
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-slate-400 w-6">s₁</span>
@@ -297,7 +302,7 @@ const LWENoisePlayground: React.FC = () => {
             <div className="rounded-lg border border-quantum-border bg-quantum-panel/40 p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] uppercase tracking-widest text-slate-500">
-                  Ruido permitido η
+                  {t('lweSim.noise.title')}
                 </span>
                 <span className="font-mono text-quantum-violet text-sm">±{eta}</span>
               </div>
@@ -311,12 +316,12 @@ const LWENoisePlayground: React.FC = () => {
               />
               <div className="text-[10px] text-slate-500 mt-1">
                 {eta === 0
-                  ? 'Sin ruido: LWE colapsa a álgebra lineal.'
+                  ? t('lweSim.noise.0')
                   : eta <= 1
-                  ? 'Ruido pequeño: pocas soluciones compatibles.'
+                  ? t('lweSim.noise.small')
                   : eta <= 3
-                  ? 'Ruido medio: la solución se desdibuja.'
-                  : 'Ruido alto: media red de candidatos.'}
+                  ? t('lweSim.noise.medium')
+                  : t('lweSim.noise.large')}
               </div>
             </div>
           </div>
@@ -325,7 +330,7 @@ const LWENoisePlayground: React.FC = () => {
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg border border-quantum-border bg-quantum-panel/40 p-2">
               <div className="text-[10px] uppercase tracking-widest text-slate-500">
-                Muestras
+                {t('lweSim.metric.samples')}
               </div>
               <div className="font-mono text-quantum-cyan font-semibold">
                 {samples.length}
@@ -333,7 +338,7 @@ const LWENoisePlayground: React.FC = () => {
             </div>
             <div className="rounded-lg border border-quantum-border bg-quantum-panel/40 p-2">
               <div className="text-[10px] uppercase tracking-widest text-slate-500">
-                Candidatos
+                {t('lweSim.metric.candidates')}
               </div>
               <div className="font-mono text-quantum-violet font-semibold">
                 {consistentCount}
@@ -341,7 +346,7 @@ const LWENoisePlayground: React.FC = () => {
             </div>
             <div className="rounded-lg border border-quantum-border bg-quantum-panel/40 p-2">
               <div className="text-[10px] uppercase tracking-widest text-slate-500">
-                Espacio
+                {t('lweSim.metric.space')}
               </div>
               <div className="font-mono text-slate-300 font-semibold">{Q * Q}</div>
             </div>
@@ -351,13 +356,13 @@ const LWENoisePlayground: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-2">
               <div className="text-[10px] uppercase tracking-widest text-slate-500">
-                Muestras
+                {t('lweSim.metric.samples')}
               </div>
               <button
                 onClick={addSample}
                 className="text-[11px] inline-flex items-center gap-1 px-2 py-1 rounded-md bg-quantum-cyan/10 border border-quantum-cyan/40 text-quantum-cyan hover:bg-quantum-cyan/20 transition-all"
               >
-                <Plus size={12} /> Añadir
+                <Plus size={12} /> {t('lweSim.samples.add')}
               </button>
             </div>
             <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
@@ -387,18 +392,18 @@ const LWENoisePlayground: React.FC = () => {
               ))}
               {samples.length === 0 && (
                 <p className="text-xs text-slate-500 italic">
-                  Pulsa "añadir" para generar tu primera muestra.
+                  {t('lweSim.samples.empty')}
                 </p>
               )}
             </div>
           </div>
 
           <p className="text-xs text-slate-400 leading-relaxed">
-            Con <KMath>{`\\eta = 0`}</KMath> y suficientes muestras solo un{' '}
-            <KMath>{`\\mathbf{s}`}</KMath> encaja: eso es eliminación gaussiana. En cuanto
-            sube el ruido, decenas de candidatos pasan el filtro. En dimensión real (no 2)
-            ese "halo" es lo bastante grande como para que ni un ordenador cuántico sepa
-            por dónde empezar.
+            {t('lweSim.footer.a')}
+            <KMath>{`\\eta = 0`}</KMath>
+            {t('lweSim.footer.b')}
+            <KMath>{`\\mathbf{s}`}</KMath>
+            {t('lweSim.footer.c')}
           </p>
         </div>
       </div>

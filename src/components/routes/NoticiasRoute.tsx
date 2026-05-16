@@ -3,47 +3,50 @@ import ScrollSection from '../shared/ScrollSection';
 import PQCNews from '../shared/PQCNews';
 import FeedbackForm from '../shared/FeedbackForm';
 import type { RouteId } from '../../routes';
+import { useT } from '../../i18n';
 
 interface RouteProps {
   onChange: (r: RouteId) => void;
 }
 
 const NoticiasRoute: React.FC<RouteProps> = (_props) => {
+  const t = useT();
   return (
     <div>
       <Hero
-        eyebrow="Pulso del sector"
+        eyebrow={t('noticias.hero.eyebrow')}
         hueA={45}
         hueB={300}
         title={
           <>
-            <span className="text-gradient-quantum">Noticias</span>
+            <span className="text-gradient-quantum">{t('noticias.hero.titleLine1')}</span>
             <br />
-            post-cuánticas
+            {t('noticias.hero.titleLine2')}
           </>
         }
-        subtitle="Hitos, estándares y despliegues que están definiendo la transición a criptografía post-cuántica. Una selección curada para tener el contexto actual a mano."
+        subtitle={t('noticias.hero.subtitle')}
       />
 
       <ScrollSection
-        eyebrow="Selección curada"
+        eyebrow={t('noticias.s01.eyebrow')}
         title={
           <>
-            Lo que <span className="text-gradient-static">está pasando</span>
+            {t('noticias.s01.title.a')}
+            <span className="text-gradient-static">{t('noticias.s01.title.b')}</span>
           </>
         }
       >
-        <p className="text-slate-300 max-w-3xl mb-10 text-[17px] leading-relaxed">
-          Desde que el NIST publicó los primeros estándares en 2024, la PQC ha pasado del
-          paper académico al despliegue masivo. Aquí tienes los movimientos que conviene
-          tener en el radar — los <span className="text-quantum-amber">destacados</span>{' '}
-          marcan el contexto histórico, los <span className="text-quantum-cyan">recientes</span>{' '}
-          el calendario actual.
+        <p className="text-quantum-fg max-w-3xl mb-10 text-[17px] leading-relaxed">
+          {t('noticias.s01.lead.a')}
+          <span className="text-quantum-amber">{t('noticias.s01.lead.b')}</span>
+          {t('noticias.s01.lead.c')}
+          <span className="text-quantum-cyan">{t('noticias.s01.lead.d')}</span>
+          {t('noticias.s01.lead.e')}
         </p>
         <PQCNews />
       </ScrollSection>
 
-      <FeedbackForm routeId="noticias" routeName="el bloque de noticias" />
+      <FeedbackForm routeId="noticias" />
     </div>
   );
 };

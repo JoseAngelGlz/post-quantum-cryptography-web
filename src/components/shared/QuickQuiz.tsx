@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Sparkles, RotateCcw, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 import { saveQuizResult } from './quizStore';
+import { useT } from '../../i18n';
 
 export interface QuizQuestion {
   question: string;
@@ -13,6 +14,8 @@ export interface QuizQuestion {
 interface QuickQuizProps {
   questions: QuizQuestion[];
   title?: string;
+  /** Optional i18n key for the title so QuizSummary can re-translate later. */
+  titleKey?: string;
   quizId: string;
   routeId: string;
 }
@@ -53,10 +56,13 @@ const shuffleQuestion = (q: QuizQuestion): ShuffledQuestion => {
 
 const QuickQuiz: React.FC<QuickQuizProps> = ({
   questions,
-  title = 'Pon a prueba lo que has leído',
+  title,
+  titleKey,
   quizId,
   routeId,
 }) => {
+  const t = useT();
+  const resolvedTitle = title ?? t('quiz.title.default');
   const shuffled = useMemo(() => questions.map(shuffleQuestion), [questions]);
 
   const [current, setCurrent] = useState(0);
@@ -95,7 +101,8 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
       const score = computeScore();
       saveQuizResult({
         quizId,
-        title,
+        title: resolvedTitle,
+        titleKey,
         routeId,
         score,
         total: shuffled.length,
@@ -135,7 +142,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
           <Sparkles size={14} />
         </div>
         <h3 className="font-display text-base md:text-lg font-semibold text-slate-100">
-          {title}
+          {resolvedTitle}
         </h3>
         <span className="ml-auto text-xs text-slate-400 font-mono">
           {done ? `${score}/${shuffled.length}` : `${current + 1} / ${shuffled.length}`}
@@ -205,14 +212,14 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
                 disabled={current === 0}
                 className="px-4 py-2 rounded-md border border-quantum-border text-sm text-slate-300 hover:border-quantum-cyan/60 hover:text-quantum-cyan transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
-                <ChevronLeft size={15} /> Atrás
+                <ChevronLeft size={15} /> {t('ui.previous')}
               </button>
               <button
                 onClick={goNext}
                 disabled={!revealed}
                 className="px-4 py-2 rounded-md bg-quantum-cyan/15 border border-quantum-cyan/40 text-sm text-quantum-cyan hover:bg-quantum-cyan/25 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
-                {current + 1 >= shuffled.length ? 'Finalizar' : 'Continuar'}{' '}
+                {current + 1 >= shuffled.length ? t('quiz.result') : t('quiz.next')}{' '}
                 <ChevronRight size={15} />
               </button>
             </div>
@@ -233,19 +240,16 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
             </div>
             <p className="mt-3 text-sm text-slate-400 max-w-md mx-auto">
               {score === shuffled.length
-                ? '¡Impecable! Tienes el concepto cogido al vuelo.'
+                ? t('quiz.feedback.perfect')
                 : score >= Math.ceil(shuffled.length / 2)
-                ? 'Buen trabajo. Quedan matices, pero vas bien.'
-                : 'Sin prisa: vuelve a la sección y repítelo, así se asienta.'}
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Resultado guardado · lo verás en el resumen final.
+                ? t('quiz.feedback.good')
+                : t('quiz.feedback.retry')}
             </p>
             <button
               onClick={reset}
               className="mt-4 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-quantum-cyan transition-colors"
             >
-              <RotateCcw size={14} /> Repetir
+              <RotateCcw size={14} /> {t('quiz.repeat')}
             </button>
           </motion.div>
         )}

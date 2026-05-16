@@ -3,5 +3,6 @@ export type RouteId =
   | 'fundamentos'
   | 'aplicaciones'
   | 'mlkem'
+  | 'mldsa'
   | 'noticias'
   | 'recursos';

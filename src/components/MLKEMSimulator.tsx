@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useT } from '../i18n';
+import type { TranslationKey } from '../i18n/translations';
 import {
   ArrowRight,
   ChevronDown,
@@ -83,16 +85,18 @@ const threshold = (value: number): number => {
 /* ─── Secrets ────────────────────────────────────── */
 type ShapeKind = 'circle' | 'hexagon' | 'triangle' | 'diamond';
 
-const SECRETS: {
+interface SecretDef {
   shape: ShapeKind;
-  label: string;
+  labelKey: TranslationKey;
   bits: Vector;
   palette: 'cyan' | 'blue' | 'pink' | 'violet';
-}[] = [
-  { shape: 'circle', label: 'Círculo', bits: [0, 0], palette: 'cyan' },
-  { shape: 'hexagon', label: 'Hexágono', bits: [0, HALF_Q], palette: 'blue' },
-  { shape: 'triangle', label: 'Triángulo', bits: [HALF_Q, 0], palette: 'pink' },
-  { shape: 'diamond', label: 'Rombo', bits: [HALF_Q, HALF_Q], palette: 'violet' },
+}
+
+const SECRETS: SecretDef[] = [
+  { shape: 'circle', labelKey: 'kemSim.secret.circle', bits: [0, 0], palette: 'cyan' },
+  { shape: 'hexagon', labelKey: 'kemSim.secret.hexagon', bits: [0, HALF_Q], palette: 'blue' },
+  { shape: 'triangle', labelKey: 'kemSim.secret.triangle', bits: [HALF_Q, 0], palette: 'pink' },
+  { shape: 'diamond', labelKey: 'kemSim.secret.diamond', bits: [HALF_Q, HALF_Q], palette: 'violet' },
 ];
 
 const bitsToSecretIdx = (bits: Vector): number =>
@@ -305,6 +309,7 @@ const MathOp = ({ children }: { children: React.ReactNode }) => (
 );
 
 const MathDetail = ({ children }: { children: React.ReactNode }) => {
+  const t = useT();
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-xl border border-dashed border-quantum-border bg-quantum-panel/30">
@@ -314,7 +319,7 @@ const MathDetail = ({ children }: { children: React.ReactNode }) => {
         className="w-full flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-slate-400 hover:text-quantum-cyan transition"
       >
         <Eye size={13} />
-        {open ? 'Ocultar detalle matemático' : 'Ver detalle matemático'}
+        {open ? t('kemSim.math.hide') : t('kemSim.math.show')}
         <span className="ml-auto">
           {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
         </span>
@@ -385,17 +390,20 @@ const SectionShell: React.FC<{
    ═══════════════════════════════════════════════════ */
 
 interface Concept {
-  name: string;
-  kind: 'Fundamento' | 'Aplicación';
+  nameKey: TranslationKey;
+  kind: 'foundation' | 'application';
   palette: Palette;
-  why: string;
+  whyKey: TranslationKey;
 }
 
 const ConceptCard: React.FC<{ concept: Concept; index: number }> = ({
   concept,
   index,
 }) => {
+  const t = useT();
   const hex = paletteHex[concept.palette];
+  const kindLabel =
+    concept.kind === 'foundation' ? t('kemSim.kind.foundation') : t('kemSim.kind.application');
   return (
     <motion.div
       initial={{ opacity: 0, x: 10 }}
@@ -412,40 +420,43 @@ const ConceptCard: React.FC<{ concept: Concept; index: number }> = ({
           className="text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded-full border"
           style={{ borderColor: `${hex}55`, color: hex }}
         >
-          {concept.kind}
+          {kindLabel}
         </span>
         <h5
           className="font-display font-semibold text-sm leading-tight"
           style={{ color: hex }}
         >
-          {concept.name}
+          {t(concept.nameKey)}
         </h5>
       </div>
-      <p className="text-xs text-slate-300 leading-relaxed">{concept.why}</p>
+      <p className="text-xs text-slate-300 leading-relaxed">{t(concept.whyKey)}</p>
     </motion.div>
   );
 };
 
 const ConceptsPanel: React.FC<{ concepts: Concept[]; title?: string }> = ({
   concepts,
-  title = 'Conceptos en juego',
-}) => (
-  <div className="rounded-2xl border border-quantum-border bg-quantum-panel2/30 p-4 space-y-3 h-full">
-    <div className="flex items-center gap-2">
-      <div className="p-1.5 rounded-md bg-quantum-amber/15 text-quantum-amber">
-        <Lightbulb size={14} />
+  title,
+}) => {
+  const t = useT();
+  return (
+    <div className="rounded-2xl border border-quantum-border bg-quantum-panel2/30 p-4 space-y-3 h-full">
+      <div className="flex items-center gap-2">
+        <div className="p-1.5 rounded-md bg-quantum-amber/15 text-quantum-amber">
+          <Lightbulb size={14} />
+        </div>
+        <h4 className="font-display font-semibold text-sm text-slate-100">
+          {title ?? t('kemSim.concepts.title')}
+        </h4>
       </div>
-      <h4 className="font-display font-semibold text-sm text-slate-100">
-        {title}
-      </h4>
+      <div className="space-y-2">
+        {concepts.map((c, i) => (
+          <ConceptCard key={c.nameKey} concept={c} index={i} />
+        ))}
+      </div>
     </div>
-    <div className="space-y-2">
-      {concepts.map((c, i) => (
-        <ConceptCard key={c.name} concept={c} index={i} />
-      ))}
-    </div>
-  </div>
-);
+  );
+};
 
 const IntuitionBox: React.FC<{
   title: string;
@@ -506,133 +517,88 @@ const StepList: React.FC<{
 };
 
 /* Visual showing the encoding circle Z_q (used in Encaps) */
-const EncodingMini: React.FC = () => (
-  <div className="rounded-xl border border-quantum-border bg-quantum-panel2/40 p-3">
-    <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400 mb-2 text-center">
-      Cómo se codifica cada bit
-    </p>
-    <div className="flex items-center justify-around text-xs">
-      <div className="flex flex-col items-center gap-1">
-        <div className="w-9 h-9 rounded-full border-2 border-quantum-cyan text-quantum-cyan flex items-center justify-center font-mono font-bold">
-          0
+const EncodingMini: React.FC = () => {
+  const t = useT();
+  return (
+    <div className="rounded-xl border border-quantum-border bg-quantum-panel2/40 p-3">
+      <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400 mb-2 text-center">
+        {t('kemSim.encoding.title')}
+      </p>
+      <div className="flex items-center justify-around text-xs">
+        <div className="flex flex-col items-center gap-1">
+          <div className="w-9 h-9 rounded-full border-2 border-quantum-cyan text-quantum-cyan flex items-center justify-center font-mono font-bold">
+            0
+          </div>
+          <span className="text-quantum-cyan font-mono text-[10px]">{t('kemSim.encoding.bit0')}</span>
         </div>
-        <span className="text-quantum-cyan font-mono text-[10px]">bit 0 → 0</span>
-      </div>
-      <ArrowRight size={14} className="text-slate-500" />
-      <div className="flex flex-col items-center gap-1">
-        <div className="w-9 h-9 rounded-full border-2 border-quantum-pink text-quantum-pink flex items-center justify-center font-mono font-bold">
-          {HALF_Q}
+        <ArrowRight size={14} className="text-slate-500" />
+        <div className="flex flex-col items-center gap-1">
+          <div className="w-9 h-9 rounded-full border-2 border-quantum-pink text-quantum-pink flex items-center justify-center font-mono font-bold">
+            {HALF_Q}
+          </div>
+          <span className="text-quantum-pink font-mono text-[10px]">
+            {t('kemSim.encoding.bit1').replace('{n}', String(HALF_Q))}
+          </span>
         </div>
-        <span className="text-quantum-pink font-mono text-[10px]">
-          bit 1 → q/2 = {HALF_Q}
-        </span>
       </div>
+      <p className="text-[10px] text-slate-500 text-center mt-2 leading-tight">
+        {t('kemSim.encoding.footer').replace('{n}', String(Math.floor(Q / 4)))}
+      </p>
     </div>
-    <p className="text-[10px] text-slate-500 text-center mt-2 leading-tight">
-      Si el ruido residual es &lt; q/4 ≈ {Math.floor(Q / 4)}, el código recupera el bit
-      correcto.
-    </p>
-  </div>
-);
+  );
+};
 
 /* ═══════════════════════════════════════════════════
    Phase definitions
    ═══════════════════════════════════════════════════ */
 type Phase = 'intro' | 'keygen' | 'encaps' | 'decaps' | 'result';
 
-const PHASES: { id: Phase; label: string; icon: typeof KeyRound; palette: Palette }[] = [
-  { id: 'intro', label: 'Inicio', icon: Sparkles, palette: 'cyan' },
-  { id: 'keygen', label: 'KeyGen', icon: KeyRound, palette: 'cyan' },
-  { id: 'encaps', label: 'Encaps', icon: Lock, palette: 'violet' },
-  { id: 'decaps', label: 'Decaps', icon: Unlock, palette: 'mint' },
-  { id: 'result', label: 'Resultado', icon: ShieldAlert, palette: 'pink' },
+interface PhaseDef {
+  id: Phase;
+  labelKey: TranslationKey;
+  icon: typeof KeyRound;
+  palette: Palette;
+}
+
+const PHASES: PhaseDef[] = [
+  { id: 'intro', labelKey: 'kemSim.phase.intro', icon: Sparkles, palette: 'cyan' },
+  { id: 'keygen', labelKey: 'kemSim.phase.keygen', icon: KeyRound, palette: 'cyan' },
+  { id: 'encaps', labelKey: 'kemSim.phase.encaps', icon: Lock, palette: 'violet' },
+  { id: 'decaps', labelKey: 'kemSim.phase.decaps', icon: Unlock, palette: 'mint' },
+  { id: 'result', labelKey: 'kemSim.phase.result', icon: ShieldAlert, palette: 'pink' },
 ];
 
-/* Concepts per phase */
 const KEYGEN_CONCEPTS: Concept[] = [
-  {
-    name: 'Module-LWE',
-    kind: 'Fundamento',
-    palette: 'cyan',
-    why: 'La ecuación t = A·s + e es exactamente el problema LWE. El ruido e oculta el secreto s aunque A y t sean públicos.',
-  },
-  {
-    name: 'Retículos',
-    kind: 'Fundamento',
-    palette: 'violet',
-    why: 'La matriz A define un retículo. Alice conoce una base buena (s pequeña); cualquiera más solo verá la "base mala" pública.',
-  },
-  {
-    name: 'Anillo R_q',
-    kind: 'Fundamento',
-    palette: 'pink',
-    why: 'Todo se hace módulo q. Esto evita que los números crezcan sin control y permite a los números "envolver" al cruzar q.',
-  },
+  { nameKey: 'kemSim.cpt.mlwe.name', kind: 'foundation', palette: 'cyan', whyKey: 'kemSim.cpt.mlwe.why' },
+  { nameKey: 'kemSim.cpt.lattice.name', kind: 'foundation', palette: 'violet', whyKey: 'kemSim.cpt.lattice.why' },
+  { nameKey: 'kemSim.cpt.ring.name', kind: 'foundation', palette: 'pink', whyKey: 'kemSim.cpt.ring.why' },
 ];
 
 const ENCAPS_CONCEPTS: Concept[] = [
-  {
-    name: 'Module-LWE (de Bob)',
-    kind: 'Fundamento',
-    palette: 'violet',
-    why: 'Bob crea su propia muestra LWE: u = Aᵀ·r + e₁. La aleatoriedad r y el ruido e₁ esconden sus cálculos.',
-  },
-  {
-    name: 'Código corrector',
-    kind: 'Fundamento',
-    palette: 'pink',
-    why: 'Cada bit del mensaje se codifica como 0 ó q/2. Esta distancia q/2 deja margen para que el ruido no rompa el descifrado.',
-  },
-  {
-    name: 'Hashes (omitido aquí)',
-    kind: 'Aplicación',
-    palette: 'amber',
-    why: 'En ML-KEM real, r = Hash(m) (Fujisaki-Okamoto). Eso permite a Alice verificar que el ciphertext no se manipuló.',
-  },
+  { nameKey: 'kemSim.cpt.mlweBob.name', kind: 'foundation', palette: 'violet', whyKey: 'kemSim.cpt.mlweBob.why' },
+  { nameKey: 'kemSim.cpt.code.name', kind: 'foundation', palette: 'pink', whyKey: 'kemSim.cpt.code.why' },
+  { nameKey: 'kemSim.cpt.fo.name', kind: 'application', palette: 'amber', whyKey: 'kemSim.cpt.fo.why' },
 ];
 
 const DECAPS_CONCEPTS: Concept[] = [
-  {
-    name: 'Cancelación matemática',
-    kind: 'Fundamento',
-    palette: 'mint',
-    why: 'Al calcular v − sᵀ·u, los términos sᵀ·Aᵀ·r se cancelan exactamente. Queda Encode(m) + un ruido pequeño.',
-  },
-  {
-    name: 'CVP con base buena',
-    kind: 'Fundamento',
-    palette: 'cyan',
-    why: 'Decodificar es resolver CVP: encontrar el punto del retículo más cercano. Con la clave s (base buena) es trivial.',
-  },
-  {
-    name: 'Código corrector',
-    kind: 'Fundamento',
-    palette: 'pink',
-    why: 'Decode redondea cada coeficiente al más cercano entre 0 y q/2. Como el ruido es &lt; q/4, el redondeo acierta.',
-  },
+  { nameKey: 'kemSim.cpt.cancel.name', kind: 'foundation', palette: 'mint', whyKey: 'kemSim.cpt.cancel.why' },
+  { nameKey: 'kemSim.cpt.cvp.name', kind: 'foundation', palette: 'cyan', whyKey: 'kemSim.cpt.cvp.why' },
+  { nameKey: 'kemSim.cpt.decode.name', kind: 'foundation', palette: 'pink', whyKey: 'kemSim.cpt.decode.why' },
 ];
 
 const SPY_CONCEPTS: Concept[] = [
-  {
-    name: 'LWE difícil',
-    kind: 'Fundamento',
-    palette: 'rose',
-    why: 'Eva ve (A, t) pero no s. Para recuperar s necesita resolver LWE, algo que ni un ordenador cuántico sabe hacer.',
-  },
-  {
-    name: 'Base mala',
-    kind: 'Fundamento',
-    palette: 'amber',
-    why: 'Sin s, Eva sólo dispone de la base mala del retículo. Resolver CVP con base mala es astronómicamente caro.',
-  },
+  { nameKey: 'kemSim.cpt.lweHard.name', kind: 'foundation', palette: 'rose', whyKey: 'kemSim.cpt.lweHard.why' },
+  { nameKey: 'kemSim.cpt.badBasis.name', kind: 'foundation', palette: 'amber', whyKey: 'kemSim.cpt.badBasis.why' },
 ];
 
 /* ═══════════════════════════════════════════════════
    Main Component
    ═══════════════════════════════════════════════════ */
 const MLKEMSimulator: React.FC = () => {
+  const t = useT();
   const containerRef = useRef<HTMLElement>(null);
   const [phase, setPhase] = useState<Phase>('intro');
+  const prevPhaseRef = useRef<Phase>(phase);
   const [keyPair, setKeyPair] = useState<KeyPair | null>(null);
   const [selectedSecret, setSelectedSecret] = useState(0);
   const [cipher, setCipher] = useState<Cipher | null>(null);
@@ -646,6 +612,11 @@ const MLKEMSimulator: React.FC = () => {
   const phaseIdx = PHASES.findIndex((p) => p.id === phase);
 
   useEffect(() => {
+    // Only scroll when phase ACTUALLY changes (skips first mount and
+    // StrictMode's double-fire of the effect, both of which leave the
+    // previous phase equal to the current one).
+    if (prevPhaseRef.current === phase) return;
+    prevPhaseRef.current = phase;
     containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [phase]);
 
@@ -777,7 +748,7 @@ const MLKEMSimulator: React.FC = () => {
                 }
               >
                 <Icon size={12} />
-                <span className="hidden sm:inline">{p.label}</span>
+                <span className="hidden sm:inline">{t(p.labelKey)}</span>
               </button>
             </div>
           );
@@ -799,17 +770,17 @@ const MLKEMSimulator: React.FC = () => {
               <div className="space-y-5">
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-quantum-cyan font-mono mb-1">
-                    Simulador interactivo · Baby-Kyber
+                    {t('kemSim.intro.eyebrow')}
                   </div>
                   <h2 className="font-display text-2xl md:text-3xl font-bold text-slate-100">
-                    Cada paso, conectado a la teoría
+                    {t('kemSim.intro.title')}
                   </h2>
                   <p className="mt-3 text-sm md:text-base text-slate-300 leading-relaxed">
-                    A medida que avances verás un panel{' '}
-                    <span className="text-quantum-amber">«Conceptos en juego»</span> que te
-                    dice qué fundamento matemático o aplicación se está usando en cada
-                    momento, y <strong>por qué</strong>. La intención es que veas la teoría
-                    y la práctica encajar al mismo tiempo.
+                    {t('kemSim.intro.lead.a')}
+                    <span className="text-quantum-amber">{t('kemSim.intro.lead.b')}</span>
+                    {t('kemSim.intro.lead.c')}
+                    <strong>{t('kemSim.intro.lead.d')}</strong>
+                    {t('kemSim.intro.lead.e')}
                   </p>
                 </div>
 
@@ -817,40 +788,37 @@ const MLKEMSimulator: React.FC = () => {
                   <div className="rounded-xl border border-quantum-cyan/30 bg-quantum-cyan/5 p-4 space-y-2">
                     <Avatar name="Alice" emoji="👩‍💻" palette="cyan" />
                     <p className="text-xs text-slate-300 leading-relaxed">
-                      Genera el par de claves y descifra al final. Tiene la{' '}
-                      <strong className="text-quantum-cyan">clave privada</strong>.
+                      {t('kemSim.intro.alice.desc.a')}
+                      <strong className="text-quantum-cyan">{t('kemSim.intro.alice.desc.b')}</strong>
+                      {t('kemSim.intro.alice.desc.c')}
                     </p>
                   </div>
                   <div className="rounded-xl border border-quantum-violet/30 bg-quantum-violet/5 p-4 space-y-2">
                     <Avatar name="Bob" emoji="👨‍💻" palette="violet" />
                     <p className="text-xs text-slate-300 leading-relaxed">
-                      Elige un secreto y lo encapsula con la{' '}
-                      <strong className="text-quantum-violet">clave pública</strong> de
-                      Alice.
+                      {t('kemSim.intro.bob.desc.a')}
+                      <strong className="text-quantum-violet">{t('kemSim.intro.bob.desc.b')}</strong>
+                      {t('kemSim.intro.bob.desc.c')}
                     </p>
                   </div>
                 </div>
 
                 <div className="rounded-xl border border-quantum-border bg-quantum-panel2/40 p-3 flex items-center justify-center gap-2 text-[11px] text-slate-400 font-mono flex-wrap">
-                  <span className="text-quantum-cyan">KeyGen</span>
+                  <span className="text-quantum-cyan">{t('kemSim.phase.keygen')}</span>
                   <ArrowRight size={12} />
-                  <span className="text-quantum-violet">Encaps</span>
+                  <span className="text-quantum-violet">{t('kemSim.phase.encaps')}</span>
                   <ArrowRight size={12} />
-                  <span className="text-quantum-mint">Decaps</span>
+                  <span className="text-quantum-mint">{t('kemSim.phase.decaps')}</span>
                   <ArrowRight size={12} />
-                  <span className="text-quantum-pink">Resultado</span>
+                  <span className="text-quantum-pink">{t('kemSim.phase.result')}</span>
                 </div>
 
                 <div className="rounded-xl border border-quantum-border bg-quantum-panel/40 p-4 text-xs md:text-sm text-slate-300 leading-relaxed">
-                  <span className="font-mono text-quantum-cyan">
-                    Parámetros didácticos:
-                  </span>{' '}
-                  <span className="font-mono">
-                    q = {Q}, n = {N}
-                  </span>
-                  . El algoritmo real usa <span className="font-mono">n = 256</span> y{' '}
-                  <span className="font-mono">q = 3329</span>; solo cambia el tamaño, no la
-                  lógica.
+                  <span className="font-mono text-quantum-cyan">{t('kemSim.intro.params.a')}</span>{' '}
+                  <span className="font-mono">q = {Q}, n = {N}</span>
+                  {t('kemSim.intro.params.b')}<span className="font-mono">n = 256</span>
+                  {t('kemSim.intro.params.c')}<span className="font-mono">q = 3329</span>
+                  {t('kemSim.intro.params.d')}
                 </div>
 
                 <button
@@ -858,7 +826,7 @@ const MLKEMSimulator: React.FC = () => {
                   onClick={goNext}
                   className="btn-quantum text-sm py-2 px-5"
                 >
-                  Comenzar <ArrowRight size={14} />
+                  {t('kemSim.intro.start')} <ArrowRight size={14} />
                 </button>
               </div>
             </SectionShell>
@@ -877,18 +845,20 @@ const MLKEMSimulator: React.FC = () => {
             <SectionShell glow="cyan">
               <div className="space-y-5">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <Avatar name="Alice genera sus claves" emoji="👩‍💻" palette="cyan" />
-                  <span className="chip text-[10px]">Paso 1 / 3</span>
+                  <Avatar name={t('kemSim.keygen.avatar')} emoji="👩‍💻" palette="cyan" />
+                  <span className="chip text-[10px]">{t('kemSim.keygen.stepBadge')}</span>
                 </div>
 
-                <IntuitionBox title="Intuición · qué hace Alice" palette="cyan">
-                  Alice esconde su secreto{' '}
-                  <span className="font-mono text-quantum-amber">s</span> dentro de una
-                  ecuación: lo multiplica por una matriz pública{' '}
-                  <span className="font-mono text-quantum-cyan">A</span> y le añade un
-                  ruido <span className="font-mono text-quantum-amber">e</span>. El
-                  resultado <span className="font-mono text-quantum-cyan">t</span> revela
-                  poco: sin <span className="font-mono">s</span>, despejar es imposible.
+                <IntuitionBox title={t('kemSim.keygen.intuition.title')} palette="cyan">
+                  {t('kemSim.keygen.intuition.a')}
+                  <span className="font-mono text-quantum-amber">s</span>
+                  {t('kemSim.keygen.intuition.b')}
+                  <span className="font-mono text-quantum-cyan">A</span>
+                  {t('kemSim.keygen.intuition.c')}
+                  <span className="font-mono text-quantum-amber">e</span>
+                  {t('kemSim.keygen.intuition.d')}
+                  <span className="font-mono text-quantum-cyan">t</span>
+                  {t('kemSim.keygen.intuition.e')}
                 </IntuitionBox>
 
                 <div className="grid lg:grid-cols-[1.5fr,1fr] gap-4">
@@ -899,7 +869,7 @@ const MLKEMSimulator: React.FC = () => {
                       className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold bg-quantum-cyan/15 border border-quantum-cyan/40 text-quantum-cyan hover:bg-quantum-cyan/25 transition-all"
                     >
                       <KeyRound size={14} />
-                      {keyPair ? 'Regenerar claves' : 'Generar claves'}
+                      {keyPair ? t('kemSim.keygen.regen') : t('kemSim.keygen.gen')}
                     </button>
 
                     {keyPair && (
@@ -913,19 +883,19 @@ const MLKEMSimulator: React.FC = () => {
                             t = A · s + e (mod {Q})
                           </p>
                           <div className="flex flex-wrap items-end justify-center gap-3">
-                            <MatrixHeatmap label="A · pública" matrix={keyPair.A} palette="blue" />
+                            <MatrixHeatmap label={t('kemSim.keygen.label.A')} matrix={keyPair.A} palette="blue" />
                             <MathOp>×</MathOp>
-                            <VectorHeat label="s · privada" vector={keyPair.s} palette="amber" />
+                            <VectorHeat label={t('kemSim.keygen.label.s')} vector={keyPair.s} palette="amber" />
                             <MathOp>+</MathOp>
                             <VectorHeat
-                              label="e · ruido"
+                              label={t('kemSim.keygen.label.e')}
                               vector={keyPair.e}
                               palette="amber"
                               baseDelay={0.3}
                             />
                             <MathOp>=</MathOp>
                             <VectorHeat
-                              label="t · pública"
+                              label={t('kemSim.keygen.label.t')}
                               vector={keyPair.t}
                               palette="cyan"
                               baseDelay={0.5}
@@ -936,61 +906,24 @@ const MLKEMSimulator: React.FC = () => {
                         <StepList
                           palette="cyan"
                           steps={[
-                            {
-                              title: 'Genera valores pequeños',
-                              desc: (
-                                <>
-                                  El secreto <span className="font-mono">s</span> y el
-                                  ruido <span className="font-mono">e</span> son vectores
-                                  con coeficientes ∈ {'{−1, 0, 1}'}: deliberadamente cerca
-                                  del cero.
-                                </>
-                              ),
-                            },
-                            {
-                              title: 'Combina con A',
-                              desc: (
-                                <>
-                                  Multiplica por <span className="font-mono">A</span>{' '}
-                                  (pública) y suma <span className="font-mono">e</span>.
-                                  El ruido «emborrona» la relación lineal.
-                                </>
-                              ),
-                            },
-                            {
-                              title: 'Publica (A, t)',
-                              desc: (
-                                <>
-                                  La clave pública es{' '}
-                                  <span className="font-mono">(A, t)</span>. Solo Alice
-                                  guarda <span className="font-mono">s</span>.
-                                </>
-                              ),
-                            },
+                            { title: t('kemSim.keygen.s1.title'), desc: t('kemSim.keygen.s1.desc') },
+                            { title: t('kemSim.keygen.s2.title'), desc: t('kemSim.keygen.s2.desc') },
+                            { title: t('kemSim.keygen.s3.title'), desc: t('kemSim.keygen.s3.desc') },
                           ]}
                         />
 
                         <div className="flex flex-wrap gap-3 text-xs">
                           <div className="flex items-center gap-1.5">
-                            <span
-                              className="w-3 h-3 rounded"
-                              style={{ background: paletteHex.blue }}
-                            />
-                            <span className="text-slate-400">Público</span>
+                            <span className="w-3 h-3 rounded" style={{ background: paletteHex.blue }} />
+                            <span className="text-slate-400">{t('kemSim.keygen.legend.public')}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <span
-                              className="w-3 h-3 rounded"
-                              style={{ background: paletteHex.cyan }}
-                            />
-                            <span className="text-slate-400">Resultado público</span>
+                            <span className="w-3 h-3 rounded" style={{ background: paletteHex.cyan }} />
+                            <span className="text-slate-400">{t('kemSim.keygen.legend.publicResult')}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <span
-                              className="w-3 h-3 rounded"
-                              style={{ background: paletteHex.amber }}
-                            />
-                            <span className="text-slate-400">Privado · solo Alice</span>
+                            <span className="w-3 h-3 rounded" style={{ background: paletteHex.amber }} />
+                            <span className="text-slate-400">{t('kemSim.keygen.legend.private')}</span>
                           </div>
                         </div>
 
@@ -1009,7 +942,7 @@ const MLKEMSimulator: React.FC = () => {
                           onClick={goNext}
                           className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium border border-quantum-border text-slate-200 hover:border-quantum-cyan/60 hover:text-quantum-cyan transition-all"
                         >
-                          Continuar al encapsulado <ArrowRight size={14} />
+                          {t('kemSim.keygen.next')} <ArrowRight size={14} />
                         </button>
                       </motion.div>
                     )}
@@ -1034,24 +967,27 @@ const MLKEMSimulator: React.FC = () => {
             <SectionShell glow="violet">
               <div className="space-y-5">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <Avatar name="Bob encapsula un secreto" emoji="👨‍💻" palette="violet" />
-                  <span className="chip text-[10px]">Paso 2 / 3</span>
+                  <Avatar name={t('kemSim.encaps.avatar')} emoji="👨‍💻" palette="violet" />
+                  <span className="chip text-[10px]">{t('kemSim.encaps.stepBadge')}</span>
                 </div>
 
-                <IntuitionBox title="Intuición · qué hace Bob" palette="violet">
-                  Bob construye su propia ecuación LWE{' '}
-                  <span className="font-mono">u = Aᵀ·r + e₁</span>, y mezcla el mensaje{' '}
-                  <span className="font-mono">m</span> dentro de{' '}
-                  <span className="font-mono">v</span>. La gracia: cuando Alice reste{' '}
-                  <span className="font-mono">v − sᵀ·u</span>, los trozos LWE se cancelarán
-                  y solo quedará el mensaje.
+                <IntuitionBox title={t('kemSim.encaps.intuition.title')} palette="violet">
+                  {t('kemSim.encaps.intuition.a')}
+                  <span className="font-mono">u = Aᵀ·r + e₁</span>
+                  {t('kemSim.encaps.intuition.b')}
+                  <span className="font-mono">m</span>
+                  {t('kemSim.encaps.intuition.c')}
+                  <span className="font-mono">v</span>
+                  {t('kemSim.encaps.intuition.d')}
+                  <span className="font-mono">v − sᵀ·u</span>
+                  {t('kemSim.encaps.intuition.e')}
                 </IntuitionBox>
 
                 <div className="grid lg:grid-cols-[1.5fr,1fr] gap-4">
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <p className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
-                        Elige tu secreto
+                        {t('kemSim.encaps.choose')}
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {SECRETS.map((s, idx) => {
@@ -1059,7 +995,7 @@ const MLKEMSimulator: React.FC = () => {
                           const hex = paletteHex[s.palette as Palette];
                           return (
                             <button
-                              key={s.label}
+                              key={s.labelKey}
                               type="button"
                               onClick={() => {
                                 setSelectedSecret(idx);
@@ -1080,7 +1016,7 @@ const MLKEMSimulator: React.FC = () => {
                             >
                               <Shape kind={s.shape} palette={s.palette} size={42} />
                               <span className="text-[10px] font-medium text-slate-200">
-                                {s.label}
+                                {t(s.labelKey)}
                               </span>
                               <span className="text-[9px] font-mono text-slate-500">
                                 Encode([{s.bits.join(', ')}])
@@ -1100,7 +1036,7 @@ const MLKEMSimulator: React.FC = () => {
                       className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold bg-quantum-violet/15 border border-quantum-violet/40 text-quantum-violet hover:bg-quantum-violet/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <Lock size={14} />
-                      Encapsular secreto
+                      {t('kemSim.encaps.action')}
                     </button>
 
                     {cipher && message && (
@@ -1112,45 +1048,16 @@ const MLKEMSimulator: React.FC = () => {
                         <StepList
                           palette="violet"
                           steps={[
-                            {
-                              title: 'Genera aleatoriedad propia',
-                              desc: (
-                                <>
-                                  Bob crea un <span className="font-mono">r</span> pequeño
-                                  (efímero) y dos ruidos pequeños{' '}
-                                  <span className="font-mono">e₁, e₂</span>.
-                                </>
-                              ),
-                            },
-                            {
-                              title: (
-                                <>
-                                  Calcula <span className="font-mono">u = Aᵀ·r + e₁</span>
-                                </>
-                              ),
-                              desc: 'Otra ecuación LWE: u esconde r tal como t escondía s.',
-                            },
-                            {
-                              title: (
-                                <>
-                                  Calcula{' '}
-                                  <span className="font-mono">
-                                    v = tᵀ·r + e₂ + Encode(m)
-                                  </span>
-                                </>
-                              ),
-                              desc: 'Mezcla el mensaje codificado con la clave pública de Alice y un ruido más.',
-                            },
-                            {
-                              title: 'Envía (u, v)',
-                              desc: 'El criptograma viaja por el canal público.',
-                            },
+                            { title: t('kemSim.encaps.s1.title'), desc: t('kemSim.encaps.s1.desc') },
+                            { title: t('kemSim.encaps.s2.title'), desc: t('kemSim.encaps.s2.desc') },
+                            { title: t('kemSim.encaps.s3.title'), desc: t('kemSim.encaps.s3.desc') },
+                            { title: t('kemSim.encaps.s4.title'), desc: t('kemSim.encaps.s4.desc') },
                           ]}
                         />
 
                         <div className="rounded-xl border border-quantum-border bg-quantum-panel2/40 p-5 text-center space-y-3">
                           <p className="text-[10px] font-mono uppercase tracking-widest text-quantum-violet">
-                            Criptograma generado
+                            {t('kemSim.encaps.generated')}
                           </p>
                           <div className="flex items-center justify-center gap-6">
                             <div className="flex flex-col items-center gap-1">
@@ -1166,7 +1073,7 @@ const MLKEMSimulator: React.FC = () => {
                                 />
                               </motion.div>
                               <span className="text-[10px] text-slate-500">
-                                Tu secreto
+                                {t('kemSim.encaps.yourSecret')}
                               </span>
                             </div>
                             <ArrowRight size={20} className="text-slate-500" />
@@ -1187,7 +1094,7 @@ const MLKEMSimulator: React.FC = () => {
                                 🔒
                               </div>
                               <span className="text-[10px] text-slate-500">
-                                (u, v) cifrado
+                                {t('kemSim.encaps.ciphered')}
                               </span>
                             </motion.div>
                           </div>
@@ -1239,7 +1146,7 @@ const MLKEMSimulator: React.FC = () => {
                             </motion.div>
                           </div>
                           <p className="text-center text-[10px] text-slate-400">
-                            Canal público · solo viajan u y v
+                            {t('kemSim.encaps.channel')}
                           </p>
                         </div>
 
@@ -1248,7 +1155,7 @@ const MLKEMSimulator: React.FC = () => {
                           onClick={goNext}
                           className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium border border-quantum-border text-slate-200 hover:border-quantum-violet/60 hover:text-quantum-violet transition-all"
                         >
-                          Enviar a Alice <ArrowRight size={14} />
+                          {t('kemSim.encaps.send')} <ArrowRight size={14} />
                         </button>
                       </motion.div>
                     )}
@@ -1273,20 +1180,18 @@ const MLKEMSimulator: React.FC = () => {
             <SectionShell glow="violet">
               <div className="space-y-5">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
-                  <Avatar
-                    name="Alice descifra el criptograma"
-                    emoji="👩‍💻"
-                    palette="mint"
-                  />
-                  <span className="chip text-[10px]">Paso 3 / 3</span>
+                  <Avatar name={t('kemSim.decaps.avatar')} emoji="👩‍💻" palette="mint" />
+                  <span className="chip text-[10px]">{t('kemSim.decaps.stepBadge')}</span>
                 </div>
 
-                <IntuitionBox title="Intuición · la cancelación mágica" palette="mint">
-                  Alice resta <span className="font-mono">v − sᵀ·u</span>. Sustituyendo
-                  vuelve a aparecer <span className="font-mono">sᵀ·Aᵀ·r</span> en ambos
-                  lados — se anula. Solo queda{' '}
-                  <span className="font-mono">Encode(m) + ruido pequeño</span>. El código
-                  corrector absorbe ese ruido y devuelve el mensaje.
+                <IntuitionBox title={t('kemSim.decaps.intuition.title')} palette="mint">
+                  {t('kemSim.decaps.intuition.a')}
+                  <span className="font-mono">v − sᵀ·u</span>
+                  {t('kemSim.decaps.intuition.b')}
+                  <span className="font-mono">sᵀ·Aᵀ·r</span>
+                  {t('kemSim.decaps.intuition.c')}
+                  <span className="font-mono">Encode(m) + ε</span>
+                  {t('kemSim.decaps.intuition.d')}
                 </IntuitionBox>
 
                 <div className="grid lg:grid-cols-[1.5fr,1fr] gap-4">
@@ -1305,7 +1210,7 @@ const MLKEMSimulator: React.FC = () => {
                         >
                           🔒
                         </motion.div>
-                        <p className="text-xs text-slate-400">¿qué hay dentro?</p>
+                        <p className="text-xs text-slate-400">{t('kemSim.decaps.peek')}</p>
                       </div>
                     )}
 
@@ -1316,7 +1221,7 @@ const MLKEMSimulator: React.FC = () => {
                       className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold bg-quantum-mint/15 border border-quantum-mint/40 text-quantum-mint hover:bg-quantum-mint/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <Unlock size={14} />
-                      Desencapsular
+                      {t('kemSim.decaps.action')}
                     </button>
 
                     {showDecrypt && decryptedBits && intermediateW && (
@@ -1336,21 +1241,17 @@ const MLKEMSimulator: React.FC = () => {
                             );
                             return (
                               <div className="flex flex-wrap items-end justify-center gap-3">
-                                <VectorHeat
-                                  label="v"
-                                  vector={cipher!.v}
-                                  palette="violet"
-                                />
+                                <VectorHeat label={t('kemSim.decaps.label.v')} vector={cipher!.v} palette="violet" />
                                 <MathOp>−</MathOp>
                                 <VectorHeat
-                                  label="sᵀ · u"
+                                  label={t('kemSim.decaps.label.sTu')}
                                   vector={[sDotUVal, sDotUVal]}
                                   palette="amber"
                                   baseDelay={0.15}
                                 />
                                 <MathOp>=</MathOp>
                                 <VectorHeat
-                                  label="w (ruidoso)"
+                                  label={t('kemSim.decaps.label.w')}
                                   vector={intermediateW}
                                   palette="mint"
                                   baseDelay={0.3}
@@ -1359,16 +1260,17 @@ const MLKEMSimulator: React.FC = () => {
                             );
                           })()}
                           <p className="text-[10px] text-slate-400 text-center px-3">
-                            En <span className="font-mono">w</span> ya solo queda{' '}
-                            <span className="font-mono">Encode(m)</span> + un ruido
-                            pequeño. Cada coeficiente está cerca de 0 ó de q/2 ={' '}
-                            {HALF_Q}.
+                            {t('kemSim.decaps.w.note.a')}
+                            <span className="font-mono">w</span>
+                            {t('kemSim.decaps.w.note.b')}
+                            <span className="font-mono">Encode(m)</span>
+                            {t('kemSim.decaps.w.note.c').replace('{n}', String(HALF_Q))}
                           </p>
                         </div>
 
                         <div className="rounded-xl border border-quantum-mint/30 bg-quantum-mint/5 p-4">
                           <p className="text-[10px] font-mono uppercase tracking-widest text-quantum-mint text-center mb-3">
-                            Decode: redondeo al más cercano (0 ó q/2)
+                            {t('kemSim.decaps.decodeHeading')}
                           </p>
                           <div className="flex items-center justify-center gap-3 flex-wrap">
                             {intermediateW.map((wi, i) => {
@@ -1381,13 +1283,13 @@ const MLKEMSimulator: React.FC = () => {
                                   className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg bg-quantum-panel/60 border border-quantum-border"
                                 >
                                   <div className="font-mono text-xs text-slate-400">
-                                    coef {i}: {wi}
+                                    {t('kemSim.decaps.coef')} {i}: {wi}
                                   </div>
                                   <div className="text-[10px] text-slate-500 font-mono">
                                     d(0) = {d0} · d({HALF_Q}) = {dH}
                                   </div>
                                   <div className="font-mono text-sm font-bold text-quantum-mint">
-                                    → bit {dec === 0 ? '0' : '1'}
+                                    → {t('kemSim.decaps.bit')} {dec === 0 ? '0' : '1'}
                                   </div>
                                 </div>
                               );
@@ -1427,8 +1329,8 @@ const MLKEMSimulator: React.FC = () => {
                             }`}
                           >
                             {isCorrect
-                              ? `✓ Alice recuperó «${SECRETS[selectedSecret].label}» correctamente.`
-                              : '⚠ Resultado inesperado.'}
+                              ? t('kemSim.decaps.success').replace('{label}', t(SECRETS[selectedSecret].labelKey))
+                              : t('kemSim.decaps.unexpected')}
                           </motion.p>
                         </div>
 
@@ -1437,8 +1339,7 @@ const MLKEMSimulator: React.FC = () => {
                           <p>w = v − sᵀ·u = [{intermediateW.join(', ')}]</p>
                           <p>Decode(w) = [{decryptedBits.join(', ')}]</p>
                           <p className="text-slate-500 mt-1 leading-relaxed">
-                            Ruido residual &lt; q/4 = {Math.floor(Q / 4)}: el redondeo es
-                            seguro.
+                            {t('kemSim.decaps.noiseSafe').replace('{n}', String(Math.floor(Q / 4)))}
                           </p>
                         </MathDetail>
 
@@ -1447,7 +1348,7 @@ const MLKEMSimulator: React.FC = () => {
                           onClick={goNext}
                           className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium border border-quantum-border text-slate-200 hover:border-quantum-mint/60 hover:text-quantum-mint transition-all"
                         >
-                          Ver resultado y modo espía <ArrowRight size={14} />
+                          {t('kemSim.decaps.next')} <ArrowRight size={14} />
                         </button>
                       </motion.div>
                     )}
@@ -1478,10 +1379,10 @@ const MLKEMSimulator: React.FC = () => {
                   </div>
                   <div>
                     <div className="text-[10px] uppercase tracking-widest text-quantum-pink font-mono">
-                      Resultado
+                      {t('kemSim.result.eyebrow')}
                     </div>
                     <h3 className="font-display text-xl font-bold text-slate-100">
-                      Intercambio completado
+                      {t('kemSim.result.title')}
                     </h3>
                   </div>
                 </div>
@@ -1490,7 +1391,7 @@ const MLKEMSimulator: React.FC = () => {
                   <div className="flex items-center justify-center gap-5 md:gap-8">
                     <div className="text-center">
                       <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">
-                        Bob envió
+                        {t('kemSim.result.sent')}
                       </p>
                       <div className="w-14 h-14 mx-auto rounded-xl bg-quantum-panel/60 border border-quantum-border flex items-center justify-center">
                         <Shape
@@ -1500,7 +1401,7 @@ const MLKEMSimulator: React.FC = () => {
                         />
                       </div>
                       <p className="text-xs mt-1 text-slate-300 font-medium">
-                        {SECRETS[selectedSecret].label}
+                        {t(SECRETS[selectedSecret].labelKey)}
                       </p>
                     </div>
                     <motion.span
@@ -1512,7 +1413,7 @@ const MLKEMSimulator: React.FC = () => {
                     </motion.span>
                     <div className="text-center">
                       <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">
-                        Alice recibió
+                        {t('kemSim.result.received')}
                       </p>
                       <div className="w-14 h-14 mx-auto rounded-xl bg-quantum-panel/60 border border-quantum-border flex items-center justify-center">
                         {decryptedIdx >= 0 ? (
@@ -1526,14 +1427,12 @@ const MLKEMSimulator: React.FC = () => {
                         )}
                       </div>
                       <p className="text-xs mt-1 text-slate-300 font-medium">
-                        {decryptedIdx >= 0 ? SECRETS[decryptedIdx].label : '?'}
+                        {decryptedIdx >= 0 ? t(SECRETS[decryptedIdx].labelKey) : '?'}
                       </p>
                     </div>
                   </div>
                   <p className="text-center text-xs text-quantum-mint mt-4">
-                    {isCorrect
-                      ? 'El secreto se transmitió por un canal público sin que viaje en claro.'
-                      : 'Hubo un problema en la transmisión.'}
+                    {isCorrect ? t('kemSim.result.ok') : t('kemSim.result.fail')}
                   </p>
                 </div>
               </div>
@@ -1547,14 +1446,17 @@ const MLKEMSimulator: React.FC = () => {
                       <ShieldAlert size={16} />
                     </div>
                     <h4 className="font-display text-lg font-bold text-slate-100">
-                      ¿Y si alguien intenta espiar?
+                      {t('kemSim.spy.title')}
                     </h4>
                   </div>
                   <p className="text-sm text-slate-300 leading-relaxed">
-                    Eva intercepta <span className="font-mono">(u, v)</span> y conoce{' '}
-                    <span className="font-mono">(A, t)</span>. Pero{' '}
-                    <strong>no tiene la clave privada s</strong>. Veamos qué pasa cuando
-                    inventa una clave.
+                    {t('kemSim.spy.lead.a')}
+                    <span className="font-mono">(u, v)</span>
+                    {t('kemSim.spy.lead.b')}
+                    <span className="font-mono">(A, t)</span>
+                    {t('kemSim.spy.lead.c')}
+                    <strong>{t('kemSim.spy.lead.d')}</strong>
+                    {t('kemSim.spy.lead.e')}
                   </p>
 
                   <button
@@ -1562,7 +1464,7 @@ const MLKEMSimulator: React.FC = () => {
                     onClick={handleSpyAttempt}
                     className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold bg-quantum-rose/15 border border-quantum-rose/40 text-quantum-rose hover:bg-quantum-rose/25 transition-all"
                   >
-                    🕵️ Eva intenta descifrar
+                    {t('kemSim.spy.attempt')}
                   </button>
 
                   {spyBits && spyKey && (
@@ -1574,7 +1476,7 @@ const MLKEMSimulator: React.FC = () => {
                       <div className="grid sm:grid-cols-2 gap-3">
                         <div className="rounded-xl border border-quantum-mint/30 bg-quantum-mint/5 p-4 text-center space-y-2">
                           <Avatar name="Alice" emoji="👩‍💻" palette="mint" />
-                          <p className="text-[10px] text-slate-400">Con clave correcta</p>
+                          <p className="text-[10px] text-slate-400">{t('kemSim.spy.alice.kind')}</p>
                           <div className="flex justify-center py-1">
                             {decryptedIdx >= 0 ? (
                               <Shape
@@ -1587,7 +1489,7 @@ const MLKEMSimulator: React.FC = () => {
                             )}
                           </div>
                           <p className="text-xs font-medium text-quantum-mint">
-                            ✓ {decryptedIdx >= 0 ? SECRETS[decryptedIdx].label : '?'}
+                            ✓ {decryptedIdx >= 0 ? t(SECRETS[decryptedIdx].labelKey) : '?'}
                           </p>
                           {keyPair && (
                             <p className="text-[10px] font-mono text-slate-500">
@@ -1597,8 +1499,8 @@ const MLKEMSimulator: React.FC = () => {
                         </div>
 
                         <div className="rounded-xl border border-quantum-rose/30 bg-quantum-rose/5 p-4 text-center space-y-2">
-                          <Avatar name="Eva (espía)" emoji="🕵️" palette="rose" />
-                          <p className="text-[10px] text-slate-400">Con clave inventada</p>
+                          <Avatar name={t('kemSim.spy.eve.name')} emoji="🕵️" palette="rose" />
+                          <p className="text-[10px] text-slate-400">{t('kemSim.spy.eve.kind')}</p>
                           <div className="flex justify-center py-1">
                             {spyIdx >= 0 ? (
                               <Shape
@@ -1618,8 +1520,8 @@ const MLKEMSimulator: React.FC = () => {
                             }`}
                           >
                             {spyIdx === selectedSecret
-                              ? '⚠ Coincide por azar (1 / 4)'
-                              : `✗ ${spyIdx >= 0 ? SECRETS[spyIdx].label : '?'}`}
+                              ? t('kemSim.spy.lucky')
+                              : `✗ ${spyIdx >= 0 ? t(SECRETS[spyIdx].labelKey) : '?'}`}
                           </p>
                           <p className="text-[10px] font-mono text-slate-500">
                             s' = [{spyKey.join(', ')}]
@@ -1629,16 +1531,14 @@ const MLKEMSimulator: React.FC = () => {
 
                       <div className="rounded-xl border border-quantum-border bg-quantum-panel2/30 p-3 text-xs text-slate-300 leading-relaxed space-y-1">
                         <p>
-                          <strong className="text-quantum-cyan">¿Por qué no funciona?</strong>{' '}
-                          Sin <span className="font-mono">s</span>, la resta{' '}
-                          <span className="font-mono">v − s'ᵀ·u</span> deja un valor casi
-                          aleatorio. Si acierta por casualidad (≈25% con 4 opciones), no
-                          tiene forma de saberlo.
+                          <strong className="text-quantum-cyan">{t('kemSim.spy.why.title')}</strong>{' '}
+                          {t('kemSim.spy.why.a')}
+                          <span className="font-mono">s</span>
+                          {t('kemSim.spy.why.b')}
+                          <span className="font-mono">v − s'ᵀ·u</span>
+                          {t('kemSim.spy.why.c')}
                         </p>
-                        <p className="text-slate-500">
-                          En ML-KEM real, el espacio de secretos posibles está en torno a
-                          2²⁵⁶: la fuerza bruta es inviable incluso con cuántica.
-                        </p>
+                        <p className="text-slate-500">{t('kemSim.spy.realScale')}</p>
                       </div>
 
                       <button
@@ -1646,13 +1546,13 @@ const MLKEMSimulator: React.FC = () => {
                         onClick={handleSpyAttempt}
                         className="text-xs inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-quantum-rose/40 text-quantum-rose hover:bg-quantum-rose/10 transition-all"
                       >
-                        <RefreshCw size={12} /> Otro intento de Eva
+                        <RefreshCw size={12} /> {t('kemSim.spy.again')}
                       </button>
                     </motion.div>
                   )}
                 </div>
 
-                <ConceptsPanel concepts={SPY_CONCEPTS} title="Por qué Eva fracasa" />
+                <ConceptsPanel concepts={SPY_CONCEPTS} title={t('kemSim.spy.conceptsTitle')} />
               </div>
             </SectionShell>
           </motion.div>
@@ -1670,7 +1570,7 @@ const MLKEMSimulator: React.FC = () => {
             }}
             className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border border-quantum-border text-slate-300 hover:border-quantum-cyan/60 hover:text-quantum-cyan transition-all"
           >
-            ← Paso anterior
+            {t('kemSim.nav.prev')}
           </button>
         )}
         <button
@@ -1678,7 +1578,7 @@ const MLKEMSimulator: React.FC = () => {
           onClick={handleReset}
           className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border border-quantum-border text-slate-300 hover:border-quantum-rose/60 hover:text-quantum-rose transition-all"
         >
-          <RefreshCw size={12} /> Reiniciar
+          <RefreshCw size={12} /> {t('kemSim.nav.reset')}
         </button>
       </div>
     </section>

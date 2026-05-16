@@ -2,34 +2,34 @@
 export default {
   darkMode: 'class',
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
       colors: {
         quantum: {
-          bg: '#05060f',
-          panel: '#0c0f1d',
-          panel2: '#121733',
-          border: '#1f2750',
-          cyan: '#5eead4',
-          violet: '#a78bfa',
-          pink: '#f472b6',
-          blue: '#60a5fa',
-          mint: '#34d399',
-          amber: '#fbbf24',
-          rose: '#fb7185',
+          bg: 'rgb(var(--bg) / <alpha-value>)',
+          panel: 'rgb(var(--panel) / <alpha-value>)',
+          panel2: 'rgb(var(--panel2) / <alpha-value>)',
+          border: 'rgb(var(--border) / <alpha-value>)',
+          fg: 'rgb(var(--fg) / <alpha-value>)',
+          'fg-strong': 'rgb(var(--fg-strong) / <alpha-value>)',
+          'fg-soft': 'rgb(var(--fg-soft) / <alpha-value>)',
+          'fg-mute': 'rgb(var(--fg-mute) / <alpha-value>)',
+          cyan: 'rgb(var(--cyan) / <alpha-value>)',
+          violet: 'rgb(var(--violet) / <alpha-value>)',
+          pink: 'rgb(var(--pink) / <alpha-value>)',
+          blue: 'rgb(var(--blue) / <alpha-value>)',
+          mint: 'rgb(var(--mint) / <alpha-value>)',
+          amber: 'rgb(var(--amber) / <alpha-value>)',
+          rose: 'rgb(var(--rose) / <alpha-value>)',
         },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
-      },
-      backgroundImage: {
-        'grid-cyan': 'linear-gradient(rgba(94,234,212,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(94,234,212,0.06) 1px, transparent 1px)',
-        'radial-glow': 'radial-gradient(ellipse at top, rgba(167,139,250,0.18), transparent 60%)',
       },
       keyframes: {
         'gradient-shift': {
@@ -44,15 +44,11 @@ export default {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-12px)' },
         },
-        'spin-slow': {
-          to: { transform: 'rotate(360deg)' },
-        },
       },
       animation: {
         'gradient-shift': 'gradient-shift 12s ease infinite',
         'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
         'float-slow': 'float-slow 6s ease-in-out infinite',
-        'spin-slow': 'spin-slow 60s linear infinite',
       },
     },
   },

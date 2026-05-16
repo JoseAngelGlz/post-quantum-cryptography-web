@@ -1,6 +1,9 @@
 export interface QuizResult {
   quizId: string;
+  /** Resolved title at save time (kept for backward compatibility). */
   title: string;
+  /** Optional i18n key so the summary can re-translate the title at render time. */
+  titleKey?: string;
   routeId: string;
   score: number;
   total: number;
