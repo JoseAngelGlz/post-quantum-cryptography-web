@@ -45,7 +45,7 @@ const Hero: React.FC<HeroProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.3 }}
-            className="mt-8 text-lg md:text-xl text-slate-300/90 max-w-2xl mx-auto leading-relaxed"
+            className="mt-8 text-lg md:text-xl text-quantum-fg-soft max-w-2xl mx-auto leading-relaxed"
           >
             {subtitle}
           </motion.p>

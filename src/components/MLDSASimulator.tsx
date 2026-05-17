@@ -1,19 +1,27 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+  ArrowDown,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
   Edit3,
+  Equal,
+  Hash,
   KeyRound,
+  Minus,
   RefreshCw,
   RotateCcw,
   ShieldCheck,
   Swords,
+  X,
   XCircle,
   Zap,
 } from 'lucide-react';
 import { useT } from '../i18n';
+import type { TranslationKey } from '../i18n/translations';
+
+type TFn = (key: TranslationKey) => string;
 
 /* ═══════════════════════════════════════════════════════════════
    Baby-Dilithium  ·  q = 97, n = 2, k = 2, l = 2
@@ -148,7 +156,18 @@ const forgeRandom = (): Signature => {
   return { z, c, attempts: 0, trace: [] };
 };
 
-const verify = (msg: string, sig: Signature, pk: KeyPair): boolean => {
+interface VerifyDetail {
+  valid: boolean;
+  Az: Vector[];
+  ct: Vector[];
+  wPrime: Vector[];
+  cPrime: number;
+  cMatch: boolean;
+  bound: boolean;
+  zNorm: number;
+}
+
+const verify = (msg: string, sig: Signature, pk: KeyPair): VerifyDetail => {
   // Recompute w' = A*z - c*t   should equal A*y (if z was honest)
   const Az = blockMatVec(pk.A, sig.z);
   const ct = blockVecScalarMul(pk.t, sig.c);
@@ -158,13 +177,182 @@ const verify = (msg: string, sig: Signature, pk: KeyPair): boolean => {
   const { c: cPrime } = fakeHash([msgBytes, ...wPrime]);
 
   const cMatch = cPrime === sig.c;
-  const bound = sig.z.every((row) => maxAbs(row) < Z_BOUND);
-  return cMatch && bound;
+  const zNorm = Math.max(...sig.z.map((row) => maxAbs(row)));
+  const bound = zNorm < Z_BOUND;
+  return { valid: cMatch && bound, Az, ct, wPrime, cPrime, cMatch, bound, zNorm };
 };
 
 const fmt = (v: number) => {
   const c = centeredMod(v, Q);
   return c > 0 ? `+${c}` : `${c}`;
+};
+
+const fmtVec = (v: Vector, centered = false) =>
+  `[${v.map((x) => (centered ? fmt(x) : mod(x, Q))).join(', ')}]`;
+
+interface VerifyBreakdownProps {
+  detail: VerifyDetail;
+  sig: Signature;
+  context: 'honest' | 'forge';
+  msg: string;
+  t: TFn;
+}
+
+const VerifyBreakdown: React.FC<VerifyBreakdownProps> = ({ detail, sig, context, msg, t }) => {
+  const stepRow = (
+    label: string,
+    expression: string,
+    value: React.ReactNode,
+    color: string,
+  ) => (
+    <div className="rounded-xl border border-quantum-border bg-quantum-panel/40 p-3">
+      <div className="flex items-center gap-2 mb-1">
+        <span
+          className="text-[10px] uppercase tracking-widest font-mono font-semibold"
+          style={{ color }}
+        >
+          {label}
+        </span>
+        <span className="text-[10px] text-quantum-fg-mute font-mono">{expression}</span>
+      </div>
+      <pre className="text-xs font-mono text-quantum-fg-strong leading-relaxed whitespace-pre-wrap break-all">
+        {value}
+      </pre>
+    </div>
+  );
+
+  return (
+    <div className="space-y-3">
+      <div className="text-[11px] uppercase tracking-widest text-quantum-fg-mute font-mono">
+        {t('mldsa.sim.verify.detail.title')}
+      </div>
+
+      {/* Step 1: A·z */}
+      {stepRow(
+        `1. A · z`,
+        `(k×ℓ) · z   →  vector en R_q^k`,
+        detail.Az.map((row, i) => `Az${i} = ${fmtVec(row)}`).join('\n'),
+        '#5eead4',
+      )}
+
+      <div className="flex items-center justify-center text-quantum-fg-mute">
+        <Minus size={14} />
+      </div>
+
+      {/* Step 2: c·t */}
+      {stepRow(
+        `2. c · t`,
+        `c = ${sig.c}, t público`,
+        detail.ct.map((row, i) => `ct${i} = ${fmtVec(row)}`).join('\n'),
+        '#a78bfa',
+      )}
+
+      <div className="flex items-center justify-center text-quantum-fg-mute">
+        <ArrowDown size={14} />
+      </div>
+
+      {/* Step 3: w' */}
+      {stepRow(
+        `3. w' = A·z − c·t`,
+        t('mldsa.sim.verify.detail.wprime.note'),
+        detail.wPrime.map((row, i) => `w'${i} = ${fmtVec(row)}`).join('\n'),
+        '#fbbf24',
+      )}
+
+      <div className="flex items-center justify-center text-quantum-fg-mute">
+        <Hash size={14} />
+      </div>
+
+      {/* Step 4: c' = H(w', m) */}
+      {stepRow(
+        `4. c' = H(w', m)`,
+        `m = "${msg}"`,
+        `c' = ${detail.cPrime}`,
+        '#f472b6',
+      )}
+
+      <div className="flex items-center justify-center text-quantum-fg-mute">
+        <Equal size={14} />
+      </div>
+
+      {/* Step 5: comparison */}
+      <div className="grid sm:grid-cols-2 gap-2">
+        <div
+          className={`rounded-xl border p-3 ${
+            detail.cMatch
+              ? 'border-quantum-mint/40 bg-quantum-mint/5'
+              : 'border-quantum-rose/40 bg-quantum-rose/5'
+          }`}
+        >
+          <div className="flex items-center gap-2 mb-1">
+            {detail.cMatch ? (
+              <CheckCircle2 size={14} className="text-quantum-mint" />
+            ) : (
+              <XCircle size={14} className="text-quantum-rose" />
+            )}
+            <span
+              className={`text-[10px] uppercase tracking-widest font-mono font-semibold ${
+                detail.cMatch ? 'text-quantum-mint' : 'text-quantum-rose'
+              }`}
+            >
+              c' {detail.cMatch ? '=' : '≠'} c
+            </span>
+          </div>
+          <div className="text-xs font-mono text-quantum-fg-strong">
+            {detail.cPrime} {detail.cMatch ? '=' : '≠'} {sig.c}
+          </div>
+          <div className="text-[10px] text-quantum-fg-soft mt-1">
+            {detail.cMatch
+              ? t('mldsa.sim.verify.detail.cmatch.ok')
+              : t('mldsa.sim.verify.detail.cmatch.bad')}
+          </div>
+        </div>
+
+        <div
+          className={`rounded-xl border p-3 ${
+            detail.bound
+              ? 'border-quantum-mint/40 bg-quantum-mint/5'
+              : 'border-quantum-rose/40 bg-quantum-rose/5'
+          }`}
+        >
+          <div className="flex items-center gap-2 mb-1">
+            {detail.bound ? (
+              <CheckCircle2 size={14} className="text-quantum-mint" />
+            ) : (
+              <X size={14} className="text-quantum-rose" />
+            )}
+            <span
+              className={`text-[10px] uppercase tracking-widest font-mono font-semibold ${
+                detail.bound ? 'text-quantum-mint' : 'text-quantum-rose'
+              }`}
+            >
+              ‖z‖∞ {detail.bound ? '<' : '≥'} γ₁−β
+            </span>
+          </div>
+          <div className="text-xs font-mono text-quantum-fg-strong">
+            {detail.zNorm} {detail.bound ? '<' : '≥'} {Z_BOUND}
+          </div>
+          <div className="text-[10px] text-quantum-fg-soft mt-1">
+            {detail.bound
+              ? t('mldsa.sim.verify.detail.bound.ok')
+              : t('mldsa.sim.verify.detail.bound.bad')}
+          </div>
+        </div>
+      </div>
+
+      <div
+        className={`text-xs leading-relaxed rounded-xl p-3 border ${
+          context === 'forge'
+            ? 'border-quantum-rose/30 bg-quantum-rose/5 text-quantum-fg-soft'
+            : 'border-quantum-border bg-quantum-panel/30 text-quantum-fg-soft'
+        }`}
+      >
+        {context === 'forge'
+          ? t('mldsa.sim.verify.detail.explain.forge')
+          : t('mldsa.sim.verify.detail.explain.honest')}
+      </div>
+    </div>
+  );
 };
 
 const MLDSASimulator: React.FC = () => {
@@ -173,13 +361,13 @@ const MLDSASimulator: React.FC = () => {
   const [signature, setSignature] = useState<Signature | null>(null);
   const [msg, setMsg] = useState('hola');
   const [tampered, setTampered] = useState('hola');
-  const [verifyResult, setVerifyResult] = useState<boolean | null>(null);
+  const [verifyResult, setVerifyResult] = useState<VerifyDetail | null>(null);
   const [showA, setShowA] = useState(false);
 
   const [attackAttempts, setAttackAttempts] = useState(0);
   const [attackPassed, setAttackPassed] = useState(0);
   const [lastForgery, setLastForgery] = useState<Signature | null>(null);
-  const [lastForgeryOk, setLastForgeryOk] = useState<boolean | null>(null);
+  const [lastForgeryDetail, setLastForgeryDetail] = useState<VerifyDetail | null>(null);
 
   const generate = () => {
     setKeys(genKeys());
@@ -204,25 +392,25 @@ const MLDSASimulator: React.FC = () => {
     if (!keys) return;
     let passed = 0;
     let lastSig: Signature | null = null;
-    let lastOk: boolean | null = null;
+    let lastDetail: VerifyDetail | null = null;
     for (let i = 0; i < times; i++) {
       const fake = forgeRandom();
-      const ok = verify(msg, fake, keys);
-      if (ok) passed += 1;
+      const detail = verify(msg, fake, keys);
+      if (detail.valid) passed += 1;
       lastSig = fake;
-      lastOk = ok;
+      lastDetail = detail;
     }
     setAttackAttempts((a) => a + times);
     setAttackPassed((p) => p + passed);
     setLastForgery(lastSig);
-    setLastForgeryOk(lastOk);
+    setLastForgeryDetail(lastDetail);
   };
 
   const resetAttacker = () => {
     setAttackAttempts(0);
     setAttackPassed(0);
     setLastForgery(null);
-    setLastForgeryOk(null);
+    setLastForgeryDetail(null);
   };
 
   return (
@@ -408,35 +596,49 @@ const MLDSASimulator: React.FC = () => {
           {t('mldsa.sim.verify.hint')}
         </p>
 
-        {verifyResult !== null && (
+        {verifyResult !== null && signature && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`rounded-xl border p-4 flex items-start gap-3 ${
-              verifyResult
-                ? 'border-quantum-mint/40 bg-quantum-mint/5'
-                : 'border-quantum-rose/40 bg-quantum-rose/5'
-            }`}
+            className="space-y-4"
           >
-            {verifyResult ? (
-              <CheckCircle2 className="text-quantum-mint shrink-0" />
-            ) : (
-              <XCircle className="text-quantum-rose shrink-0" />
-            )}
-            <div>
-              <div
-                className={`font-display font-semibold ${
-                  verifyResult ? 'text-quantum-mint' : 'text-quantum-rose'
-                }`}
-              >
-                {verifyResult ? t('mldsa.sim.verify.ok') : t('mldsa.sim.verify.fail')}
-              </div>
-              <div className="text-sm text-quantum-fg-soft">
-                {verifyResult
-                  ? t('mldsa.sim.verify.ok.desc')
-                  : t('mldsa.sim.verify.fail.desc')}
+            <div
+              className={`rounded-xl border p-4 flex items-start gap-3 ${
+                verifyResult.valid
+                  ? 'border-quantum-mint/40 bg-quantum-mint/5'
+                  : 'border-quantum-rose/40 bg-quantum-rose/5'
+              }`}
+            >
+              {verifyResult.valid ? (
+                <CheckCircle2 className="text-quantum-mint shrink-0" />
+              ) : (
+                <XCircle className="text-quantum-rose shrink-0" />
+              )}
+              <div>
+                <div
+                  className={`font-display font-semibold ${
+                    verifyResult.valid ? 'text-quantum-mint' : 'text-quantum-rose'
+                  }`}
+                >
+                  {verifyResult.valid
+                    ? t('mldsa.sim.verify.ok')
+                    : t('mldsa.sim.verify.fail')}
+                </div>
+                <div className="text-sm text-quantum-fg-soft">
+                  {verifyResult.valid
+                    ? t('mldsa.sim.verify.ok.desc')
+                    : t('mldsa.sim.verify.fail.desc')}
+                </div>
               </div>
             </div>
+
+            <VerifyBreakdown
+              detail={verifyResult}
+              sig={signature}
+              context="honest"
+              msg={tampered}
+              t={t}
+            />
           </motion.div>
         )}
       </div>
@@ -514,35 +716,45 @@ const MLDSASimulator: React.FC = () => {
               </p>
             )}
 
-            {lastForgery && (
+            {lastForgery && lastForgeryDetail && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 key={attackAttempts}
-                className="rounded-xl border border-quantum-border bg-quantum-panel/30 p-4 mb-4"
+                className="space-y-4 mb-4"
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[10px] uppercase tracking-widest text-quantum-fg-mute">
-                    {t('mldsa.sim.signature')} (z, c)
-                  </span>
-                  {lastForgeryOk !== null && (
+                <div className="rounded-xl border border-quantum-border bg-quantum-panel/30 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-[10px] uppercase tracking-widest text-quantum-fg-mute">
+                      {t('mldsa.sim.attacker.forged')} (z, c)
+                    </span>
                     <span
                       className={`text-[10px] font-mono uppercase tracking-widest ml-auto ${
-                        lastForgeryOk ? 'text-quantum-rose' : 'text-quantum-mint'
+                        lastForgeryDetail.valid
+                          ? 'text-quantum-rose'
+                          : 'text-quantum-mint'
                       }`}
                     >
-                      {lastForgeryOk
+                      {lastForgeryDetail.valid
                         ? t('mldsa.sim.verify.ok')
                         : t('mldsa.sim.verify.fail')}
                     </span>
-                  )}
+                  </div>
+                  <pre className="text-xs font-mono text-quantum-fg-soft leading-relaxed">
+                    {lastForgery.z
+                      .map((row, i) => `z${i} = [${row.map(fmt).join(', ')}]`)
+                      .join('\n')}
+                    {'\n'}c = {lastForgery.c}
+                  </pre>
                 </div>
-                <pre className="text-xs font-mono text-quantum-fg-soft leading-relaxed">
-                  {lastForgery.z
-                    .map((row, i) => `z${i} = [${row.map(fmt).join(', ')}]`)
-                    .join('\n')}
-                  {'\n'}c = {lastForgery.c}
-                </pre>
+
+                <VerifyBreakdown
+                  detail={lastForgeryDetail}
+                  sig={lastForgery}
+                  context="forge"
+                  msg={msg}
+                  t={t}
+                />
               </motion.div>
             )}
 

@@ -369,8 +369,6 @@ const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
         </div>
       </ScrollSection>
 
-      <RouteSwitcher current="intro" onChange={onChange} />
-
       <ScrollSection
         eyebrow={t('intro.summary.eyebrow')}
         title={
@@ -395,6 +393,8 @@ const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
         </div>
         <QuizSummary />
       </ScrollSection>
+
+      <RouteSwitcher current="intro" onChange={onChange} />
 
       <FeedbackForm routeId="intro" />
     </div>
