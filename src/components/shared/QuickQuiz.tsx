@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Sparkles, RotateCcw, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 import {
@@ -87,13 +87,17 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
   const selected = selections[current];
   const revealed = selected !== null;
 
+  const abandonStateRef = useRef({ done, selections, current });
+  abandonStateRef.current = { done, selections, current };
+
   useEffect(() => {
     return () => {
-      if (!done && selections.some((s) => s !== null)) {
-        quizAbandoned(routeId, quizId, current + 1, shuffled.length);
+      const { done: doneNow, selections: selNow, current: curNow } = abandonStateRef.current;
+      if (!doneNow && selNow.some((s) => s !== null)) {
+        quizAbandoned(routeId, quizId, curNow + 1, shuffled.length);
       }
     };
-  }, [done, selections, routeId, quizId, current, quizAbandoned, shuffled.length]);
+  }, [routeId, quizId, shuffled.length, quizAbandoned]);
 
   const choose = (i: number) => {
     if (revealed) return;
@@ -274,7 +278,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
                 : t('quiz.feedback.retry')}
             </p>
 
-            {/* one-tap reaction row — qubit scale */}
+            {/* one-tap reaction row — emoji scale */}
             <div className="mt-6 pt-5 border-t border-quantum-border/50 max-w-xs mx-auto">
               {reaction === null ? (
                 <>
@@ -288,15 +292,16 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
                     }}
                     steps={3}
                     compact
+                    emoji={['😕', '😐', '😄']}
                   />
                 </>
               ) : (
                 <motion.p
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-xs text-quantum-mint font-mono"
+                  className="text-xs text-quantum-mint"
                 >
-                  {reaction}q · {t('quiz.reaction.thanks')}
+                  {['😕', '😐', '😄'][reaction - 1]} · {t('quiz.reaction.thanks')}
                 </motion.p>
               )}
             </div>

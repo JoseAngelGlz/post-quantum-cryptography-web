@@ -628,6 +628,7 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
         </div>
       </ScrollSection>
 
+      {/* SUMMARY */}
       <ScrollSection eyebrow={t('mlkem.s09.eyebrow')} title={t('mlkem.s09.title')}>
         <div className="card-quantum p-8 md:p-10">
           <div className="flex items-start gap-4 mb-5">
@@ -635,28 +636,40 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
               <Sparkles size={24} />
             </div>
             <div>
-              <h3 className="font-display text-2xl font-bold text-slate-100 mb-2">
+              <h3 className="font-display text-2xl font-bold text-quantum-fg-strong mb-2">
                 {t('mlkem.s09.subtitle')}
               </h3>
-              <p className="text-slate-300 text-[16px] leading-relaxed">
+              <p className="text-quantum-fg text-[16px] leading-relaxed">
                 {t('mlkem.s09.body')}
               </p>
             </div>
           </div>
+
+          <div className="mt-6 grid sm:grid-cols-3 gap-3">
+            {[
+              { l: t('mlkem.s09.chip1'), d: t('mlkem.s09.chip1.d') },
+              { l: t('mlkem.s09.chip2'), d: t('mlkem.s09.chip2.d') },
+              { l: t('mlkem.s09.chip3'), d: t('mlkem.s09.chip3.d') },
+            ].map((c) => (
+              <div key={c.l} className="rounded-xl border border-quantum-border bg-quantum-panel/40 p-4">
+                <div className="font-mono text-quantum-cyan text-xs font-bold mb-1">{c.l}</div>
+                <div className="text-xs text-quantum-fg-soft">{c.d}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-10 flex flex-wrap gap-3 justify-center">
-          <button onClick={() => onChange('intro')} className="btn-ghost">
-            {t('mlkem.back.intro')}
-          </button>
-          <button onClick={() => onChange('fundamentos')} className="btn-ghost">
-            {t('mlkem.back.fund')}
-          </button>
-          <button onClick={() => onChange('aplicaciones')} className="btn-ghost">
-            {t('mlkem.back.apps')}
-          </button>
+        <div className="mt-8 text-center text-quantum-fg-soft text-sm flex items-center justify-center gap-1">
+          <ArrowDown size={14} />
+          {t('mlkem.s09.scrollHint')}
         </div>
       </ScrollSection>
+
+      <div className="text-center my-16">
+        <button onClick={() => onChange('mldsa')} className="btn-quantum">
+          {t('mlkem.continue')} <ArrowRight size={18} />
+        </button>
+      </div>
 
       <div className="mx-auto" style={{ width: '90%' }}>
         <FeedbackForm routeId="mlkem" />

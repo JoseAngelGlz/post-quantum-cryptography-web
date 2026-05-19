@@ -19,6 +19,7 @@ import LWENoisePlayground from '../shared/LWENoisePlayground';
 import Math from '../shared/Math';
 import type { RouteId } from '../../routes';
 import { useT } from '../../i18n';
+import { useSectionTracking } from '../../hooks/useSectionTracking';
 
 interface RouteProps {
   onChange: (r: RouteId) => void;
@@ -26,6 +27,7 @@ interface RouteProps {
 
 const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
   const t = useT();
+  useSectionTracking('fundamentos');
   const [basisToggle, setBasisToggle] = useState<'good' | 'bad'>('good');
 
   return (

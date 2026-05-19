@@ -24,6 +24,7 @@ import QuickQuiz from '../shared/QuickQuiz';
 import Math from '../shared/Math';
 import type { RouteId } from '../../routes';
 import { useT } from '../../i18n';
+import { useSectionTracking } from '../../hooks/useSectionTracking';
 
 interface RouteProps {
   onChange: (r: RouteId) => void;
@@ -31,6 +32,7 @@ interface RouteProps {
 
 const AplicacionesRoute: React.FC<RouteProps> = ({ onChange }) => {
   const t = useT();
+  useSectionTracking('aplicaciones');
   return (
     <div>
       <Hero

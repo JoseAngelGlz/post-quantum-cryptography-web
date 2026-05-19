@@ -63,6 +63,13 @@ export const translations = {
     'feedback.route.recursos': 'la sección de recursos',
     'feedback.route.site': 'la web',
 
+    /* ─── COOKIE BANNER ───────────────────────── */
+    'cookies.title': 'Cookies y Privacidad',
+    'cookies.body': 'Utilizamos cookies para recopilar datos de uso, ubicación (IP) y preferencias con fines analíticos. Tu privacidad es importante para nosotros.',
+    'cookies.close': 'Cerrar',
+    'cookies.reject': 'Rechazar',
+    'cookies.accept': 'Aceptar',
+
     /* Callout default titles */
     'callout.info': 'Información',
     'callout.warning': 'Atención',
@@ -749,7 +756,7 @@ export const translations = {
     'kemSim.spy.why.b': ', la resta ',
     'kemSim.spy.why.c': ' deja un valor casi aleatorio. Si acierta por casualidad (≈25% con 4 opciones), no tiene forma de saberlo.',
     'kemSim.spy.realScale': 'En ML-KEM real, el espacio de secretos posibles está en torno a 2²⁵⁶: la fuerza bruta es inviable incluso con cuántica.',
-    'kemSim.spy.again': 'Otro intento de Eva',
+    'kemSim.spy.again': 'Intentar de nuevo',
     'kemSim.spy.conceptsTitle': 'Por qué Eva fracasa',
 
     'kemSim.nav.prev': '← Paso anterior',
@@ -895,12 +902,17 @@ export const translations = {
     'mlkem.s08.title.b': 'interactivo',
     'mlkem.s08.lead': 'Una versión didáctica de ML-KEM (Baby-Kyber) con parámetros pequeños (q=23, n=2) que cabe en pantalla. La lógica es idéntica al algoritmo real: solo cambian los tamaños.',
     'mlkem.s09.eyebrow': 'Final',
-    'mlkem.s09.title': 'Lo has visto entero',
-    'mlkem.s09.subtitle': 'ML-KEM en una idea',
-    'mlkem.s09.body': 'Alice publica una ecuación con ruido que esconde su clave privada. Bob construye un ciphertext que mezcla el mensaje con esa misma ecuación ruidosa. Cuando Alice usa su clave privada al descifrar, los términos ruidosos grandes se cancelan exactamente y solo queda el mensaje más un poco de ruido residual. Ese ruido residual es lo bastante pequeño para que el código corrector lo absorba. Al final, Alice añade una verificación (FO) recifrando para detectar manipulaciones. La seguridad descansa en que extraer la clave privada desde la pública es el problema LWE, que es duro incluso para ordenadores cuánticos.',
-    'mlkem.back.intro': 'Volver al inicio',
-    'mlkem.back.fund': 'Repasar fundamentos',
-    'mlkem.back.apps': 'Volver a aplicaciones',
+    'mlkem.s09.title': 'ML-KEM en una idea',
+    'mlkem.s09.subtitle': 'Lo esencial',
+    'mlkem.s09.body': 'Alice publica una ecuación con ruido que esconde su clave privada. Bob construye un ciphertext que mezcla el mensaje con esa ecuación ruidosa. Cuando Alice descifra, los términos ruidosos grandes se cancelan y solo queda el mensaje más un ruido residual pequeño que el código corrector absorbe. La transformación Fujisaki-Okamoto añade una verificación recifrando para detectar manipulaciones. La seguridad descansa en el problema LWE, duro incluso para ordenadores cuánticos.',
+    'mlkem.s09.chip1': 'Module-LWE',
+    'mlkem.s09.chip1.d': 'Esconde la clave privada',
+    'mlkem.s09.chip2': 'Compresión + ECC',
+    'mlkem.s09.chip2.d': 'Absorbe el ruido residual',
+    'mlkem.s09.chip3': 'Fujisaki-Okamoto',
+    'mlkem.s09.chip3.d': 'Seguridad IND-CCA2',
+    'mlkem.s09.scrollHint': 'Cuéntanos qué te ha parecido a continuación.',
+    'mlkem.continue': 'Continuar a ML-DSA',
 
     /* ─── ML-DSA ROUTE ─────────────────────────── */
     'mldsa.hero.eyebrow': 'Firmas digitales post-cuánticas',
@@ -1248,7 +1260,7 @@ export const translations = {
     'progress.empty.title': 'Aún sin tests',
     'progress.empty.body': 'A medida que completes los mini-tests del recorrido aparecerán aquí.',
     'progress.completed': '{n}/{total} tests',
-    'progress.giveFeedback': '💬 Dejar opinión sobre la web',
+    'progress.giveFeedback': 'Dejar opinión sobre la web',
   },
 
   en: {
@@ -1306,6 +1318,13 @@ export const translations = {
     'feedback.route.noticias': 'the news section',
     'feedback.route.recursos': 'the resources section',
     'feedback.route.site': 'the site',
+
+    /* ─── COOKIE BANNER ───────────────────────── */
+    'cookies.title': 'Cookies & Privacy',
+    'cookies.body': 'We use cookies to collect usage data, location (IP) and preferences for analytical purposes. Your privacy is important to us.',
+    'cookies.close': 'Close',
+    'cookies.reject': 'Reject',
+    'cookies.accept': 'Accept',
 
     'callout.info': 'Info',
     'callout.warning': 'Warning',
@@ -1983,7 +2002,7 @@ export const translations = {
     'kemSim.spy.why.b': ', the subtraction ',
     'kemSim.spy.why.c': ' yields an almost random value. If she gets it right by chance (~25% with 4 options), she has no way to know.',
     'kemSim.spy.realScale': 'In real ML-KEM, the space of possible secrets is around 2²⁵⁶: brute force is infeasible even with quantum.',
-    'kemSim.spy.again': 'Another try by Eve',
+    'kemSim.spy.again': 'Try again',
     'kemSim.spy.conceptsTitle': 'Why Eve fails',
 
     'kemSim.nav.prev': '← Previous step',
@@ -2129,12 +2148,17 @@ export const translations = {
     'mlkem.s08.title.b': 'simulator',
     'mlkem.s08.lead': 'A didactic version of ML-KEM (Baby-Kyber) with tiny parameters (q=23, n=2) that fits on screen. The logic is identical to the real algorithm: only sizes change.',
     'mlkem.s09.eyebrow': 'Wrap-up',
-    'mlkem.s09.title': "You've seen it all",
-    'mlkem.s09.subtitle': 'ML-KEM in one idea',
-    'mlkem.s09.body': "Alice publishes a noisy equation that hides her private key. Bob builds a ciphertext that mixes the message with that same noisy equation. When Alice uses her private key to decrypt, the large noisy terms cancel exactly and only the message plus a tiny residual noise remains. That residual noise is small enough for the correcting code to absorb. Finally Alice adds an FO verification by re-encrypting to detect tampering. Security rests on the fact that recovering the private key from the public one is the LWE problem, which is hard even for quantum computers.",
-    'mlkem.back.intro': 'Back to start',
-    'mlkem.back.fund': 'Review foundations',
-    'mlkem.back.apps': 'Back to applications',
+    'mlkem.s09.title': 'ML-KEM in one idea',
+    'mlkem.s09.subtitle': 'The essence',
+    'mlkem.s09.body': "Alice publishes a noisy equation that hides her private key. Bob builds a ciphertext that mixes the message with that same noisy equation. When Alice decrypts, the large noisy terms cancel and only the message plus a small residual noise remains, which the error-correcting code absorbs. The Fujisaki-Okamoto transform adds a check by re-encrypting to detect tampering. Security rests on the LWE problem, hard even for quantum computers.",
+    'mlkem.s09.chip1': 'Module-LWE',
+    'mlkem.s09.chip1.d': 'Hides the private key',
+    'mlkem.s09.chip2': 'Compression + ECC',
+    'mlkem.s09.chip2.d': 'Absorbs residual noise',
+    'mlkem.s09.chip3': 'Fujisaki-Okamoto',
+    'mlkem.s09.chip3.d': 'IND-CCA2 security',
+    'mlkem.s09.scrollHint': 'Tell us what you think below.',
+    'mlkem.continue': 'Continue to ML-DSA',
 
     /* ML-DSA ROUTE */
     'mldsa.hero.eyebrow': 'Post-quantum digital signatures',
@@ -2481,7 +2505,7 @@ export const translations = {
     'progress.empty.title': 'No tests yet',
     'progress.empty.body': 'As you complete the mini-tests across the tour they will show up here.',
     'progress.completed': '{n}/{total} tests',
-    'progress.giveFeedback': '💬 Leave feedback about the site',
+    'progress.giveFeedback': 'Leave feedback about the site',
   },
 } as const;
 

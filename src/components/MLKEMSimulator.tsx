@@ -1471,7 +1471,13 @@ const MLKEMSimulator: React.FC<MLKEMSimulatorProps> = ({ onUse }) => {
                     onClick={handleSpyAttempt}
                     className="inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold bg-quantum-rose/15 border border-quantum-rose/40 text-quantum-rose hover:bg-quantum-rose/25 transition-all"
                   >
-                    {t('kemSim.spy.attempt')}
+                    {spyBits && spyKey ? (
+                      <>
+                        <RefreshCw size={14} /> {t('kemSim.spy.again')}
+                      </>
+                    ) : (
+                      t('kemSim.spy.attempt')
+                    )}
                   </button>
 
                   {spyBits && spyKey && (
@@ -1547,14 +1553,6 @@ const MLKEMSimulator: React.FC<MLKEMSimulatorProps> = ({ onUse }) => {
                         </p>
                         <p className="text-slate-500">{t('kemSim.spy.realScale')}</p>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={handleSpyAttempt}
-                        className="text-xs inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-quantum-rose/40 text-quantum-rose hover:bg-quantum-rose/10 transition-all"
-                      >
-                        <RefreshCw size={12} /> {t('kemSim.spy.again')}
-                      </button>
                     </motion.div>
                   )}
                 </div>
