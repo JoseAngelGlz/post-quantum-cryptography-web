@@ -233,7 +233,7 @@
 .dark .constellation-bg     { mix-blend-mode: screen; }
 :root:not(.dark) .constellation-bg {
   mix-blend-mode: multiply;
-  opacity: 0.1 !important; /* soft-light is very subtle, so raise alpha */
+  opacity: 0.45 !important;
 }
 
 .constellation-gradient {
@@ -244,9 +244,9 @@
 }
 :root:not(.dark) .constellation-gradient {
   background:
-    radial-gradient(ellipse at 30% 20%, rgb(8 145 178 / 0.25), transparent 55%),
-    radial-gradient(ellipse at 70% 80%, rgb(124 58 237 / 0.30), transparent 55%),
-    radial-gradient(ellipse at 50% 50%, rgb(37 99 235 / 0.25), transparent 60%);
+    radial-gradient(ellipse at 30% 20%, rgb(8 145 178 / 0.18), transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgb(124 58 237 / 0.20), transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgb(37 99 235 / 0.14), transparent 60%);
 }
 
 .katex { color: rgb(var(--fg-strong)) !important; }
