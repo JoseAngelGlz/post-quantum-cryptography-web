@@ -355,7 +355,11 @@ const VerifyBreakdown: React.FC<VerifyBreakdownProps> = ({ detail, sig, context,
   );
 };
 
-const MLDSASimulator: React.FC = () => {
+interface MLDSASimulatorProps {
+  onUse?: () => void;
+}
+
+const MLDSASimulator: React.FC<MLDSASimulatorProps> = ({ onUse }) => {
   const t = useT();
   const [keys, setKeys] = useState<KeyPair | null>(null);
   const [signature, setSignature] = useState<Signature | null>(null);
@@ -370,6 +374,7 @@ const MLDSASimulator: React.FC = () => {
   const [lastForgeryDetail, setLastForgeryDetail] = useState<VerifyDetail | null>(null);
 
   const generate = () => {
+    onUse?.();
     setKeys(genKeys());
     setSignature(null);
     setVerifyResult(null);
@@ -377,6 +382,7 @@ const MLDSASimulator: React.FC = () => {
 
   const doSign = () => {
     if (!keys) return;
+    onUse?.();
     const sig = sign(msg, keys, keys);
     setSignature(sig);
     setTampered(msg);
@@ -385,11 +391,13 @@ const MLDSASimulator: React.FC = () => {
 
   const doVerify = () => {
     if (!keys || !signature) return;
+    onUse?.();
     setVerifyResult(verify(tampered, signature, keys));
   };
 
   const tryForge = (times: number) => {
     if (!keys) return;
+    onUse?.();
     let passed = 0;
     let lastSig: Signature | null = null;
     let lastDetail: VerifyDetail | null = null;

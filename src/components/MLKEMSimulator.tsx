@@ -594,7 +594,11 @@ const SPY_CONCEPTS: Concept[] = [
 /* ═══════════════════════════════════════════════════
    Main Component
    ═══════════════════════════════════════════════════ */
-const MLKEMSimulator: React.FC = () => {
+interface MLKEMSimulatorProps {
+  onUse?: () => void;
+}
+
+const MLKEMSimulator: React.FC<MLKEMSimulatorProps> = ({ onUse }) => {
   const t = useT();
   const containerRef = useRef<HTMLElement>(null);
   const [phase, setPhase] = useState<Phase>('intro');
@@ -623,6 +627,7 @@ const MLKEMSimulator: React.FC = () => {
   /* ── Handlers ──────────────────────────────────── */
 
   const handleGenerate = () => {
+    onUse?.();
     const A = randomMatrix(N, Q);
     const s = randomSmallVec(N, 1);
     const e = randomSmallVec(N, 1);
@@ -638,6 +643,7 @@ const MLKEMSimulator: React.FC = () => {
 
   const handleEncapsulate = () => {
     if (!keyPair) return;
+    onUse?.();
     const m = SECRETS[selectedSecret].bits;
     const r = randomSmallVec(N, 1);
     const e1 = randomSmallVec(N, 1);
@@ -659,6 +665,7 @@ const MLKEMSimulator: React.FC = () => {
 
   const handleDecapsulate = () => {
     if (!keyPair || !cipher) return;
+    onUse?.();
     const sDotU = mod(dot(toMod(keyPair.s, Q), cipher.u), Q);
     const raw = cipher.v.map((vi) => mod(vi - sDotU, Q));
     setIntermediateW(raw);

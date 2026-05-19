@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import './App.css';
 import type { RouteId } from './routes';
 import TopNav from './components/shared/TopNav';
 import RouteTransition from './components/shared/RouteTransition';
+import CookieBanner from './components/shared/CookieBanner';
 import IntroRoute from './components/routes/IntroRoute';
 import FundamentosRoute from './components/routes/FundamentosRoute';
 import AplicacionesRoute from './components/routes/AplicacionesRoute';
@@ -12,10 +13,16 @@ import MLDSARoute from './components/routes/MLDSARoute';
 import NoticiasRoute from './components/routes/NoticiasRoute';
 import RecursosRoute from './components/routes/RecursosRoute';
 import { useT } from './i18n';
+import { useAnalytics } from './hooks/useAnalytics';
 
 function App() {
   const [route, setRoute] = useState<RouteId>('intro');
   const t = useT();
+  const { pageView } = useAnalytics();
+
+  useEffect(() => {
+    pageView(route);
+  }, [route, pageView]);
 
   const changeRoute = (r: RouteId) => {
     setRoute(r);
@@ -66,6 +73,8 @@ function App() {
         <p>{t('footer.line1')}</p>
         <p className="mt-1 text-xs">{t('footer.line2')}</p>
       </footer>
+
+      <CookieBanner />
     </div>
   );
 }

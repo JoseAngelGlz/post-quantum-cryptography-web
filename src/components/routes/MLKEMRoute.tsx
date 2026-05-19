@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowDown,
@@ -27,6 +28,8 @@ import Math from '../shared/Math';
 import MLKEMSimulator from '../MLKEMSimulator';
 import type { RouteId } from '../../routes';
 import { useT } from '../../i18n';
+import { useSectionTracking } from '../../hooks/useSectionTracking';
+import { useAnalytics } from '../../hooks/useAnalytics';
 
 interface RouteProps {
   onChange: (r: RouteId) => void;
@@ -198,6 +201,13 @@ const PipelineDiagram: React.FC<{
 
 const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
   const t = useT();
+  const { simulatorUsed } = useAnalytics();
+  useSectionTracking('mlkem');
+
+  const handleSimulatorInteraction = () => {
+    simulatorUsed('SimMLKEM');
+  };
+
   return (
     <div>
       <Hero
@@ -615,7 +625,7 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
           {t('mlkem.s08.lead')}
         </p>
         <div className="card-quantum p-2 md:p-4">
-          <MLKEMSimulator />
+          <MLKEMSimulator onUse={handleSimulatorInteraction} />
         </div>
       </ScrollSection>
 

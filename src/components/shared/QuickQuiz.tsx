@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Sparkles, RotateCcw, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 import {
@@ -8,6 +8,7 @@ import {
   type QuizReaction,
 } from './quizStore';
 import { useT } from '../../i18n';
+import { useAnalytics } from '../../hooks/useAnalytics';
 import QubitScale from './QubitScale';
 
 export interface QuizQuestion {
@@ -68,6 +69,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
   routeId,
 }) => {
   const t = useT();
+  const { quizStarted, questionAnswered, quizCompleted, quizAbandoned } = useAnalytics();
   const resolvedTitle = title ?? t('quiz.title.default');
   const shuffled = useMemo(() => questions.map(shuffleQuestion), [questions]);
 
@@ -77,6 +79,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
   );
   const [done, setDone] = useState(false);
   const [reaction, setReaction] = useState<QuizReaction | null>(() => getQuizReaction(quizId));
+  const [quizInitialized, setQuizInitialized] = useState(false);
 
   const q = shuffled[current];
   if (!q) return null;
@@ -84,11 +87,28 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
   const selected = selections[current];
   const revealed = selected !== null;
 
+  useEffect(() => {
+    return () => {
+      if (!done && selections.some((s) => s !== null)) {
+        quizAbandoned(routeId, quizId, current + 1, shuffled.length);
+      }
+    };
+  }, [done, selections, routeId, quizId, current, quizAbandoned, shuffled.length]);
+
   const choose = (i: number) => {
     if (revealed) return;
+
+    if (!quizInitialized) {
+      quizStarted(routeId, quizId);
+      setQuizInitialized(true);
+    }
+
     const next = [...selections];
     next[current] = i;
     setSelections(next);
+
+    const isCorrect = i === shuffled[current].correctIndex;
+    questionAnswered(routeId, quizId, current, isCorrect);
   };
 
   const goBack = () => {
@@ -121,6 +141,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
         })),
         completedAt: new Date().toISOString(),
       });
+      quizCompleted(routeId, quizId, score, shuffled.length);
       setDone(true);
       return;
     }

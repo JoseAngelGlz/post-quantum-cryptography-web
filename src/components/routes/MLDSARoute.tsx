@@ -23,6 +23,8 @@ import Math from '../shared/Math';
 import MLDSASimulator from '../MLDSASimulator';
 import type { RouteId } from '../../routes';
 import { useT } from '../../i18n';
+import { useSectionTracking } from '../../hooks/useSectionTracking';
+import { useAnalytics } from '../../hooks/useAnalytics';
 import type { TranslationKey } from '../../i18n/translations';
 
 type TFn = (key: TranslationKey) => string;
@@ -153,6 +155,12 @@ const HighLowViz: React.FC<{ t: TFn }> = ({ t }) => {
 
 const MLDSARoute: React.FC<RouteProps> = ({ onChange: _onChange }) => {
   const t = useT();
+  const { simulatorUsed } = useAnalytics();
+  useSectionTracking('mldsa');
+
+  const handleSimulatorInteraction = () => {
+    simulatorUsed('SimMLDSA');
+  };
 
   const params = [
     { variant: 'ML-DSA-44', sec: '≈ AES-128', k: 4, l: 4 },
@@ -780,7 +788,7 @@ const MLDSARoute: React.FC<RouteProps> = ({ onChange: _onChange }) => {
           {t('mldsa.s07.lead')}
         </p>
         <div className="card-quantum p-2 md:p-4">
-          <MLDSASimulator />
+          <MLDSASimulator onUse={handleSimulatorInteraction} />
         </div>
       </ScrollSection>
 

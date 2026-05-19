@@ -3,6 +3,7 @@ import { ArrowLeft, Moon, Sun } from 'lucide-react';
 import type { RouteId } from '../../routes';
 import { useI18n } from '../../i18n';
 import { useTheme } from '../../theme';
+import { useAnalytics } from '../../hooks/useAnalytics';
 import ProgressBadge from './ProgressBadge';
 
 interface TopNavProps {
@@ -23,6 +24,13 @@ const order: RouteId[] = [
 const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
   const { t, locale, setLocale } = useI18n();
   const { mode, toggle } = useTheme();
+  const { themeChanged } = useAnalytics();
+
+  const handleThemeToggle = () => {
+    toggle();
+    const newTheme = mode === 'dark' ? 'Claro' : 'Oscuro';
+    themeChanged(newTheme);
+  };
 
   const routeLabels: Record<RouteId, string> = {
     intro: t('nav.intro'),
@@ -126,7 +134,7 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
 
           {/* Theme toggle */}
           <button
-            onClick={toggle}
+            onClick={handleThemeToggle}
             className="p-2 rounded-full border border-quantum-border bg-quantum-panel/60 text-quantum-fg-soft hover:text-quantum-cyan hover:border-quantum-cyan/40 transition-colors"
             aria-label={mode === 'dark' ? t('nav.theme.toLight') : t('nav.theme.toDark')}
             title={mode === 'dark' ? t('nav.theme.toLight') : t('nav.theme.toDark')}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Check } from 'lucide-react';
 import { useT } from '../../i18n';
+import { useAnalytics } from '../../hooks/useAnalytics';
 import type { TranslationKey } from '../../i18n/translations';
 import QubitScale from './QubitScale';
 
@@ -17,6 +18,7 @@ interface FeedbackFormProps {
 
 const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName, embed = false, onSent }) => {
   const t = useT();
+  const { feedbackSent } = useAnalytics();
   const [difficulty, setDifficulty] = useState<number | null>(null);
   const [clarity, setClarity] = useState<number | null>(null);
   const [recommend, setRecommend] = useState<number | null>(null);
@@ -42,6 +44,9 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName, embed =
       localStorage.setItem('pqc-feedback', JSON.stringify(prev));
     } catch {
       /* ignore */
+    }
+    if (difficulty && clarity && recommend) {
+      feedbackSent(routeId, difficulty, clarity, recommend, comment.trim().length > 0);
     }
     setSent(true);
     onSent?.();
