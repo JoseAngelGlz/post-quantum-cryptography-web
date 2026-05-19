@@ -1,7 +1,6 @@
 import Hero from '../shared/Hero';
 import ScrollSection from '../shared/ScrollSection';
 import PQCNews from '../shared/PQCNews';
-import FeedbackForm from '../shared/FeedbackForm';
 import type { RouteId } from '../../routes';
 import { useT } from '../../i18n';
 
@@ -46,7 +45,6 @@ const NoticiasRoute: React.FC<RouteProps> = (_props) => {
         <PQCNews />
       </ScrollSection>
 
-      <FeedbackForm routeId="noticias" />
     </div>
   );
 };

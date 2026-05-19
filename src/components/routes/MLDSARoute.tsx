@@ -821,7 +821,9 @@ const MLDSARoute: React.FC<RouteProps> = ({ onChange: _onChange }) => {
         </div>
       </ScrollSection>
 
-      <FeedbackForm routeId="mldsa" />
+      <div className="mx-auto" style={{ width: '90%' }}>
+        <FeedbackForm routeId="mldsa" />
+      </div>
     </div>
   );
 };

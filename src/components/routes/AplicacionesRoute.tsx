@@ -21,7 +21,6 @@ import Hero from '../shared/Hero';
 import ScrollSection from '../shared/ScrollSection';
 import Callout from '../shared/Callout';
 import QuickQuiz from '../shared/QuickQuiz';
-import FeedbackForm from '../shared/FeedbackForm';
 import Math from '../shared/Math';
 import type { RouteId } from '../../routes';
 import { useT } from '../../i18n';
@@ -477,7 +476,6 @@ const AplicacionesRoute: React.FC<RouteProps> = ({ onChange }) => {
         </button>
       </div>
 
-      <FeedbackForm routeId="aplicaciones" />
     </div>
   );
 };

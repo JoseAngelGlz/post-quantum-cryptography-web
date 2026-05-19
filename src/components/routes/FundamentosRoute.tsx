@@ -13,7 +13,6 @@ import Hero from '../shared/Hero';
 import ScrollSection from '../shared/ScrollSection';
 import Callout from '../shared/Callout';
 import QuickQuiz from '../shared/QuickQuiz';
-import FeedbackForm from '../shared/FeedbackForm';
 import LatticeViz from '../shared/LatticeViz';
 import ZqCircle from '../shared/ZqCircle';
 import LWENoisePlayground from '../shared/LWENoisePlayground';
@@ -454,7 +453,6 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
         </button>
       </div>
 
-      <FeedbackForm routeId="fundamentos" />
     </div>
   );
 };

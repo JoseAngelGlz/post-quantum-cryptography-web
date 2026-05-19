@@ -8,6 +8,7 @@ import {
   type QuizReaction,
 } from './quizStore';
 import { useT } from '../../i18n';
+import QubitScale from './QubitScale';
 
 export interface QuizQuestion {
   question: string;
@@ -252,40 +253,29 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
                 : t('quiz.feedback.retry')}
             </p>
 
-            {/* one-tap reaction row */}
-            <div className="mt-6 pt-5 border-t border-quantum-border/50 max-w-sm mx-auto">
+            {/* one-tap reaction row — qubit scale */}
+            <div className="mt-6 pt-5 border-t border-quantum-border/50 max-w-xs mx-auto">
               {reaction === null ? (
                 <>
                   <p className="text-xs text-quantum-fg-mute mb-3">{t('quiz.reaction.q')}</p>
-                  <div className="flex justify-center gap-2.5">
-                    {[
-                      { value: 1 as QuizReaction, emoji: '😕', labelKey: 'quiz.reaction.hard' as const },
-                      { value: 2 as QuizReaction, emoji: '🙂', labelKey: 'quiz.reaction.ok' as const },
-                      { value: 3 as QuizReaction, emoji: '🤩', labelKey: 'quiz.reaction.great' as const },
-                    ].map((r) => (
-                      <button
-                        key={r.value}
-                        type="button"
-                        onClick={() => {
-                          setReaction(r.value);
-                          saveQuizReaction(quizId, r.value);
-                        }}
-                        title={t(r.labelKey)}
-                        className="text-2xl px-3 py-1.5 rounded-full border border-quantum-border bg-quantum-panel/40 hover:border-quantum-cyan/60 hover:bg-quantum-cyan/10 hover:scale-110 transition-all"
-                      >
-                        {r.emoji}
-                      </button>
-                    ))}
-                  </div>
+                  <QubitScale
+                    value={null}
+                    onChange={(n) => {
+                      const r = n as QuizReaction;
+                      setReaction(r);
+                      saveQuizReaction(quizId, r);
+                    }}
+                    steps={3}
+                    compact
+                  />
                 </>
               ) : (
                 <motion.p
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-xs text-quantum-mint"
+                  className="text-xs text-quantum-mint font-mono"
                 >
-                  {reaction === 1 ? '😕' : reaction === 2 ? '🙂' : '🤩'}{' '}
-                  {t('quiz.reaction.thanks')}
+                  {reaction}q · {t('quiz.reaction.thanks')}
                 </motion.p>
               )}
             </div>

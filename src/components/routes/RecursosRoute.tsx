@@ -1,7 +1,6 @@
 import Hero from '../shared/Hero';
 import ScrollSection from '../shared/ScrollSection';
 import PQCResources from '../shared/PQCResources';
-import FeedbackForm from '../shared/FeedbackForm';
 import type { RouteId } from '../../routes';
 import { useT } from '../../i18n';
 
@@ -42,7 +41,6 @@ const RecursosRoute: React.FC<RouteProps> = (_props) => {
         <PQCResources />
       </ScrollSection>
 
-      <FeedbackForm routeId="recursos" />
     </div>
   );
 };

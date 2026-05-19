@@ -15,7 +15,6 @@ import Hero from '../shared/Hero';
 import ScrollSection from '../shared/ScrollSection';
 import Callout from '../shared/Callout';
 import QuickQuiz from '../shared/QuickQuiz';
-import FeedbackForm from '../shared/FeedbackForm';
 import RouteSwitcher from '../shared/RouteSwitcher';
 import Math from '../shared/Math';
 import type { RouteId } from '../../routes';
@@ -369,7 +368,6 @@ const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
 
       <RouteSwitcher current="intro" onChange={onChange} />
 
-      <FeedbackForm routeId="intro" />
     </div>
   );
 };

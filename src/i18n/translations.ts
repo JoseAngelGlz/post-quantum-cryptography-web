@@ -61,6 +61,7 @@ export const translations = {
     'feedback.route.mldsa': 'ML-DSA y el simulador',
     'feedback.route.noticias': 'la sección de noticias',
     'feedback.route.recursos': 'la sección de recursos',
+    'feedback.route.site': 'la web',
 
     /* Callout default titles */
     'callout.info': 'Información',
@@ -1247,6 +1248,7 @@ export const translations = {
     'progress.empty.title': 'Aún sin tests',
     'progress.empty.body': 'A medida que completes los mini-tests del recorrido aparecerán aquí.',
     'progress.completed': '{n}/{total} tests',
+    'progress.giveFeedback': '💬 Dejar opinión sobre la web',
   },
 
   en: {
@@ -1303,6 +1305,7 @@ export const translations = {
     'feedback.route.mldsa': 'ML-DSA and the simulator',
     'feedback.route.noticias': 'the news section',
     'feedback.route.recursos': 'the resources section',
+    'feedback.route.site': 'the site',
 
     'callout.info': 'Info',
     'callout.warning': 'Warning',
@@ -2478,6 +2481,7 @@ export const translations = {
     'progress.empty.title': 'No tests yet',
     'progress.empty.body': 'As you complete the mini-tests across the tour they will show up here.',
     'progress.completed': '{n}/{total} tests',
+    'progress.giveFeedback': '💬 Leave feedback about the site',
   },
 } as const;
 

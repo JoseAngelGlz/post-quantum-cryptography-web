@@ -649,7 +649,9 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
         </div>
       </ScrollSection>
 
-      <FeedbackForm routeId="mlkem" />
+      <div className="mx-auto" style={{ width: '90%' }}>
+        <FeedbackForm routeId="mlkem" />
+      </div>
     </div>
   );
 };

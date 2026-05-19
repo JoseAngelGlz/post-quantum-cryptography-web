@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, Award, BarChart3, CheckCircle2, Trash2 } from 'lucide-react';
+import { AlertCircle, Award, BarChart3, CheckCircle2, MessageSquare, Trash2 } from 'lucide-react';
 import {
   clearAllQuizResults,
   getAllQuizResults,
@@ -11,6 +11,8 @@ import {
 } from './quizStore';
 import { useT } from '../../i18n';
 import type { TranslationKey } from '../../i18n/translations';
+import Modal from './Modal';
+import FeedbackForm from './FeedbackForm';
 
 const reactionEmoji = (r: QuizReaction | undefined): string => {
   if (r === 1) return '😕';
@@ -25,6 +27,7 @@ const TOTAL_QUIZZES = 6;
 const ProgressBadge: React.FC = () => {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [results, setResults] = useState<QuizResult[]>(() => getAllQuizResults());
   const [reactions, setReactions] = useState<Record<string, QuizReaction>>(
     () => getAllQuizReactions(),
@@ -253,9 +256,35 @@ const ProgressBadge: React.FC = () => {
               </>
             )}
 
+            {/* footer: open generic feedback */}
+            <div className="mt-4 pt-3 border-t border-quantum-border/50">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  setFeedbackOpen(true);
+                }}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium border border-quantum-border bg-quantum-panel/40 text-quantum-fg-soft hover:text-quantum-cyan hover:border-quantum-cyan/50 transition-all"
+              >
+                <MessageSquare size={13} />
+                {t('progress.giveFeedback')}
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Feedback modal — site-wide opinion */}
+      <Modal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} maxWidth="max-w-2xl">
+        <FeedbackForm
+          routeId="site"
+          embed
+          onSent={() => {
+            // close shortly after sending so the confirmation is seen
+            setTimeout(() => setFeedbackOpen(false), 1800);
+          }}
+        />
+      </Modal>
     </div>
   );
 };
