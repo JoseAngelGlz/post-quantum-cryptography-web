@@ -1,5 +1,18 @@
 import posthog from 'posthog-js';
 
+const ROUTE_NAMES: Record<string, string> = {
+  intro: 'Introducción',
+  fundamentos: 'Fundamentos',
+  aplicaciones: 'Aplicaciones',
+  mlkem: 'ML-KEM',
+  mldsa: 'ML-DSA',
+  noticias: 'Noticias',
+  recursos: 'Recursos',
+  site: 'Sitio Web',
+};
+
+const routeName = (routeId: string): string => ROUTE_NAMES[routeId] ?? routeId;
+
 const captureEvent = (eventName: string, properties?: Record<string, any>) => {
   posthog.capture(eventName, properties);
 };
@@ -9,12 +22,12 @@ const setGlobalProperty = (property: string, value: any) => {
 };
 
 const pageView = (routeId: string) => {
-  captureEvent('Página Vista', { 'Ruta': routeId });
+  captureEvent('Página Vista', { 'Ruta': routeName(routeId) });
 };
 
 const sectionStarted = (routeId: string, sectionIndex: number, sectionTitle?: string) => {
   captureEvent('Sección Iniciada', {
-    'Ruta': routeId,
+    'Ruta': routeName(routeId),
     'Índice Sección': sectionIndex,
     'Título Sección': sectionTitle,
   });
@@ -27,7 +40,7 @@ const sectionCompleted = (
   sectionTitle?: string,
 ) => {
   captureEvent('Sección Completada', {
-    'Ruta': routeId,
+    'Ruta': routeName(routeId),
     'Índice Sección': sectionIndex,
     'Título Sección': sectionTitle,
     'Tiempo (s)': Math.round(timeSpent),
@@ -36,7 +49,7 @@ const sectionCompleted = (
 
 const quizStarted = (routeId: string, quizId: string) => {
   captureEvent('Cuestionario Iniciado', {
-    'Ruta': routeId,
+    'Ruta': routeName(routeId),
     'Quiz ID': quizId,
   });
 };
@@ -48,7 +61,7 @@ const questionAnswered = (
   isCorrect: boolean,
 ) => {
   captureEvent('Pregunta Respondida', {
-    'Ruta': routeId,
+    'Ruta': routeName(routeId),
     'Quiz ID': quizId,
     'Pregunta': questionIndex,
     'Resultado': isCorrect ? 'Correcto' : 'Incorrecto',
@@ -58,7 +71,7 @@ const questionAnswered = (
 const quizCompleted = (routeId: string, quizId: string, score: number, total: number) => {
   const percentage = Math.round((score / total) * 100);
   captureEvent('Cuestionario Completado', {
-    'Ruta': routeId,
+    'Ruta': routeName(routeId),
     'Quiz ID': quizId,
     'Puntuación': score,
     'Total': total,
@@ -73,7 +86,7 @@ const quizAbandoned = (
   total: number,
 ) => {
   captureEvent('Cuestionario Abandonado', {
-    'Ruta': routeId,
+    'Ruta': routeName(routeId),
     'Quiz ID': quizId,
     'Pregunta Actual': currentQuestion,
     'Total Preguntas': total,
@@ -88,7 +101,7 @@ const feedbackSent = (
   hasComment: boolean,
 ) => {
   captureEvent('Feedback Enviado', {
-    'Ruta': routeId,
+    'Ruta': routeName(routeId),
     'Dificultad': difficulty,
     'Claridad': clarity,
     'Recomendación': recommend,

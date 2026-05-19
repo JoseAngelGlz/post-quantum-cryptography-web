@@ -74,7 +74,7 @@ function App() {
         <p className="mt-1 text-xs">{t('footer.line2')}</p>
       </footer>
 
-      <CookieBanner />
+      <CookieBanner onAccept={() => pageView(route)} />
     </div>
   );
 }

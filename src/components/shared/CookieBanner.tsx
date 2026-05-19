@@ -4,7 +4,11 @@ import { X } from 'lucide-react';
 import posthog from 'posthog-js';
 import { useT } from '../../i18n';
 
-const CookieBanner: React.FC = () => {
+interface CookieBannerProps {
+  onAccept?: () => void;
+}
+
+const CookieBanner: React.FC<CookieBannerProps> = ({ onAccept }) => {
   const t = useT();
   const [shown, setShown] = useState(false);
 
@@ -22,6 +26,7 @@ const CookieBanner: React.FC = () => {
   const handleAccept = () => {
     localStorage.setItem('quanta-cookie-consent', 'accepted');
     posthog.opt_in_capturing();
+    onAccept?.();
     setShown(false);
   };
 
