@@ -9,7 +9,6 @@ import {
   Radio,
   ShieldCheck,
   Skull,
-  Sparkles,
   Timer,
 } from 'lucide-react';
 import Hero from '../shared/Hero';
@@ -17,7 +16,6 @@ import ScrollSection from '../shared/ScrollSection';
 import Callout from '../shared/Callout';
 import QuickQuiz from '../shared/QuickQuiz';
 import FeedbackForm from '../shared/FeedbackForm';
-import QuizSummary from '../shared/QuizSummary';
 import RouteSwitcher from '../shared/RouteSwitcher';
 import Math from '../shared/Math';
 import type { RouteId } from '../../routes';
@@ -370,31 +368,6 @@ const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
       </ScrollSection>
 
       <RouteSwitcher current="intro" onChange={onChange} />
-
-      <ScrollSection
-        eyebrow={t('intro.summary.eyebrow')}
-        title={
-          <>
-            {t('intro.summary.titleBefore')}{' '}
-            <span className="text-gradient-static">{t('intro.summary.titleAfter')}</span>
-          </>
-        }
-      >
-        <div className="card-quantum p-6 md:p-7 mb-6 flex gap-4 items-start">
-          <div className="p-2 rounded-lg bg-quantum-violet/10 text-quantum-violet shrink-0">
-            <Sparkles size={18} />
-          </div>
-          <div>
-            <p className="text-quantum-fg leading-relaxed text-[15px]">
-              {t('intro.summary.message')}
-            </p>
-            <p className="text-quantum-fg-mute text-sm mt-2">
-              {t('intro.summary.comeback')}
-            </p>
-          </div>
-        </div>
-        <QuizSummary />
-      </ScrollSection>
 
       <FeedbackForm routeId="intro" />
     </div>

@@ -38,6 +38,11 @@ export const translations = {
     'quiz.feedback.perfect': '¡Impecable! Tienes el concepto cogido al vuelo.',
     'quiz.feedback.good': 'Buen trabajo. Quedan matices, pero vas bien.',
     'quiz.feedback.retry': 'Sin prisa: vuelve a la sección y repítelo, así se asienta.',
+    'quiz.reaction.q': '¿Te ha resultado claro?',
+    'quiz.reaction.hard': 'Confuso',
+    'quiz.reaction.ok': 'Más o menos',
+    'quiz.reaction.great': '¡Clarísimo!',
+    'quiz.reaction.thanks': '¡Gracias por tu opinión!',
 
     /* FeedbackForm */
     'feedback.title': '¿Qué te ha parecido?',
@@ -1161,6 +1166,12 @@ export const translations = {
     'quizsum.col.hits': 'Aciertos',
     'quizsum.col.pct': 'Porcentaje',
     'quizsum.col.tests': 'Tests completados',
+    'progress.aria': 'Tu progreso',
+    'progress.title': 'Tu progreso',
+    'progress.lead': 'Resumen de los cuestionarios que has completado.',
+    'progress.empty.title': 'Aún sin tests',
+    'progress.empty.body': 'A medida que completes los mini-tests del recorrido aparecerán aquí.',
+    'progress.completed': '{n}/{total} tests',
   },
 
   en: {
@@ -1195,6 +1206,11 @@ export const translations = {
     'quiz.feedback.perfect': 'Flawless! You have the concept down.',
     'quiz.feedback.good': 'Good job. Some nuances remain, but you are on track.',
     'quiz.feedback.retry': 'No rush: go back to the section and try again, it will stick.',
+    'quiz.reaction.q': 'Was it clear?',
+    'quiz.reaction.hard': 'Confusing',
+    'quiz.reaction.ok': 'So-so',
+    'quiz.reaction.great': 'Crystal clear!',
+    'quiz.reaction.thanks': 'Thanks for the feedback!',
 
     'feedback.title': 'What did you think?',
     'feedback.lead': 'A quick opinion on {name} helps improve the material.',
@@ -2306,6 +2322,12 @@ export const translations = {
     'quizsum.col.hits': 'Hits',
     'quizsum.col.pct': 'Percentage',
     'quizsum.col.tests': 'Tests completed',
+    'progress.aria': 'Your progress',
+    'progress.title': 'Your progress',
+    'progress.lead': 'Summary of the quizzes you have completed.',
+    'progress.empty.title': 'No tests yet',
+    'progress.empty.body': 'As you complete the mini-tests across the tour they will show up here.',
+    'progress.completed': '{n}/{total} tests',
   },
 } as const;
 

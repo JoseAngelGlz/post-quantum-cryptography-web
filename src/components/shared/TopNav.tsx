@@ -3,6 +3,7 @@ import { ArrowLeft, Moon, Sun } from 'lucide-react';
 import type { RouteId } from '../../routes';
 import { useI18n } from '../../i18n';
 import { useTheme } from '../../theme';
+import ProgressBadge from './ProgressBadge';
 
 interface TopNavProps {
   current: RouteId;
@@ -81,6 +82,9 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
 
         {/* Controls */}
         <div className="flex items-center gap-2 shrink-0">
+          {/* Progress badge */}
+          <ProgressBadge />
+
           {/* Language pill */}
           <div
             className="hidden md:flex items-center text-xs font-mono rounded-full border border-quantum-border bg-quantum-panel/60 overflow-hidden"

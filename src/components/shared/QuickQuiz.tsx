@@ -1,7 +1,12 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Sparkles, RotateCcw, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
-import { saveQuizResult } from './quizStore';
+import {
+  saveQuizResult,
+  saveQuizReaction,
+  getQuizReaction,
+  type QuizReaction,
+} from './quizStore';
 import { useT } from '../../i18n';
 
 export interface QuizQuestion {
@@ -70,6 +75,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
     questions.map(() => null),
   );
   const [done, setDone] = useState(false);
+  const [reaction, setReaction] = useState<QuizReaction | null>(() => getQuizReaction(quizId));
 
   const q = shuffled[current];
   if (!q) return null;
@@ -245,6 +251,45 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
                 ? t('quiz.feedback.good')
                 : t('quiz.feedback.retry')}
             </p>
+
+            {/* one-tap reaction row */}
+            <div className="mt-6 pt-5 border-t border-quantum-border/50 max-w-sm mx-auto">
+              {reaction === null ? (
+                <>
+                  <p className="text-xs text-quantum-fg-mute mb-3">{t('quiz.reaction.q')}</p>
+                  <div className="flex justify-center gap-2.5">
+                    {[
+                      { value: 1 as QuizReaction, emoji: '😕', labelKey: 'quiz.reaction.hard' as const },
+                      { value: 2 as QuizReaction, emoji: '🙂', labelKey: 'quiz.reaction.ok' as const },
+                      { value: 3 as QuizReaction, emoji: '🤩', labelKey: 'quiz.reaction.great' as const },
+                    ].map((r) => (
+                      <button
+                        key={r.value}
+                        type="button"
+                        onClick={() => {
+                          setReaction(r.value);
+                          saveQuizReaction(quizId, r.value);
+                        }}
+                        title={t(r.labelKey)}
+                        className="text-2xl px-3 py-1.5 rounded-full border border-quantum-border bg-quantum-panel/40 hover:border-quantum-cyan/60 hover:bg-quantum-cyan/10 hover:scale-110 transition-all"
+                      >
+                        {r.emoji}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <motion.p
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-xs text-quantum-mint"
+                >
+                  {reaction === 1 ? '😕' : reaction === 2 ? '🙂' : '🤩'}{' '}
+                  {t('quiz.reaction.thanks')}
+                </motion.p>
+              )}
+            </div>
+
             <button
               onClick={reset}
               className="mt-4 inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-quantum-cyan transition-colors"
