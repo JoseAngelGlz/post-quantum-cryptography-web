@@ -25,25 +25,14 @@ const pageView = (routeId: string) => {
   captureEvent('Página Vista', { 'Ruta': routeName(routeId) });
 };
 
-const sectionStarted = (routeId: string, sectionIndex: number, sectionTitle?: string) => {
-  captureEvent('Sección Iniciada', {
-    'Ruta': routeName(routeId),
-    'Índice Sección': sectionIndex,
-    'Título Sección': sectionTitle,
-  });
+const routeStarted = (routeId: string) => {
+  captureEvent('Ruta Iniciada', { 'Ruta': routeName(routeId) });
 };
 
-const sectionCompleted = (
-  routeId: string,
-  sectionIndex: number,
-  timeSpent: number,
-  sectionTitle?: string,
-) => {
-  captureEvent('Sección Completada', {
+const routeCompleted = (routeId: string, timeSpent: number) => {
+  captureEvent('Ruta Completada', {
     'Ruta': routeName(routeId),
-    'Índice Sección': sectionIndex,
-    'Título Sección': sectionTitle,
-    'Tiempo (s)': Math.round(timeSpent),
+    'Tiempo (s)': timeSpent,
   });
 };
 
@@ -59,11 +48,13 @@ const questionAnswered = (
   quizId: string,
   questionIndex: number,
   isCorrect: boolean,
+  questionText?: string,
 ) => {
   captureEvent('Pregunta Respondida', {
     'Ruta': routeName(routeId),
     'Quiz ID': quizId,
-    'Pregunta': questionIndex,
+    'Num': questionIndex + 1,
+    'Enunciado': questionText,
     'Resultado': isCorrect ? 'Correcto' : 'Incorrecto',
   });
 };
@@ -129,8 +120,8 @@ const analytics = {
   captureEvent,
   setGlobalProperty,
   pageView,
-  sectionStarted,
-  sectionCompleted,
+  routeStarted,
+  routeCompleted,
   quizStarted,
   questionAnswered,
   quizCompleted,

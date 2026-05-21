@@ -20,7 +20,7 @@ import Math from '../shared/Math';
 import type { RouteId } from '../../routes';
 import { useT } from '../../i18n';
 import { useCallback } from 'react';
-import { useSectionTracking } from '../../hooks/useSectionTracking';
+import { useRouteTracking } from '../../hooks/useRouteTracking';
 
 interface RouteProps {
   onChange: (r: RouteId) => void;
@@ -46,7 +46,7 @@ const families: FamilyData[] = [
 
 const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
   const t = useT();
-  useSectionTracking('intro');
+  useRouteTracking('intro');
 
   const scrollTo = useCallback((id: string) => {
     const el = document.getElementById(id);

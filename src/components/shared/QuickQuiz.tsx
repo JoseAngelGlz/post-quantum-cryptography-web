@@ -112,7 +112,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
     setSelections(next);
 
     const isCorrect = i === shuffled[current].correctIndex;
-    questionAnswered(routeId, quizId, current, isCorrect);
+    questionAnswered(routeId, quizId, current, isCorrect, shuffled[current].question);
   };
 
   const goBack = () => {

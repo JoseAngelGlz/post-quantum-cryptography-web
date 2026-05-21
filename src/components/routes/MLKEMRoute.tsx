@@ -27,7 +27,7 @@ import Math from '../shared/Math';
 import MLKEMSimulator from '../MLKEMSimulator';
 import type { RouteId } from '../../routes';
 import { useT } from '../../i18n';
-import { useSectionTracking } from '../../hooks/useSectionTracking';
+import { useRouteTracking } from '../../hooks/useRouteTracking';
 import { useAnalytics } from '../../hooks/useAnalytics';
 
 interface RouteProps {
@@ -201,7 +201,7 @@ const PipelineDiagram: React.FC<{
 const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
   const t = useT();
   const { simulatorUsed } = useAnalytics();
-  useSectionTracking('mlkem');
+  useRouteTracking('mlkem');
 
   const handleSimulatorInteraction = () => {
     simulatorUsed('SimMLKEM');

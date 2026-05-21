@@ -23,7 +23,7 @@ import Math from '../shared/Math';
 import MLDSASimulator from '../MLDSASimulator';
 import type { RouteId } from '../../routes';
 import { useT } from '../../i18n';
-import { useSectionTracking } from '../../hooks/useSectionTracking';
+import { useRouteTracking } from '../../hooks/useRouteTracking';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import type { TranslationKey } from '../../i18n/translations';
 
@@ -156,7 +156,7 @@ const HighLowViz: React.FC<{ t: TFn }> = ({ t }) => {
 const MLDSARoute: React.FC<RouteProps> = ({ onChange: _onChange }) => {
   const t = useT();
   const { simulatorUsed } = useAnalytics();
-  useSectionTracking('mldsa');
+  useRouteTracking('mldsa');
 
   const handleSimulatorInteraction = () => {
     simulatorUsed('SimMLDSA');
