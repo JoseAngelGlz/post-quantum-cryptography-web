@@ -9,6 +9,7 @@ const ROUTE_NAMES: Record<string, string> = {
   noticias: 'Noticias',
   recursos: 'Recursos',
   site: 'Sitio Web',
+  progreso: 'Progreso',
 };
 
 const routeName = (routeId: string): string => ROUTE_NAMES[routeId] ?? routeId;
@@ -116,6 +117,43 @@ const interactiveElementUsed = (elementType: string, elementId: string) => {
   });
 };
 
+const resourceOpened = (resourceId: string, resourceType: string, url: string) => {
+  captureEvent('Recurso Abierto', {
+    'ID del Recurso': resourceId,
+    'Tipo': resourceType,
+    'URL': url,
+  });
+};
+
+const newsOpened = (newsId: string, variant: string, url: string) => {
+  captureEvent('Noticia Abierta', {
+    'ID de Noticia': newsId,
+    'Variante': variant,
+    'URL': url,
+  });
+};
+
+const languageChanged = (locale: string) => {
+  setGlobalProperty('Idioma', locale);
+  captureEvent('Idioma Cambiado', { 'Idioma': locale });
+};
+
+const cookieConsent = (decision: 'Aceptado' | 'Rechazado') => {
+  captureEvent('Consentimiento de Cookies', { 'Decisión': decision });
+};
+
+const quizReaction = (quizId: string, reaction: number) => {
+  captureEvent('Reacción al Cuestionario', {
+    'Quiz ID': quizId,
+    'Reacción': reaction,
+  });
+};
+
+const themeDefault = (theme: 'Claro' | 'Oscuro') => {
+  setGlobalProperty('Tema', theme);
+  captureEvent('Tema Inicial', { 'Tema': theme });
+};
+
 const analytics = {
   captureEvent,
   setGlobalProperty,
@@ -130,6 +168,12 @@ const analytics = {
   themeChanged,
   simulatorUsed,
   interactiveElementUsed,
+  resourceOpened,
+  newsOpened,
+  languageChanged,
+  cookieConsent,
+  quizReaction,
+  themeDefault,
 };
 
 export const useAnalytics = () => analytics;

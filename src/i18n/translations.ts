@@ -62,6 +62,7 @@ export const translations = {
     'feedback.route.noticias': 'la sección de noticias',
     'feedback.route.recursos': 'la sección de recursos',
     'feedback.route.site': 'la web',
+    'feedback.route.progreso': 'la sección de progreso',
 
     /* ─── COOKIE BANNER ───────────────────────── */
     'cookies.title': 'Cookies y Privacidad',
@@ -1318,6 +1319,7 @@ export const translations = {
     'feedback.route.noticias': 'the news section',
     'feedback.route.recursos': 'the resources section',
     'feedback.route.site': 'the site',
+    'feedback.route.progreso': 'the progress section',
 
     /* ─── COOKIE BANNER ───────────────────────── */
     'cookies.title': 'Cookies & Privacy',

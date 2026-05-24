@@ -277,7 +277,7 @@ const ProgressBadge: React.FC = () => {
       {/* Feedback modal — site-wide opinion */}
       <Modal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} maxWidth="max-w-2xl">
         <FeedbackForm
-          routeId="site"
+          routeId="progreso"
           embed
           onSent={() => {
             // close shortly after sending so the confirmation is seen

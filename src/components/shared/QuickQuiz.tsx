@@ -69,7 +69,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
   routeId,
 }) => {
   const t = useT();
-  const { quizStarted, questionAnswered, quizCompleted, quizAbandoned } = useAnalytics();
+  const { quizStarted, questionAnswered, quizCompleted, quizAbandoned, quizReaction: trackQuizReaction } = useAnalytics();
   const resolvedTitle = title ?? t('quiz.title.default');
   const shuffled = useMemo(() => questions.map(shuffleQuestion), [questions]);
 
@@ -289,6 +289,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
                       const r = n as QuizReaction;
                       setReaction(r);
                       saveQuizReaction(quizId, r);
+                      trackQuizReaction(quizId, r);
                     }}
                     steps={3}
                     compact

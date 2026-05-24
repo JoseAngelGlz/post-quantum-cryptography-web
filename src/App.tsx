@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import './App.css';
 import type { RouteId } from './routes';
@@ -13,12 +13,36 @@ import MLDSARoute from './components/routes/MLDSARoute';
 import NoticiasRoute from './components/routes/NoticiasRoute';
 import RecursosRoute from './components/routes/RecursosRoute';
 import { useT } from './i18n';
+import { useTheme } from './theme';
 import { useAnalytics } from './hooks/useAnalytics';
 
 function App() {
   const [route, setRoute] = useState<RouteId>('intro');
   const t = useT();
-  const { pageView } = useAnalytics();
+  const { mode } = useTheme();
+  const { pageView, themeDefault } = useAnalytics();
+
+  const themeChangedRef = useRef(false);
+  const initialModeRef = useRef(mode);
+  const isFirstRenderRef = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
+    themeChangedRef.current = true;
+  }, [mode]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!themeChangedRef.current) {
+        themeDefault(initialModeRef.current === 'dark' ? 'Oscuro' : 'Claro');
+      }
+    }, 60_000);
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     pageView(route);
