@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Check } from 'lucide-react';
+import { Send, Check, Loader2 } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useAnalytics } from '../../hooks/useAnalytics';
 import type { TranslationKey } from '../../i18n/translations';
@@ -24,31 +24,42 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName, embed =
   const [recommend, setRecommend] = useState<number | null>(null);
   const [comment, setComment] = useState('');
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const resolvedName =
     routeName ?? t(`feedback.route.${routeId}` as TranslationKey);
 
-  const submit = () => {
-    const payload = {
-      routeId,
-      routeName: resolvedName,
-      difficulty,
-      clarity,
-      recommend,
-      comment,
-      ts: new Date().toISOString(),
-    };
+  const submit = async () => {
+    if (!difficulty || !clarity || !recommend) return;
+    setSubmitting(true);
+
     try {
       const prev = JSON.parse(localStorage.getItem('pqc-feedback') || '[]');
-      prev.push(payload);
+      prev.push({ routeId, routeName: resolvedName, difficulty, clarity, recommend, comment, ts: new Date().toISOString() });
       localStorage.setItem('pqc-feedback', JSON.stringify(prev));
     } catch {
       /* ignore */
     }
-    if (difficulty && clarity && recommend) {
-      feedbackSent(routeId, difficulty, clarity, recommend, comment.trim().length > 0);
+
+    feedbackSent(routeId, difficulty, clarity, recommend, comment.trim().length > 0);
+
+    try {
+      const formData = new FormData();
+      formData.append('access_key', import.meta.env.VITE_WEB3FORMS_KEY as string);
+      formData.append('subject', `Feedback: ${resolvedName}`);
+      formData.append('Sección', resolvedName);
+      formData.append('Dificultad', String(difficulty));
+      formData.append('Claridad', String(clarity));
+      formData.append('Recomendación', String(recommend));
+      formData.append('Comentario', comment.trim() || '(sin comentario)');
+      formData.append('botcheck', '');
+      await fetch('https://api.web3forms.com/submit', { method: 'POST', body: formData });
+    } catch {
+      /* ignore — data already persisted locally and in PostHog */
     }
+
     setSent(true);
+    setSubmitting(false);
     onSent?.();
   };
 
@@ -128,12 +139,15 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName, embed =
       <div className={`flex justify-end ${embed ? 'mt-4' : 'mt-6'}`}>
         <button
           onClick={submit}
-          disabled={!difficulty || !clarity || !recommend}
+          disabled={!difficulty || !clarity || !recommend || submitting}
           className={`btn-quantum disabled:opacity-40 disabled:cursor-not-allowed ${
             embed ? 'text-sm py-2 px-4' : ''
           }`}
         >
-          <Send size={16} /> {t('feedback.send')}
+          {submitting
+            ? <Loader2 size={16} className="animate-spin" />
+            : <Send size={16} />}
+          {t('feedback.send')}
         </button>
       </div>
     </>
