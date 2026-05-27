@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import posthog from 'posthog-js';
 import { useT } from '../../i18n';
+import { useAnalytics } from '../../hooks/useAnalytics';
 
 interface CookieBannerProps {
   onAccept?: () => void;
@@ -10,6 +11,7 @@ interface CookieBannerProps {
 
 const CookieBanner: React.FC<CookieBannerProps> = ({ onAccept }) => {
   const t = useT();
+  const { cookieConsent } = useAnalytics();
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
@@ -26,6 +28,7 @@ const CookieBanner: React.FC<CookieBannerProps> = ({ onAccept }) => {
   const handleAccept = () => {
     localStorage.setItem('quanta-cookie-consent', 'accepted');
     posthog.opt_in_capturing();
+    cookieConsent('Aceptado');
     onAccept?.();
     setShown(false);
   };
@@ -33,6 +36,7 @@ const CookieBanner: React.FC<CookieBannerProps> = ({ onAccept }) => {
   const handleReject = () => {
     localStorage.setItem('quanta-cookie-consent', 'rejected');
     posthog.opt_out_capturing();
+    cookieConsent('Rechazado');
     setShown(false);
   };
 

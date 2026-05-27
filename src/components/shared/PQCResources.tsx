@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { BookOpen, ExternalLink, FlaskConical, GraduationCap, Shield, Wrench } from 'lucide-react';
 import { useT } from '../../i18n';
 import type { TranslationKey } from '../../i18n/translations';
+import { useAnalytics } from '../../hooks/useAnalytics';
 
 type ResourceType = 'standard' | 'paper' | 'course' | 'tool';
 
@@ -64,6 +65,7 @@ const ORDER: ResourceType[] = ['standard', 'paper', 'course', 'tool'];
 
 const ResourceCard: React.FC<{ item: ResourceKey; index: number }> = ({ item, index }) => {
   const t = useT();
+  const { resourceOpened } = useAnalytics();
   const meta = typeMeta[item.type];
   const { hex } = meta;
 
@@ -72,6 +74,7 @@ const ResourceCard: React.FC<{ item: ResourceKey; index: number }> = ({ item, in
       href={item.url}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => resourceOpened(item.id, item.type, item.url)}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}

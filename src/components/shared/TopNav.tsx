@@ -24,7 +24,14 @@ const order: RouteId[] = [
 const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
   const { t, locale, setLocale } = useI18n();
   const { mode, toggle } = useTheme();
-  const { themeChanged } = useAnalytics();
+  const { themeChanged, languageChanged } = useAnalytics();
+
+  const handleLocaleChange = (newLocale: 'es' | 'en') => {
+    if (newLocale !== locale) {
+      setLocale(newLocale);
+      languageChanged(newLocale);
+    }
+  };
 
   const handleThemeToggle = () => {
     toggle();
@@ -100,7 +107,7 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
             aria-label={t('nav.language')}
           >
             <button
-              onClick={() => setLocale('es')}
+              onClick={() => handleLocaleChange('es')}
               className={`px-2.5 py-1 transition-colors ${
                 locale === 'es'
                   ? 'bg-quantum-cyan/15 text-quantum-cyan'
@@ -111,7 +118,7 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
               ES
             </button>
             <button
-              onClick={() => setLocale('en')}
+              onClick={() => handleLocaleChange('en')}
               className={`px-2.5 py-1 transition-colors ${
                 locale === 'en'
                   ? 'bg-quantum-cyan/15 text-quantum-cyan'
@@ -125,7 +132,7 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
 
           {/* Mobile language toggle */}
           <button
-            onClick={() => setLocale(locale === 'es' ? 'en' : 'es')}
+            onClick={() => handleLocaleChange(locale === 'es' ? 'en' : 'es')}
             className="md:hidden px-2 py-1 rounded-full border border-quantum-border bg-quantum-panel/60 text-xs font-mono text-quantum-fg-soft hover:text-quantum-cyan"
             aria-label={t('nav.language')}
           >

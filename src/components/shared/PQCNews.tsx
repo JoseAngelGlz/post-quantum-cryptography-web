@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useT } from '../../i18n';
 import type { TranslationKey } from '../../i18n/translations';
+import { useAnalytics } from '../../hooks/useAnalytics';
 
 type Palette = 'cyan' | 'violet' | 'pink' | 'mint' | 'amber' | 'rose' | 'blue';
 
@@ -55,6 +56,7 @@ interface NewsCardProps {
 
 const NewsCard: React.FC<NewsCardProps> = ({ k, variant = 'compact', index = 0 }) => {
   const t = useT();
+  const { newsOpened } = useAnalytics();
   const hex = paletteHex[k.palette];
   const isHero = variant === 'hero';
   const isFeatured = variant === 'featured';
@@ -142,6 +144,7 @@ const NewsCard: React.FC<NewsCardProps> = ({ k, variant = 'compact', index = 0 }
         href={k.url}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => newsOpened(k.prefix, variant, k.url!)}
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: '-60px' }}
