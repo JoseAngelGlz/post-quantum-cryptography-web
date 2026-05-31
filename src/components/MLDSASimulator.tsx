@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowDown,
+  ArrowRight,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
   Edit3,
   Equal,
+  FastForward,
   Hash,
+  HelpCircle,
   KeyRound,
   Minus,
   RefreshCw,
@@ -126,26 +129,35 @@ const genKeys = (): KeyPair => {
   return { A, s, t };
 };
 
-const sign = (msg: string, sk: KeyPair, pk: KeyPair): Signature => {
-  const trace: TraceEntry[] = [];
-  for (let attempt = 1; attempt <= 25; attempt++) {
-    const y: Vector[] = Array.from({ length: L }, () =>
-      Array.from({ length: N }, () => randInt(-GAMMA1, GAMMA1)),
-    );
-    const w = blockMatVec(pk.A, y);
-    const msgBytes = Array.from(msg).map((ch) => ch.charCodeAt(0));
-    const { c } = fakeHash([msgBytes, ...w]);
-    const z = blockVecAdd(y, blockVecScalarMul(sk.s, c));
+interface CurrentAttempt {
+  number: number;
+  y: Vector[];
+  z: Vector[];
+  c: number;
+  zNorm: number;
+  valid: boolean;
+}
 
-    const allWithinBound = z.every((row) => maxAbs(row) < Z_BOUND);
-    if (allWithinBound) {
-      trace.push({ attempt, kind: 'accept' });
-      return { z, c, attempts: attempt, trace };
-    }
-    trace.push({ attempt, kind: 'reject' });
-  }
-  return { z: [new Array(N).fill(0), new Array(N).fill(0)], c: 0, attempts: 25, trace };
+/** Run a single rejection-sampling attempt (does not loop). */
+const signOneAttempt = (
+  msg: string,
+  sk: KeyPair,
+  pk: KeyPair,
+  number: number,
+): CurrentAttempt => {
+  const y: Vector[] = Array.from({ length: L }, () =>
+    Array.from({ length: N }, () => randInt(-GAMMA1, GAMMA1)),
+  );
+  const w = blockMatVec(pk.A, y);
+  const msgBytes = Array.from(msg).map((ch) => ch.charCodeAt(0));
+  const { c } = fakeHash([msgBytes, ...w]);
+  const z = blockVecAdd(y, blockVecScalarMul(sk.s, c));
+  const zNorm = Math.max(...z.map((row) => maxAbs(row)));
+  const valid = z.every((row) => maxAbs(row) < Z_BOUND);
+  return { number, y, z, c, zNorm, valid };
 };
+
+const MAX_SIGN_ATTEMPTS = 50;
 
 /** Forge a random signature without knowing the secret. */
 const forgeRandom = (): Signature => {
@@ -355,6 +367,176 @@ const VerifyBreakdown: React.FC<VerifyBreakdownProps> = ({ detail, sig, context,
   );
 };
 
+interface AttemptPanelProps {
+  attempt: CurrentAttempt;
+  userGuess: 'accept' | 'reject' | null;
+  priorRejects: number;
+  onGuess: (g: 'accept' | 'reject') => void;
+  onFinalize: () => void;
+  onNext: () => void;
+  onSkip: () => void;
+  t: TFn;
+}
+
+const AttemptPanel: React.FC<AttemptPanelProps> = ({
+  attempt,
+  userGuess,
+  priorRejects,
+  onGuess,
+  onFinalize,
+  onNext,
+  onSkip,
+  t,
+}) => {
+  const correctGuess: 'accept' | 'reject' = attempt.valid ? 'accept' : 'reject';
+  const userCorrect = userGuess !== null && userGuess === correctGuess;
+
+  return (
+    <div className="space-y-3">
+      {/* Attempt data */}
+      <div className="rounded-xl border border-quantum-violet/30 bg-quantum-violet/5 p-4 space-y-3">
+        <div className="flex items-baseline justify-between gap-3 flex-wrap">
+          <div className="text-xs uppercase tracking-widest text-quantum-violet font-semibold">
+            {t('mldsa.sim.sign.attempt.title').replace('{n}', String(attempt.number))}
+          </div>
+          {priorRejects > 0 && (
+            <span className="text-[10px] font-mono text-quantum-fg-mute">
+              {t('mldsa.sim.sign.attempt.priorRejects').replace('{n}', String(priorRejects))}
+            </span>
+          )}
+        </div>
+
+        <div className="grid sm:grid-cols-3 gap-3 text-xs">
+          <div className="space-y-1">
+            <div className="text-[10px] uppercase tracking-widest text-quantum-fg-mute">
+              {t('mldsa.sim.sign.attempt.yLabel')}
+            </div>
+            <pre className="font-mono text-quantum-fg-strong leading-relaxed">
+              {attempt.y.map((row, i) => `y${i} = [${row.map(fmt).join(', ')}]`).join('\n')}
+            </pre>
+          </div>
+          <div className="space-y-1">
+            <div className="text-[10px] uppercase tracking-widest text-quantum-fg-mute">
+              {t('mldsa.sim.sign.attempt.cLabel')}
+            </div>
+            <pre className="font-mono text-quantum-fg-strong leading-relaxed">
+              c = {attempt.c}
+            </pre>
+          </div>
+          <div className="space-y-1">
+            <div className="text-[10px] uppercase tracking-widest text-quantum-fg-mute">
+              {t('mldsa.sim.sign.attempt.zLabel')}
+            </div>
+            <pre className="font-mono text-quantum-fg-strong leading-relaxed">
+              {attempt.z.map((row, i) => `z${i} = [${row.map(fmt).join(', ')}]`).join('\n')}
+            </pre>
+          </div>
+        </div>
+      </div>
+
+      {userGuess === null ? (
+        <div className="rounded-xl border border-quantum-cyan/30 bg-quantum-cyan/5 p-4 space-y-3">
+          <div className="flex items-start gap-2">
+            <HelpCircle size={16} className="text-quantum-cyan shrink-0 mt-0.5" />
+            <p className="text-sm text-quantum-fg leading-relaxed">
+              {t('mldsa.sim.sign.attempt.question')}
+            </p>
+          </div>
+          <p className="text-xs text-quantum-fg-mute font-mono pl-6">
+            {t('mldsa.sim.sign.attempt.hint').replace('{bound}', String(Z_BOUND))}
+          </p>
+          <div className="flex flex-wrap gap-2 pl-6">
+            <button
+              onClick={() => onGuess('accept')}
+              className="px-4 py-2 rounded-full text-sm font-medium border border-quantum-mint/50 bg-quantum-mint/10 text-quantum-mint hover:bg-quantum-mint/20 transition-all inline-flex items-center gap-2"
+            >
+              <CheckCircle2 size={14} /> {t('mldsa.sim.sign.guess.accept')}
+            </button>
+            <button
+              onClick={() => onGuess('reject')}
+              className="px-4 py-2 rounded-full text-sm font-medium border border-quantum-rose/50 bg-quantum-rose/10 text-quantum-rose hover:bg-quantum-rose/20 transition-all inline-flex items-center gap-2"
+            >
+              <XCircle size={14} /> {t('mldsa.sim.sign.guess.reject')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`rounded-xl border p-4 space-y-3 ${
+            attempt.valid
+              ? 'border-quantum-mint/40 bg-quantum-mint/5'
+              : 'border-quantum-rose/40 bg-quantum-rose/5'
+          }`}
+        >
+          <div className="flex items-center gap-2 flex-wrap">
+            {userCorrect ? (
+              <CheckCircle2 size={16} className="text-quantum-mint" />
+            ) : (
+              <XCircle size={16} className="text-quantum-rose" />
+            )}
+            <span
+              className={`text-xs uppercase tracking-widest font-semibold ${
+                userCorrect ? 'text-quantum-mint' : 'text-quantum-rose'
+              }`}
+            >
+              {userCorrect
+                ? t('mldsa.sim.sign.feedback.right')
+                : t('mldsa.sim.sign.feedback.wrong')}
+            </span>
+            <span
+              className={`text-xs font-display font-semibold ${
+                attempt.valid ? 'text-quantum-mint' : 'text-quantum-rose'
+              }`}
+            >
+              · {attempt.valid
+                ? t('mldsa.sim.sign.feedback.valid.title')
+                : t('mldsa.sim.sign.feedback.invalid.title')}
+            </span>
+          </div>
+
+          <div className="font-mono text-sm text-quantum-fg-strong">
+            ‖z‖∞ = {attempt.zNorm} {attempt.valid ? '<' : '≥'} γ₁ − β = {Z_BOUND}
+          </div>
+
+          <p className="text-xs text-quantum-fg-soft leading-relaxed">
+            {attempt.valid
+              ? t('mldsa.sim.sign.feedback.valid.body')
+              : t('mldsa.sim.sign.feedback.invalid.body')}
+          </p>
+
+          <div className="flex flex-wrap gap-2 pt-1">
+            {attempt.valid ? (
+              <button
+                onClick={onFinalize}
+                className="px-4 py-2 rounded-full text-sm font-medium border border-quantum-mint/50 bg-quantum-mint/10 text-quantum-mint hover:bg-quantum-mint/20 transition-all inline-flex items-center gap-2"
+              >
+                <ArrowRight size={14} /> {t('mldsa.sim.sign.action.finalize')}
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={onNext}
+                  className="px-4 py-2 rounded-full text-sm font-medium border border-quantum-violet/50 bg-quantum-violet/10 text-quantum-violet hover:bg-quantum-violet/20 transition-all inline-flex items-center gap-2"
+                >
+                  <ChevronRight size={14} /> {t('mldsa.sim.sign.action.next')}
+                </button>
+                <button
+                  onClick={onSkip}
+                  className="px-4 py-2 rounded-full text-sm font-medium border border-quantum-amber/50 bg-quantum-amber/10 text-quantum-amber hover:bg-quantum-amber/20 transition-all inline-flex items-center gap-2"
+                >
+                  <FastForward size={14} /> {t('mldsa.sim.sign.action.skip')}
+                </button>
+              </>
+            )}
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
 interface MLDSASimulatorProps {
   onUse?: () => void;
 }
@@ -373,20 +555,107 @@ const MLDSASimulator: React.FC<MLDSASimulatorProps> = ({ onUse }) => {
   const [lastForgery, setLastForgery] = useState<Signature | null>(null);
   const [lastForgeryDetail, setLastForgeryDetail] = useState<VerifyDetail | null>(null);
 
+  const [currentAttempt, setCurrentAttempt] = useState<CurrentAttempt | null>(null);
+  const [userGuess, setUserGuess] = useState<'accept' | 'reject' | null>(null);
+  const [signTrace, setSignTrace] = useState<TraceEntry[]>([]);
+  const [signFailed, setSignFailed] = useState<{ attempts: number } | null>(null);
+
+  const resetSignSession = () => {
+    setCurrentAttempt(null);
+    setUserGuess(null);
+    setSignTrace([]);
+    setSignFailed(null);
+  };
+
   const generate = () => {
     onUse?.();
     setKeys(genKeys());
     setSignature(null);
     setVerifyResult(null);
+    resetSignSession();
   };
 
   const doSign = () => {
     if (!keys) return;
     onUse?.();
-    const sig = sign(msg, keys, keys);
-    setSignature(sig);
-    setTampered(msg);
+    setSignature(null);
     setVerifyResult(null);
+    setTampered(msg);
+    setSignTrace([]);
+    setUserGuess(null);
+    setSignFailed(null);
+    setCurrentAttempt(signOneAttempt(msg, keys, keys, 1));
+  };
+
+  const handleGuess = (g: 'accept' | 'reject') => {
+    setUserGuess(g);
+  };
+
+  const finalizeSignature = () => {
+    if (!currentAttempt) return;
+    const trace: TraceEntry[] = [
+      ...signTrace,
+      { attempt: currentAttempt.number, kind: 'accept' as const },
+    ];
+    setSignature({
+      z: currentAttempt.z,
+      c: currentAttempt.c,
+      attempts: currentAttempt.number,
+      trace,
+    });
+    setCurrentAttempt(null);
+    setUserGuess(null);
+    setSignTrace([]);
+  };
+
+  const nextAttempt = () => {
+    if (!currentAttempt || !keys) return;
+    const trace: TraceEntry[] = [
+      ...signTrace,
+      { attempt: currentAttempt.number, kind: 'reject' as const },
+    ];
+    const next = currentAttempt.number + 1;
+    if (next > MAX_SIGN_ATTEMPTS) {
+      setSignTrace(trace);
+      setCurrentAttempt(null);
+      setUserGuess(null);
+      setSignFailed({ attempts: currentAttempt.number });
+      return;
+    }
+    setSignTrace(trace);
+    setUserGuess(null);
+    setCurrentAttempt(signOneAttempt(msg, keys, keys, next));
+  };
+
+  const skipToAccept = () => {
+    if (!currentAttempt || !keys) return;
+    const trace: TraceEntry[] = [
+      ...signTrace,
+      { attempt: currentAttempt.number, kind: 'reject' as const },
+    ];
+    let num = currentAttempt.number + 1;
+    while (num <= MAX_SIGN_ATTEMPTS) {
+      const candidate = signOneAttempt(msg, keys, keys, num);
+      if (candidate.valid) {
+        trace.push({ attempt: candidate.number, kind: 'accept' as const });
+        setSignature({
+          z: candidate.z,
+          c: candidate.c,
+          attempts: candidate.number,
+          trace,
+        });
+        setCurrentAttempt(null);
+        setUserGuess(null);
+        setSignTrace([]);
+        return;
+      }
+      trace.push({ attempt: candidate.number, kind: 'reject' as const });
+      num += 1;
+    }
+    setSignTrace(trace);
+    setCurrentAttempt(null);
+    setUserGuess(null);
+    setSignFailed({ attempts: MAX_SIGN_ATTEMPTS });
   };
 
   const doVerify = () => {
@@ -539,7 +808,30 @@ const MLDSASimulator: React.FC<MLDSASimulatorProps> = ({ onUse }) => {
           </button>
         </div>
 
-        {signature ? (
+        {currentAttempt ? (
+          <AttemptPanel
+            attempt={currentAttempt}
+            userGuess={userGuess}
+            priorRejects={signTrace.filter((e) => e.kind === 'reject').length}
+            onGuess={handleGuess}
+            onFinalize={finalizeSignature}
+            onNext={nextAttempt}
+            onSkip={skipToAccept}
+            t={t}
+          />
+        ) : signFailed ? (
+          <div className="rounded-xl border border-quantum-rose/40 bg-quantum-rose/5 p-4 space-y-2">
+            <div className="flex items-center gap-2 text-quantum-rose">
+              <XCircle size={16} />
+              <span className="text-xs uppercase tracking-widest font-semibold">
+                {t('mldsa.sim.sign.failed.title').replace('{n}', String(signFailed.attempts))}
+              </span>
+            </div>
+            <p className="text-sm text-quantum-fg-soft leading-relaxed">
+              {t('mldsa.sim.sign.failed.body')}
+            </p>
+          </div>
+        ) : signature ? (
           <div className="space-y-3">
             <div className="rounded-xl border border-quantum-border bg-quantum-panel/40 p-4">
               <div className="text-xs uppercase tracking-widest text-quantum-violet mb-2">
