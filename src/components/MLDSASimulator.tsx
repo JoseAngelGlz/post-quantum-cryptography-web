@@ -724,6 +724,47 @@ const MLDSASimulator: React.FC<MLDSASimulatorProps> = ({ onUse }) => {
               </p>
             )}
 
+            {/* Probability theory: toy vs real */}
+            <div className="rounded-xl border border-quantum-cyan/30 bg-quantum-cyan/5 p-4 mb-4">
+              <div className="text-[10px] uppercase tracking-widest text-quantum-cyan font-semibold mb-3">
+                {t('mldsa.sim.attacker.prob.title')}
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4 text-xs">
+                <div className="space-y-1.5">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-quantum-fg-mute uppercase tracking-widest text-[10px]">
+                      {t('mldsa.sim.attacker.prob.toy.label')}
+                    </span>
+                    <span className="font-mono text-quantum-fg-strong">
+                      ≈ 1/{Q - 1} ≈ {(100 / (Q - 1)).toFixed(2)}%
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-quantum-fg-soft leading-relaxed">
+                    {t('mldsa.sim.attacker.prob.toy.note').replace(/\{n\}/g, String(Q - 1))}
+                  </p>
+                  {attackAttempts > 0 && (
+                    <div className="text-[10px] font-mono text-quantum-fg-mute pt-1 border-t border-quantum-border/40">
+                      {t('mldsa.sim.attacker.prob.toy.expected')
+                        .replace('{attempts}', attackAttempts.toLocaleString())
+                        .replace('{expected}', (attackAttempts / (Q - 1)).toFixed(1))
+                        .replace('{observed}', String(attackPassed))}
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1.5 sm:border-l sm:border-quantum-border/40 sm:pl-4">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-quantum-fg-mute uppercase tracking-widest text-[10px]">
+                      {t('mldsa.sim.attacker.prob.real.label')}
+                    </span>
+                    <span className="font-mono text-quantum-fg-strong">≈ 2⁻¹⁹²</span>
+                  </div>
+                  <p className="text-[11px] text-quantum-fg-soft leading-relaxed">
+                    {t('mldsa.sim.attacker.prob.real.note')}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {lastForgery && lastForgeryDetail && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
@@ -765,10 +806,6 @@ const MLDSASimulator: React.FC<MLDSASimulatorProps> = ({ onUse }) => {
                 />
               </motion.div>
             )}
-
-            <p className="text-xs text-quantum-fg-mute leading-relaxed">
-              {t('mldsa.sim.attacker.conclusion')}
-            </p>
           </>
         ) : (
           <p className="text-quantum-fg-soft text-sm">

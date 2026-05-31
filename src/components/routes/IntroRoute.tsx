@@ -362,7 +362,11 @@ const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
               {t('intro.s05.right.title')}
             </h3>
             <p className="text-[15px] leading-relaxed">
-              <span className="font-mono text-quantum-cyan">ML-KEM</span> · {t('intro.s05.right.body')}
+              <span className="font-mono text-quantum-cyan">ML-KEM</span>
+              {' · '}
+              <span className="font-mono text-quantum-violet">ML-DSA</span>
+              {' · '}
+              {t('intro.s05.right.body')}
             </p>
           </div>
         </div>

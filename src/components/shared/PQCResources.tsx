@@ -16,15 +16,12 @@ const resources: ResourceKey[] = [
   { id: 'fips203', url: 'https://doi.org/10.6028/NIST.FIPS.203', type: 'standard' },
   { id: 'fips204', url: 'https://doi.org/10.6028/NIST.FIPS.204', type: 'standard' },
   { id: 'fips205', url: 'https://doi.org/10.6028/NIST.FIPS.205', type: 'standard' },
-  { id: 'regev', url: 'https://cims.nyu.edu/~regev/papers/qcrypto.pdf', type: 'paper' },
-  { id: 'kyber', url: 'https://pq-crystals.org/kyber/data/kyber-specification-round3-20210804.pdf', type: 'paper' },
-  { id: 'dilithium', url: 'https://pq-crystals.org/dilithium/', type: 'paper' },
-  { id: 'smartlearning', url: 'https://web.eecs.umich.edu/~cpeikert/pubs/lwesurvey.pdf', type: 'course' },
-  { id: 'bookpqc', url: 'https://pqcrypto.org/', type: 'course' },
-  { id: 'youtubedan', url: 'https://www.coursera.org/learn/crypto', type: 'course' },
-  { id: 'libpqcrypto', url: 'https://openquantumsafe.org', type: 'tool' },
-  { id: 'pqclean', url: 'https://github.com/PQClean/PQClean', type: 'tool' },
-  { id: 'cryptohack', url: 'https://cryptohack.org/', type: 'tool' },
+  { id: 'pandora', url: 'https://pandora-ecc.netlify.app/simulation', type: 'paper' },
+  { id: 'geogebra', url: 'https://www.geogebra.org/m/js4x7wfj', type: 'paper' },
+  { id: 'genially', url: 'https://view.genially.com/67d80511d9ee7dc76780d0b1/', type: 'paper' },
+  { id: 'asecuritysite', url: 'https://asecuritysite.com/pqc/', type: 'tool' },
+  { id: 'crystals', url: 'https://pq-crystals.org/index.shtml', type: 'tool' },
+  { id: 'cryptool', url: 'https://www.cryptool.org/en/cto/kyber/', type: 'tool' },
 ];
 
 interface TypeMeta {
@@ -131,7 +128,7 @@ const PQCResources: React.FC = () => {
     type,
     meta: typeMeta[type],
     items: resources.filter((r) => r.type === type),
-  }));
+  })).filter((g) => g.items.length > 0);
 
   return (
     <div className="space-y-16">
