@@ -61,16 +61,16 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
         <button
           onClick={() => onChange('intro')}
           className="flex items-center gap-2.5 group shrink-0"
-          aria-label="Quanta"
+          aria-label="PostQ"
         >
           <img
             src={`${import.meta.env.BASE_URL}logo.png`}
-            alt="Quanta"
+            alt="PostQ"
             className="w-9 h-9 rounded-lg object-contain group-hover:scale-105 transition-transform"
           />
           <div className="hidden sm:flex flex-col items-start leading-tight">
             <span className="font-display font-bold text-quantum-fg-strong group-hover:text-quantum-cyan transition-colors">
-              Quanta
+              PostQ
             </span>
             <span className="text-[10px] uppercase tracking-widest text-quantum-fg-mute">
               {t('brand.tagline')}

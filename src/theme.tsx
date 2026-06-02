@@ -11,7 +11,7 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const STORAGE_KEY = 'quanta-theme';
+const STORAGE_KEY = 'postq-theme';
 
 const detectInitial = (): ThemeMode => {
   try {

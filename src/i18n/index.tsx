@@ -14,7 +14,7 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 const detectInitial = (): Locale => {
   try {
-    const stored = localStorage.getItem('quanta-locale');
+    const stored = localStorage.getItem('postq-locale');
     if (stored === 'en' || stored === 'es') return stored;
   } catch {
     /* ignore */
@@ -27,7 +27,7 @@ export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     try {
-      localStorage.setItem('quanta-locale', locale);
+      localStorage.setItem('postq-locale', locale);
     } catch {
       /* ignore */
     }

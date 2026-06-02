@@ -1,47 +1,71 @@
-# post-quantum-cryptography-web
+# PostQ · Criptografía Post-Cuántica
 
-Interactive web application for the TFG (Bachelor's Thesis) on **Post-Quantum Cryptography (PQC)** — Ingeniería Informática.
+Aplicación web interactiva desarrollada como TFG (Trabajo de Fin de Grado) de Ingeniería Informática en la Universidad de La Laguna. Permite aprender criptografía post-cuántica de forma visual y progresiva, con simuladores interactivos, cuestionarios y recursos curados.
 
 ![App screenshot](https://github.com/user-attachments/assets/401ad9e0-c227-42b1-b7f4-a56f5e080ce3)
 
-## Features
+## Secciones
 
-| Section | Description |
+| Ruta | Contenido |
 |---|---|
-| **Introducción** | Overview of PQC, the quantum threat, NIST standards timeline, and algorithm families |
-| **Lattices (Retículos)** | SVP, CVP, LWE and NTRU explanations + GeoGebra applet placeholder |
-| **Simulador ML-KEM** | Interactive Baby-Kyber simulator (q=17, n=2) demonstrating key generation, encapsulation and decapsulation |
-| **Recursos** | Curated links to NIST FIPS standards, academic papers, courses and tools |
+| **Introducción** | Amenaza cuántica, algoritmos de Shor y Grover, cronología NIST, familias de algoritmos PQC |
+| **Fundamentos** | Retículos, SVP/CVP, LWE, Module-LWE, visualizador interactivo y playground de ruido |
+| **Aplicaciones** | Casos de uso reales de ML-KEM y ML-DSA: TLS, firmware, identidad digital |
+| **Simulador ML-KEM** | Baby-Kyber didáctico (n=2, q=17): generación de claves, encapsulación, desencapsulación y modo espía |
+| **Simulador ML-DSA** | Baby-Dilithium didáctico (n=2, q=17): generación de claves, firma y verificación |
+| **Noticias** | Actualidad en criptografía post-cuántica con enlaces a fuentes externas |
+| **Recursos** | Estándares NIST (FIPS 203/204/205), papers, cursos y herramientas externas |
 
-## Tech Stack
+## Stack tecnológico
 
-- **Vite + React + TypeScript** — fast development and strict typing
-- **Tailwind CSS** — responsive, professional academic design with dark/light mode
-- **Lucide React** — icon library
-- **KaTeX** (available as dependency) — for mathematical formula rendering
+- **Vite 7 + React 19 + TypeScript** (strict) — enrutamiento propio sin react-router, transiciones con Framer Motion
+- **Tailwind CSS 3** — paleta `quantum-*` con modo oscuro/claro basado en clases
+- **KaTeX** — renderizado de fórmulas matemáticas
+- **PostHog JS** — analítica de comportamiento con consentimiento explícito, alojamiento EU
+- **Web3Forms** — envío de formularios de feedback por email sin backend
+- **Lucide React** — iconos
 
-## Getting Started
+## Inicio rápido
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:5173/post-quantum-cryptography-web/](http://localhost:5173/post-quantum-cryptography-web/) in your browser.
+Abre [http://localhost:5173/post-quantum-cryptography-web/](http://localhost:5173/post-quantum-cryptography-web/) en el navegador.
 
-## Build
+## Variables de entorno
 
-```bash
-npm run build
-npm run preview
+Crea un fichero `.env` en la raíz con:
+
+```
+VITE_PUBLIC_POSTHOG_KEY=<tu_clave_posthog>
+VITE_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
+VITE_WEB3FORMS_KEY=<tu_clave_web3forms>
 ```
 
-## ML-KEM Simulator
+## Build y despliegue
 
-The simulator implements a simplified **Baby-Kyber** scheme for educational purposes:
+```bash
+npm run build    # genera dist/
+npm run preview  # sirve el build localmente
+```
 
-- **Key Generation:** `t = A·s + e (mod q)` — hardness based on the Module-LWE problem
-- **Encapsulation:** `u = Aᵀ·r + e₁`, `v = (tᵀ·r)·[1,1] + e₂ + m (mod q)`
-- **Decapsulation:** `m' = v − sᵀ·u (mod q)`, then round each component to nearest bit
+El despliegue en GitHub Pages se realiza automáticamente mediante GitHub Actions al hacer push a `main`. La base URL está configurada como `/post-quantum-cryptography-web/`.
 
-> ⚠️ This is for **educational demonstration only**. Do not use in production.
+## Persistencia local
+
+La aplicación guarda en `localStorage` las siguientes claves:
+
+| Clave | Contenido |
+|---|---|
+| `postq-theme` | Tema seleccionado (`dark` / `light`) |
+| `postq-locale` | Idioma seleccionado (`es` / `en`) |
+| `postq-cookie-consent` | Decisión de cookies (`accepted` / `rejected`) |
+| `pqc-quiz-results` | Resultados de cuestionarios completados |
+| `pqc-quiz-reactions` | Reacciones emoji por cuestionario |
+| `pqc-feedback` | Copia local de los formularios de feedback enviados |
+
+## Aviso
+
+Los simuladores de ML-KEM y ML-DSA son reconstrucciones didácticas. No implementan NTT, compresión ni las funciones hash completas del estándar. **No usar en producción.**

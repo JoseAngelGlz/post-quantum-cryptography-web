@@ -15,7 +15,7 @@ const CookieBanner: React.FC<CookieBannerProps> = ({ onAccept }) => {
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('quanta-cookie-consent');
+    const consent = localStorage.getItem('postq-cookie-consent');
     if (!consent) {
       setShown(true);
     } else if (consent === 'accepted') {
@@ -26,7 +26,7 @@ const CookieBanner: React.FC<CookieBannerProps> = ({ onAccept }) => {
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('quanta-cookie-consent', 'accepted');
+    localStorage.setItem('postq-cookie-consent', 'accepted');
     posthog.opt_in_capturing();
     cookieConsent('Aceptado');
     onAccept?.();
@@ -34,7 +34,7 @@ const CookieBanner: React.FC<CookieBannerProps> = ({ onAccept }) => {
   };
 
   const handleReject = () => {
-    localStorage.setItem('quanta-cookie-consent', 'rejected');
+    localStorage.setItem('postq-cookie-consent', 'rejected');
     posthog.opt_out_capturing();
     cookieConsent('Rechazado');
     setShown(false);
