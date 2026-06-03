@@ -30,6 +30,8 @@ interface RouteProps {
   onChange: (r: RouteId) => void;
 }
 
+// Ruta de aplicaciones criptográficas: RSA, ECDH, Shor, Grover, las 5 familias PQC,
+// modelos IND-CPA / IND-CCA2 y la transformación Fujisaki-Okamoto
 const AplicacionesRoute: React.FC<RouteProps> = ({ onChange }) => {
   const t = useT();
   useRouteTracking('aplicaciones');
@@ -47,6 +49,7 @@ const AplicacionesRoute: React.FC<RouteProps> = ({ onChange }) => {
           </>
         }
         subtitle={t('apps.hero.subtitle')}
+        onBack={() => onChange('fundamentos')}
       />
 
       <ScrollSection

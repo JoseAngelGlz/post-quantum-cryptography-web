@@ -16,6 +16,8 @@ interface FeedbackFormProps {
   onSent?: () => void;
 }
 
+// Formulario de valoración de sección: recoge dificultad, claridad y recomendación
+// mediante QubitScale, guarda localmente y envía a PostHog y Web3Forms
 const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName, embed = false, onSent }) => {
   const t = useT();
   const { feedbackSent } = useAnalytics();
@@ -29,6 +31,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName, embed =
   const resolvedName =
     routeName ?? t(`feedback.route.${routeId}` as TranslationKey);
 
+  // Persiste el feedback en localStorage, lo envía a PostHog y a Web3Forms
   const submit = async () => {
     if (!difficulty || !clarity || !recommend) return;
     setSubmitting(true);
@@ -63,6 +66,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName, embed =
     onSent?.();
   };
 
+  // Vista de confirmación tras enviar
   if (sent) {
     const sentBody = t('feedback.sent.body').replace('{name}', resolvedName);
     const wrapperClass = embed
@@ -89,6 +93,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName, embed =
 
   const body = (
     <>
+      {/* ── Encabezado ── */}
       <h3
         className={`font-display font-semibold text-quantum-fg-strong mb-1 ${
           embed ? 'text-lg' : 'text-2xl mb-2'
@@ -100,6 +105,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName, embed =
         {lead}
       </p>
 
+      {/* ── Escalas de valoración ── */}
       <div className={`${
         embed
           ? 'space-y-6 mb-4'
@@ -128,6 +134,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ routeId, routeName, embed =
         />
       </div>
 
+      {/* ── Comentario libre y botón de envío ── */}
       <textarea
         value={comment}
         onChange={(e) => setComment(e.target.value)}

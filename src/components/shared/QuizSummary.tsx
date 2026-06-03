@@ -10,6 +10,8 @@ import {
 import { useT, useI18n } from '../../i18n';
 import type { TranslationKey } from '../../i18n/translations';
 
+// Resumen expandido de todos los quizzes completados en el recorrido;
+// se usa en IntroRoute como sección de progreso global
 const QuizSummary: React.FC = () => {
   const t = useT();
   const { locale } = useI18n();
@@ -22,6 +24,7 @@ const QuizSummary: React.FC = () => {
     };
   }, []);
 
+  // Devuelve la etiqueta traducida de una ruta a partir de la clave nav.<routeId>
   const routeLabel = (routeId: string): string => {
     const key = `nav.${routeId}` as TranslationKey;
     return t(key) ?? routeId;

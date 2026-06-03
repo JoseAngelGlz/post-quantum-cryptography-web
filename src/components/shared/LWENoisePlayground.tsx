@@ -4,10 +4,13 @@ import { Plus, RefreshCw, Shuffle, Eye, EyeOff } from 'lucide-react';
 import KMath from './Math';
 import { useT } from '../../i18n';
 
-const Q = 11; // pequeño y bonito para la visualización
+const Q = 11; // módulo pequeño para hacer la visualización legible
 
+// Entero aleatorio en [0, n)
 const randInt = (n: number) => Math.floor(Math.random() * n);
+// Módulo siempre positivo
 const mod = (a: number, n: number) => ((a % n) + n) % n;
+// Representación centrada en (-n/2, n/2]
 const centered = (a: number, n: number) => {
   const r = mod(a, n);
   return r > n / 2 ? r - n : r;
@@ -24,11 +27,13 @@ interface Sample {
   e: number;
 }
 
+// Genera una semilla aleatoria (vector a + factor de ruido)
 const makeSeed = (): Seed => ({
   a: [randInt(Q), randInt(Q)],
   noiseFactor: Math.random(),
 });
 
+// Convierte una semilla en una muestra LWE concreta dado el secreto y eta
 const seedToSample = (seed: Seed, s: [number, number], eta: number): Sample => {
   const e = eta === 0 ? 0 : Math.floor(seed.noiseFactor * (2 * eta + 1)) - eta;
   return {
@@ -40,6 +45,8 @@ const seedToSample = (seed: Seed, s: [number, number], eta: number): Sample => {
 
 const INITIAL_SECRET: [number, number] = [4, 7];
 
+// Playground interactivo de LWE: muestra una cuadrícula de candidatos s* ∈ Z_q²
+// coloreados según si son compatibles con las muestras bajo el ruido η actual
 const LWENoisePlayground: React.FC = () => {
   const t = useT();
   const [secret, setSecret] = useState<[number, number]>(INITIAL_SECRET);
@@ -51,25 +58,29 @@ const LWENoisePlayground: React.FC = () => {
   ]);
   const [showSecret, setShowSecret] = useState(true);
 
-  // Derive samples from seeds + current secret + eta.
+  // Las muestras se recalculan solo cuando cambian semillas, secreto o eta
   const samples = useMemo<Sample[]>(
     () => seeds.map((seed) => seedToSample(seed, secret, eta)),
     [seeds, secret, eta],
   );
 
+  // Añade una nueva muestra LWE generando una semilla aleatoria
   const addSample = () => {
     setSeeds((prev) => [...prev, makeSeed()]);
   };
 
+  // Reinicia las muestras a las 3 iniciales con nuevas semillas
   const reset = () => {
     setSeeds([makeSeed(), makeSeed(), makeSeed()]);
   };
 
+  // Genera un secreto aleatorio nuevo en Z_q²
   const randomSecret = () => {
     setSecret([randInt(Q), randInt(Q)]);
   };
 
-  // For every candidate s* in Z_q^2, compute the worst-case |residual|
+  // Para cada s* ∈ Z_q², calcula el residuo máximo sobre todas las muestras.
+  // Un candidato es "compatible" si ese residuo ≤ eta.
   const grid = useMemo(() => {
     const g: { fit: number; consistent: boolean }[][] = [];
     for (let y = 0; y < Q; y++) {
@@ -103,6 +114,7 @@ const LWENoisePlayground: React.FC = () => {
   const W = Q * CELL + PADX * 2;
   const H = Q * CELL + PADY * 2;
 
+  // Dibuja la cuadrícula de candidatos en el canvas; el secreto real aparece marcado
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -116,7 +128,7 @@ const LWENoisePlayground: React.FC = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
 
-    // axes labels
+    // ── Etiquetas de ejes ──
     ctx.fillStyle = 'rgba(148,163,184,0.7)';
     ctx.font = '11px JetBrains Mono, monospace';
     ctx.textAlign = 'center';
@@ -137,7 +149,7 @@ const LWENoisePlayground: React.FC = () => {
     ctx.fillText('s₂', 0, 0);
     ctx.restore();
 
-    // cells
+    // ── Celdas coloreadas por compatibilidad ──
     for (let y = 0; y < Q; y++) {
       for (let x = 0; x < Q; x++) {
         const c = grid[y][x];
@@ -146,22 +158,18 @@ const LWENoisePlayground: React.FC = () => {
         if (samples.length === 0) {
           ctx.fillStyle = 'rgba(30, 41, 59, 0.4)';
         } else if (c.consistent) {
-          // greenish for consistent
           const intensity = eta > 0 ? 1 - c.fit / Math.max(eta, 1) : 1;
           ctx.fillStyle = `rgba(52, 211, 153, ${0.25 + intensity * 0.45})`;
         } else {
-          // red gradient
           const overflow = Math.min((c.fit - eta) / Math.max(Q / 2 - eta, 1), 1);
           ctx.fillStyle = `rgba(244, 63, 94, ${0.05 + (1 - overflow) * 0.15})`;
         }
         ctx.fillRect(cellX + 1, cellY + 1, CELL - 2, CELL - 2);
 
-        // border
         ctx.strokeStyle = 'rgba(148,163,184,0.08)';
         ctx.lineWidth = 1;
         ctx.strokeRect(cellX + 0.5, cellY + 0.5, CELL, CELL);
 
-        // small fit value
         if (samples.length > 0 && c.fit <= 4) {
           ctx.fillStyle = c.consistent
             ? 'rgba(15, 23, 42, 0.7)'
@@ -174,7 +182,7 @@ const LWENoisePlayground: React.FC = () => {
       }
     }
 
-    // true secret marker
+    // ── Marcador del secreto real (anillo ámbar) ──
     if (showSecret) {
       const sx = PADX + secret[0] * CELL + CELL / 2;
       const sy = PADY + secret[1] * CELL + CELL / 2;
@@ -192,6 +200,7 @@ const LWENoisePlayground: React.FC = () => {
 
   return (
     <div className="card-quantum p-5 md:p-7 my-10">
+      {/* ── Cabecera ── */}
       <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div>
           <div className="text-[10px] uppercase tracking-widest text-quantum-cyan font-mono mb-1">
@@ -210,6 +219,7 @@ const LWENoisePlayground: React.FC = () => {
             {t('lweSim.lead.d')}
           </p>
         </div>
+        {/* ── Controles de secreto y muestras ── */}
         <div className="flex gap-2">
           <button
             onClick={() => setShowSecret((s) => !s)}
@@ -236,7 +246,7 @@ const LWENoisePlayground: React.FC = () => {
       </div>
 
       <div className="grid lg:grid-cols-[auto,1fr] gap-6 items-start">
-        {/* Visualization */}
+        {/* ── Canvas de la cuadrícula de candidatos ── */}
         <div>
           <div className="overflow-auto inline-block rounded-xl bg-quantum-panel/40 border border-quantum-border p-2">
             <canvas ref={canvasRef} />
@@ -257,10 +267,10 @@ const LWENoisePlayground: React.FC = () => {
           </div>
         </div>
 
-        {/* Controls + samples */}
+        {/* ── Panel de controles: secreto, ruido, métricas y muestras ── */}
         <div className="space-y-5 min-w-0">
-          {/* secret + noise */}
           <div className="grid sm:grid-cols-2 gap-3">
+            {/* Sliders del secreto s */}
             <div className="rounded-lg border border-quantum-border bg-quantum-panel/40 p-3">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">
                 {t('lweSim.secret.title')} <KMath>{`\\mathbf{s}`}</KMath>
@@ -299,6 +309,7 @@ const LWENoisePlayground: React.FC = () => {
               </div>
             </div>
 
+            {/* Slider de ruido η */}
             <div className="rounded-lg border border-quantum-border bg-quantum-panel/40 p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] uppercase tracking-widest text-slate-500">
@@ -326,7 +337,7 @@ const LWENoisePlayground: React.FC = () => {
             </div>
           </div>
 
-          {/* metrics */}
+          {/* Métricas: muestras, candidatos, espacio total */}
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg border border-quantum-border bg-quantum-panel/40 p-2">
               <div className="text-[10px] uppercase tracking-widest text-slate-500">
@@ -352,7 +363,7 @@ const LWENoisePlayground: React.FC = () => {
             </div>
           </div>
 
-          {/* Samples */}
+          {/* Lista de muestras LWE generadas */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <div className="text-[10px] uppercase tracking-widest text-slate-500">

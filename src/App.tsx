@@ -26,6 +26,7 @@ function App() {
   const initialModeRef = useRef(mode);
   const isFirstRenderRef = useRef(true);
 
+  // Detecta si el usuario cambió de tema antes de que se cumpla el timeout de 60 s
   useEffect(() => {
     if (isFirstRenderRef.current) {
       isFirstRenderRef.current = false;
@@ -34,6 +35,7 @@ function App() {
     themeChangedRef.current = true;
   }, [mode]);
 
+  // Si pasado 1 minuto el usuario no cambió el tema, registra el tema inicial en analytics
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!themeChangedRef.current) {
@@ -44,10 +46,12 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Registra cada cambio de ruta en analytics
   useEffect(() => {
     pageView(route);
   }, [route, pageView]);
 
+  // Navega a una ruta y hace scroll suave al inicio de la página
   const changeRoute = (r: RouteId) => {
     setRoute(r);
     requestAnimationFrame(() => {
@@ -55,6 +59,7 @@ function App() {
     });
   };
 
+  // Mapea el estado de ruta al componente correspondiente
   const renderRoute = () => {
     switch (route) {
       case 'intro':
@@ -76,10 +81,13 @@ function App() {
 
   return (
     <div className="min-h-screen bg-quantum-bg text-quantum-fg relative overflow-x-hidden">
+      {/* ── Navegación fija superior ── */}
       <TopNav current={route} onChange={changeRoute} />
 
+      {/* ── Fondo de constelación ── */}
       <RouteTransition />
 
+      {/* ── Contenido de la ruta activa con transición de opacidad ── */}
       <AnimatePresence mode="wait">
         <motion.main
           key={route}
@@ -93,11 +101,13 @@ function App() {
         </motion.main>
       </AnimatePresence>
 
+      {/* ── Pie de página ── */}
       <footer className="border-t border-quantum-border mt-20 py-10 text-center text-sm text-quantum-fg-mute">
         <p>{t('footer.line1')}</p>
         <p className="mt-1 text-xs">{t('footer.line2')}</p>
       </footer>
 
+      {/* ── Banner de cookies ── */}
       <CookieBanner onAccept={() => pageView(route)} />
     </div>
   );

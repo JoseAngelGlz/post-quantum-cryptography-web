@@ -60,6 +60,7 @@ const typeMeta: Record<ResourceType, TypeMeta> = {
 
 const ORDER: ResourceType[] = ['standard', 'paper', 'course', 'tool'];
 
+// Tarjeta de recurso externo: muestra título, descripción, tipo y enlace; registra clic en analytics
 const ResourceCard: React.FC<{ item: ResourceKey; index: number }> = ({ item, index }) => {
   const t = useT();
   const { resourceOpened } = useAnalytics();

@@ -36,6 +36,7 @@ interface ShuffledQuestion {
   permutation: number[];
 }
 
+// Fisher-Yates sobre el array; devuelve los items reordenados y la permutación aplicada
 const shuffle = <T,>(arr: T[]): { items: T[]; permutation: number[] } => {
   const indices = arr.map((_, i) => i);
   for (let i = indices.length - 1; i > 0; i--) {
@@ -48,6 +49,7 @@ const shuffle = <T,>(arr: T[]): { items: T[]; permutation: number[] } => {
   };
 };
 
+// Mezcla las opciones de una pregunta y actualiza el índice de la respuesta correcta
 const shuffleQuestion = (q: QuizQuestion): ShuffledQuestion => {
   const { items, permutation } = shuffle(q.options);
   const newCorrectIndex = permutation.indexOf(q.correctIndex);
@@ -61,6 +63,8 @@ const shuffleQuestion = (q: QuizQuestion): ShuffledQuestion => {
   };
 };
 
+// Componente principal del cuestionario con navegación pregunta a pregunta,
+// registro de respuestas en analytics y guardado del resultado final en quizStore
 const QuickQuiz: React.FC<QuickQuizProps> = ({
   questions,
   title,
@@ -71,6 +75,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
   const t = useT();
   const { quizStarted, questionAnswered, quizCompleted, quizAbandoned, quizReaction: trackQuizReaction } = useAnalytics();
   const resolvedTitle = title ?? t('quiz.title.default');
+  // Las preguntas se mezclan solo una vez por montaje del componente
   const shuffled = useMemo(() => questions.map(shuffleQuestion), [questions]);
 
   const [current, setCurrent] = useState(0);
@@ -87,9 +92,11 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
   const selected = selections[current];
   const revealed = selected !== null;
 
+  // Ref para capturar estado actual en el cleanup del useEffect de abandono
   const abandonStateRef = useRef({ done, selections, current });
   abandonStateRef.current = { done, selections, current };
 
+  // Registra abandono si el usuario deja la página habiendo respondido al menos una pregunta
   useEffect(() => {
     return () => {
       const { done: doneNow, selections: selNow, current: curNow } = abandonStateRef.current;
@@ -99,6 +106,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
     };
   }, [routeId, quizId, shuffled.length, quizAbandoned]);
 
+  // Registra la respuesta seleccionada; inicia el quiz en analytics si es la primera
   const choose = (i: number) => {
     if (revealed) return;
 
@@ -115,11 +123,13 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
     questionAnswered(routeId, quizId, current, isCorrect, shuffled[current].question);
   };
 
+  // Retrocede a la pregunta anterior
   const goBack = () => {
     if (current === 0) return;
     setCurrent((c) => c - 1);
   };
 
+  // Cuenta las respuestas correctas sobre las preguntas mezcladas
   const computeScore = () =>
     selections.reduce<number>(
       (acc, sel, idx) =>
@@ -127,6 +137,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
       0,
     );
 
+  // Avanza a la siguiente pregunta; si es la última, guarda el resultado y marca como completado
   const goNext = () => {
     if (current + 1 >= shuffled.length) {
       const score = computeScore();
@@ -152,6 +163,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
     setCurrent((c) => c + 1);
   };
 
+  // Reinicia el cuestionario al estado inicial
   const reset = () => {
     setCurrent(0);
     setSelections(questions.map(() => null));
@@ -169,6 +181,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
         transition={{ duration: 0.5 }}
         className="card-quantum p-6 md:p-8"
       >
+      {/* ── Cabecera del quiz ── */}
       <div className="flex items-center gap-2 mb-5">
         <div className="p-1.5 rounded-md bg-quantum-cyan/10 text-quantum-cyan">
           <Sparkles size={14} />
@@ -182,6 +195,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
       </div>
 
       <AnimatePresence mode="wait">
+        {/* ── Vista de pregunta activa ── */}
         {!done ? (
           <motion.div
             key={current}
@@ -194,6 +208,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
               {q.question}
             </p>
 
+            {/* ── Opciones de respuesta ── */}
             <div className="space-y-2.5">
               {q.options.map((opt, i) => {
                 const isCorrect = revealed && i === q.correctIndex;
@@ -228,6 +243,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
               })}
             </div>
 
+            {/* ── Explicación tras responder ── */}
             {revealed && q.explanation && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -238,6 +254,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
               </motion.div>
             )}
 
+            {/* ── Navegación anterior / siguiente ── */}
             <div className="mt-5 flex items-center justify-between gap-2">
               <button
                 onClick={goBack}
@@ -257,6 +274,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
             </div>
           </motion.div>
         ) : (
+          /* ── Vista de resultado final ── */
           <motion.div
             key="done"
             initial={{ opacity: 0, scale: 0.96 }}
@@ -278,7 +296,7 @@ const QuickQuiz: React.FC<QuickQuizProps> = ({
                 : t('quiz.feedback.retry')}
             </p>
 
-            {/* one-tap reaction row — emoji scale */}
+            {/* ── Valoración rápida de claridad ── */}
             <div className="mt-6 pt-5 border-t border-quantum-border/50 max-w-xs mx-auto">
               {reaction === null ? (
                 <>

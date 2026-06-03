@@ -10,6 +10,7 @@ interface ScrollSectionProps {
   className?: string;
 }
 
+// Sección de contenido con eyebrow, título y animación de entrada al hacer scroll
 const ScrollSection: React.FC<ScrollSectionProps> = ({
   id,
   eyebrow,

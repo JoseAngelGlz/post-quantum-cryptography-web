@@ -5,11 +5,15 @@ interface ZqCircleProps {
   size?: number;
 }
 
+// Visualización interactiva del anillo Z_q para el código corrector de ML-KEM.
+// El usuario elige un bit (0 ó 1) y un ruido; el canvas muestra si el decodificador
+// recupera el bit correctamente según el umbral q/4.
 const ZqCircle: React.FC<ZqCircleProps> = ({ q = 17, size = 320 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [bit, setBit] = useState<0 | 1>(1);
   const [noise, setNoise] = useState(0);
 
+  // El bit 0 se codifica en 0; el bit 1 en ⌈q/2⌉
   const target = bit === 0 ? 0 : Math.ceil(q / 2);
   const value = ((target + noise) % q + q) % q;
   const distTo0 = Math.min(value, q - value);
@@ -17,6 +21,7 @@ const ZqCircle: React.FC<ZqCircleProps> = ({ q = 17, size = 320 }) => {
   const decoded = distTo0 < distTo1 ? 0 : 1;
   const correct = decoded === bit;
 
+  // Redibuja el canvas en cada cambio de bit, ruido o dimensiones
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -35,17 +40,18 @@ const ZqCircle: React.FC<ZqCircleProps> = ({ q = 17, size = 320 }) => {
     const cy = size / 2;
     const R = size / 2 - 30;
 
-    // outer circle
+    // ── Círculo exterior ──
     ctx.strokeStyle = 'rgba(148,163,184,0.20)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.arc(cx, cy, R, 0, Math.PI * 2);
     ctx.stroke();
 
-    // good zones
     const half = Math.ceil(q / 2);
+    // Convierte índice entero de Z_q a ángulo en radianes (0 en la cima)
     const angle = (i: number) => -Math.PI / 2 + (i / q) * Math.PI * 2;
 
+    // Dibuja un arco coloreado en la zona segura de decodificación
     const drawArc = (from: number, to: number, color: string) => {
       ctx.strokeStyle = color;
       ctx.lineWidth = 6;
@@ -53,12 +59,12 @@ const ZqCircle: React.FC<ZqCircleProps> = ({ q = 17, size = 320 }) => {
       ctx.arc(cx, cy, R, angle(from), angle(to));
       ctx.stroke();
     };
-    // zone for 0: around 0 ± q/4
+    // Zona verde alrededor de 0 y zona rosa alrededor de q/2
     const w = q / 4;
     drawArc(-w, w, 'rgba(94,234,212,0.5)');
     drawArc(half - w, half + w, 'rgba(244,114,182,0.5)');
 
-    // ticks for each integer
+    // ── Marcas de cada entero de Z_q ──
     for (let i = 0; i < q; i++) {
       const a = angle(i);
       const x1 = cx + Math.cos(a) * (R - 6);
@@ -83,7 +89,7 @@ const ZqCircle: React.FC<ZqCircleProps> = ({ q = 17, size = 320 }) => {
       }
     }
 
-    // current value
+    // ── Punto que representa el valor actual (verde=correcto, rojo=error) ──
     const va = angle(value);
     const vx = cx + Math.cos(va) * R;
     const vy = cy + Math.sin(va) * R;
@@ -95,7 +101,7 @@ const ZqCircle: React.FC<ZqCircleProps> = ({ q = 17, size = 320 }) => {
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // center label
+    // ── Etiqueta central con Z_q, valor y decodificación ──
     ctx.fillStyle = '#cbd5e1';
     ctx.font = 'bold 16px Space Grotesk, sans-serif';
     ctx.textAlign = 'center';
@@ -111,6 +117,7 @@ const ZqCircle: React.FC<ZqCircleProps> = ({ q = 17, size = 320 }) => {
   return (
     <div className="flex flex-col items-center gap-4">
       <canvas ref={canvasRef} className="rounded-2xl border border-quantum-border bg-quantum-panel/40" />
+      {/* ── Controles: selector de bit y slider de ruido ── */}
       <div className="flex flex-wrap gap-3 justify-center">
         <div className="flex gap-2">
           <button

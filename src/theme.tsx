@@ -13,6 +13,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 const STORAGE_KEY = 'postq-theme';
 
+// Lee el tema guardado en localStorage; si no existe, usa dark por defecto
 const detectInitial = (): ThemeMode => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -23,9 +24,11 @@ const detectInitial = (): ThemeMode => {
   return 'dark';
 };
 
+// Proveedor de tema: aplica/quita la clase "dark" en <html> y persiste la preferencia
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [mode, setModeState] = useState<ThemeMode>(detectInitial);
 
+  // Sincroniza la clase CSS y el localStorage cuando cambia el modo
   useEffect(() => {
     const root = document.documentElement;
     if (mode === 'dark') root.classList.add('dark');
@@ -37,6 +40,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [mode]);
 
+  // Alterna entre dark y light
   const toggle = useCallback(
     () => setModeState((m) => (m === 'dark' ? 'light' : 'dark')),
     [],
@@ -50,6 +54,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
+// Hook que expone mode, toggle y setMode; lanza error fuera del proveedor
 export const useTheme = (): ThemeContextValue => {
   const ctx = useContext(ThemeContext);
   if (!ctx) throw new Error('useTheme must be used inside <ThemeProvider>');

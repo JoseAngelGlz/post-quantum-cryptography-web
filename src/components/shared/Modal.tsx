@@ -12,6 +12,7 @@ interface ModalProps {
   ariaLabel?: string;
 }
 
+// Modal genérico con backdrop, cierre por Escape y bloqueo de scroll del body
 const Modal: React.FC<ModalProps> = ({
   open,
   onClose,
@@ -19,6 +20,7 @@ const Modal: React.FC<ModalProps> = ({
   maxWidth = 'max-w-lg',
   ariaLabel,
 }) => {
+  // Cierra con Escape y bloquea el scroll del body mientras está abierto
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {

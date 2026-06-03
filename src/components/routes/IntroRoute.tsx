@@ -29,7 +29,7 @@ interface RouteProps {
 interface FamilyData {
   nameKey: 'intro.s04.fam.lattices' | 'intro.s04.fam.codes' | 'intro.s04.fam.hashes' | 'intro.s04.fam.multivar' | 'intro.s04.fam.isogenies';
   baseKey: 'intro.s04.fam.problem.lwe' | 'intro.s04.fam.problem.codes' | 'intro.s04.fam.problem.coll' | 'intro.s04.fam.problem.mq' | 'intro.s04.fam.problem.iso';
-  statusKey: 'intro.s04.fam.status.std' | 'intro.s04.fam.status.eval' | 'intro.s04.fam.status.broken';
+  statusKey: 'intro.s04.fam.status.std' | 'intro.s04.fam.status.eval' | 'intro.s04.fam.status.broken' | 'intro.s04.fam.status.research';
   example: string;
   color: string;
   icon: React.ReactNode;
@@ -41,13 +41,16 @@ const families: FamilyData[] = [
   { nameKey: 'intro.s04.fam.codes', baseKey: 'intro.s04.fam.problem.codes', statusKey: 'intro.s04.fam.status.std', example: 'Classic McEliece', color: 'from-quantum-violet/20 to-quantum-pink/10', icon: <Radio size={22} />, accent: 'text-quantum-violet' },
   { nameKey: 'intro.s04.fam.hashes', baseKey: 'intro.s04.fam.problem.coll', statusKey: 'intro.s04.fam.status.std', example: 'SLH-DSA', color: 'from-quantum-mint/20 to-quantum-cyan/10', icon: <KeyRound size={22} />, accent: 'text-quantum-mint' },
   { nameKey: 'intro.s04.fam.multivar', baseKey: 'intro.s04.fam.problem.mq', statusKey: 'intro.s04.fam.status.eval', example: 'MAYO, UOV', color: 'from-quantum-amber/20 to-quantum-rose/10', icon: <Cpu size={22} />, accent: 'text-quantum-amber' },
-  { nameKey: 'intro.s04.fam.isogenies', baseKey: 'intro.s04.fam.problem.iso', statusKey: 'intro.s04.fam.status.broken', example: 'CSIDH, SQIsign', color: 'from-quantum-rose/20 to-quantum-pink/10', icon: <Skull size={22} />, accent: 'text-quantum-rose' },
+  { nameKey: 'intro.s04.fam.isogenies', baseKey: 'intro.s04.fam.problem.iso', statusKey: 'intro.s04.fam.status.research', example: 'CSIDH, SQIsign (SIKE roto)', color: 'from-quantum-rose/20 to-quantum-pink/10', icon: <Skull size={22} />, accent: 'text-quantum-rose' },
 ];
 
+// Ruta de introducción: presenta la amenaza cuántica, los 4 algoritmos,
+// el ataque harvest-now y las 5 familias postcuánticas
 const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
   const t = useT();
   useRouteTracking('intro');
 
+  // Hace scroll suave hasta el elemento con el id dado (tarjetas de algoritmos)
   const scrollTo = useCallback((id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -56,8 +59,8 @@ const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
   const conceptCards = [
     { id: 'concept-rsa', icon: <Lock size={22} />, label: 'RSA', sub: t('concepts.rsa.status'), color: 'text-quantum-rose', ring: 'hover:border-quantum-rose/50' },
     { id: 'concept-ecdh', icon: <Lock size={22} />, label: 'ECDH', sub: t('concepts.ecdh.status'), color: 'text-quantum-rose', ring: 'hover:border-quantum-rose/50' },
-    { id: 'concept-mlkem', icon: <ShieldCheck size={22} />, label: 'ML-KEM', sub: t('concepts.mlkem.status'), color: 'text-quantum-mint', ring: 'hover:border-quantum-mint/50' },
     { id: 'concept-mldsa', icon: <ShieldCheck size={22} />, label: 'ML-DSA', sub: t('concepts.mldsa.status'), color: 'text-quantum-mint', ring: 'hover:border-quantum-mint/50' },
+    { id: 'concept-mlkem', icon: <ShieldCheck size={22} />, label: 'ML-KEM', sub: t('concepts.mlkem.status'), color: 'text-quantum-mint', ring: 'hover:border-quantum-mint/50' },
   ];
 
   return (
@@ -137,18 +140,6 @@ const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
 
         <div className="space-y-6">
           <ConceptBlock
-            id="concept-rsa"
-            tone="rose"
-            icon={<Lock size={26} />}
-            title={t('concepts.rsa.title')}
-            kind={t('concepts.rsa.kind')}
-            status={t('concepts.rsa.status')}
-            body={t('concepts.rsa.body')}
-            formulaCaption={t('concepts.rsa.formula.caption')}
-            formula="c = m^e \bmod n \qquad m = c^d \bmod n"
-            bottom={t('concepts.rsa.bottom')}
-          />
-          <ConceptBlock
             id="concept-ecdh"
             tone="pink"
             icon={<Lock size={26} />}
@@ -159,6 +150,18 @@ const IntroRoute: React.FC<RouteProps> = ({ onChange }) => {
             formulaCaption={t('concepts.ecdh.formula.caption')}
             formula="K = a \cdot (b \cdot P) = b \cdot (a \cdot P)"
             bottom={t('concepts.ecdh.bottom')}
+          />
+          <ConceptBlock
+            id="concept-rsa"
+            tone="rose"
+            icon={<Lock size={26} />}
+            title={t('concepts.rsa.title')}
+            kind={t('concepts.rsa.kind')}
+            status={t('concepts.rsa.status')}
+            body={t('concepts.rsa.body')}
+            formulaCaption={t('concepts.rsa.formula.caption')}
+            formula="c = m^e \bmod n \qquad m = c^d \bmod n"
+            bottom={t('concepts.rsa.bottom')}
           />
           <ConceptBlock
             id="concept-mlkem"
@@ -423,6 +426,7 @@ const toneMap: Record<Tone, { accent: string; bg: string; border: string; chipBg
   },
 };
 
+// Bloque expandido de un algoritmo (RSA, ECDH, ML-KEM, ML-DSA) con fórmula y nota de estado
 const ConceptBlock: React.FC<ConceptBlockProps> = ({
   id,
   tone,

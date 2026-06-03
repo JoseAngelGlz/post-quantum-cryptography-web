@@ -11,6 +11,7 @@ interface TopNavProps {
   onChange: (r: RouteId) => void;
 }
 
+// Orden lineal de las rutas para el menú de navegación
 const order: RouteId[] = [
   'intro',
   'fundamentos',
@@ -21,11 +22,13 @@ const order: RouteId[] = [
   'recursos',
 ];
 
+// Barra de navegación fija: logo, menú de rutas, selector de idioma y tema
 const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
   const { t, locale, setLocale } = useI18n();
   const { mode, toggle } = useTheme();
   const { themeChanged, languageChanged } = useAnalytics();
 
+  // Cambia el locale solo si es diferente al actual y lo registra en analytics
   const handleLocaleChange = (newLocale: 'es' | 'en') => {
     if (newLocale !== locale) {
       setLocale(newLocale);
@@ -33,12 +36,14 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
     }
   };
 
+  // Alterna el tema y registra el cambio en analytics
   const handleThemeToggle = () => {
     toggle();
     const newTheme = mode === 'dark' ? 'Claro' : 'Oscuro';
     themeChanged(newTheme);
   };
 
+  // Traduce cada RouteId a su etiqueta localizada para el menú
   const routeLabels: Record<RouteId, string> = {
     intro: t('nav.intro'),
     fundamentos: t('nav.fundamentos'),
@@ -56,15 +61,15 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
       transition={{ duration: 0.6 }}
       className="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-quantum-bg/70 border-b border-quantum-border/60"
     >
+      {/* ── Logo ── */}
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 px-4 md:px-6 py-3">
-        {/* Brand */}
         <button
           onClick={() => onChange('intro')}
           className="flex items-center gap-2.5 group shrink-0"
           aria-label="PostQ"
         >
           <img
-            src={`${import.meta.env.BASE_URL}logo.png`}
+            src={`${import.meta.env.BASE_URL}q-orbita.svg`}
             alt="PostQ"
             className="w-9 h-9 rounded-lg object-contain group-hover:scale-105 transition-transform"
           />
@@ -78,7 +83,7 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
           </div>
         </button>
 
-        {/* Routes */}
+        {/* ── Menú de rutas ── */}
         <nav className="flex items-center gap-1 text-sm overflow-x-auto scrollbar-none">
           {order.map((r) => (
             <button
@@ -95,12 +100,11 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
           ))}
         </nav>
 
-        {/* Controls */}
+        {/* ── Controles: progreso, idioma, tema ── */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Progress badge */}
           <ProgressBadge />
 
-          {/* Language pill */}
+          {/* Selector de idioma (escritorio) */}
           <div
             className="hidden md:flex items-center text-xs font-mono rounded-full border border-quantum-border bg-quantum-panel/60 overflow-hidden"
             role="group"
@@ -130,7 +134,7 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
             </button>
           </div>
 
-          {/* Mobile language toggle */}
+          {/* Selector de idioma (móvil: alterna entre ES y EN) */}
           <button
             onClick={() => handleLocaleChange(locale === 'es' ? 'en' : 'es')}
             className="md:hidden px-2 py-1 rounded-full border border-quantum-border bg-quantum-panel/60 text-xs font-mono text-quantum-fg-soft hover:text-quantum-cyan"
@@ -139,7 +143,7 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
             {locale.toUpperCase()}
           </button>
 
-          {/* Theme toggle */}
+          {/* Botón de alternancia de tema */}
           <button
             onClick={handleThemeToggle}
             className="p-2 rounded-full border border-quantum-border bg-quantum-panel/60 text-quantum-fg-soft hover:text-quantum-cyan hover:border-quantum-cyan/40 transition-colors"
@@ -156,6 +160,7 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
 
 export default TopNav;
 
+// Botón auxiliar para volver a la introducción desde cualquier ruta
 export const BackToIntro: React.FC<{ onChange: (r: RouteId) => void }> = ({ onChange }) => (
   <button onClick={() => onChange('intro')} className="btn-ghost text-sm">
     <ArrowLeft size={14} /> Volver al inicio

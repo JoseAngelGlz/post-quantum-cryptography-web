@@ -54,6 +54,7 @@ interface NewsCardProps {
   index?: number;
 }
 
+// Tarjeta de noticia reutilizable; variantes: hero (grande), featured (mediana) o compact
 const NewsCard: React.FC<NewsCardProps> = ({ k, variant = 'compact', index = 0 }) => {
   const t = useT();
   const { newsOpened } = useAnalytics();

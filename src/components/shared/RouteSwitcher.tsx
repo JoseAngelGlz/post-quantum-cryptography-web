@@ -22,6 +22,7 @@ interface RouteSwitcherProps {
   cards?: RouteCardData[];
 }
 
+// Panel de bifurcación que muestra las rutas disponibles como tarjetas navegables
 const RouteSwitcher: React.FC<RouteSwitcherProps> = ({
   current,
   onChange,
