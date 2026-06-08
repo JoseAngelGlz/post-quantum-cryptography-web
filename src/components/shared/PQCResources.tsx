@@ -166,7 +166,7 @@ const PQCResources: React.FC = () => {
 
       <p className="text-xs text-quantum-fg-mute flex items-center gap-2 pt-4 border-t border-quantum-border/60">
         <BookOpen size={12} />
-        {t('news.footer')}
+        {t('res.footer')}
       </p>
     </div>
   );

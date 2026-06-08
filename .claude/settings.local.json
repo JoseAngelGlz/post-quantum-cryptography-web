@@ -7,7 +7,8 @@
       "Bash(curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" http://localhost:5173/post-quantum-cryptography-web/)",
       "Bash(grep -n -E '\\(eyebrow=\"|title=\\(\"[^{]|\"$\\)|<Callout variant=\"[a-z]+\" title=\"|<Hero|subtitle=\"|title=\"[A-Z]\\)' src/components/routes/AplicacionesRoute.tsx)",
       "Bash(grep -nE \"'[A-ZÁÉÍÓÚÑa-záéíóúñ¿¡][a-záéíóúñA-ZÁÉÍÓÚÑ ,.:;!?¿¡\\(\\)\\\\\\\\-]{4,}'\" src/components/MLKEMSimulator.tsx)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "PowerShell(cd \"c:\\\\Users\\\\JOSE\\\\Documents\\\\TFG\\\\post-quantum-cryptography-web\"; npx tsc -b 2>&1 | Select-Object -First 40; Write-Output \\(\"EXIT: \" + $LASTEXITCODE\\))"
     ]
   }
 }

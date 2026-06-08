@@ -18,7 +18,6 @@ const order: RouteId[] = [
   'aplicaciones',
   'mlkem',
   'mldsa',
-  'noticias',
   'recursos',
 ];
 
@@ -50,7 +49,6 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
     aplicaciones: t('nav.aplicaciones'),
     mlkem: t('nav.mlkem'),
     mldsa: t('nav.mldsa'),
-    noticias: t('nav.noticias'),
     recursos: t('nav.recursos'),
   };
 

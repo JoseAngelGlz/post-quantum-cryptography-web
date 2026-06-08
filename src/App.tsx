@@ -10,7 +10,6 @@ import FundamentosRoute from './components/routes/FundamentosRoute';
 import AplicacionesRoute from './components/routes/AplicacionesRoute';
 import MLKEMRoute from './components/routes/MLKEMRoute';
 import MLDSARoute from './components/routes/MLDSARoute';
-import NoticiasRoute from './components/routes/NoticiasRoute';
 import RecursosRoute from './components/routes/RecursosRoute';
 import { useT } from './i18n';
 import { useTheme } from './theme';
@@ -72,8 +71,6 @@ function App() {
         return <MLKEMRoute onChange={changeRoute} />;
       case 'mldsa':
         return <MLDSARoute onChange={changeRoute} />;
-      case 'noticias':
-        return <NoticiasRoute onChange={changeRoute} />;
       case 'recursos':
         return <RecursosRoute onChange={changeRoute} />;
     }

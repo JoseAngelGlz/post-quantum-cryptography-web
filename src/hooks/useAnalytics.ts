@@ -7,7 +7,6 @@ const ROUTE_NAMES: Record<string, string> = {
   aplicaciones: 'Aplicaciones',
   mlkem: 'ML-KEM',
   mldsa: 'ML-DSA',
-  noticias: 'Noticias',
   recursos: 'Recursos',
   site: 'Sitio Web',
   progreso: 'Progreso',
@@ -141,15 +140,6 @@ const resourceOpened = (resourceId: string, resourceType: string, url: string) =
   });
 };
 
-// Registra la apertura de una noticia
-const newsOpened = (newsId: string, variant: string, url: string) => {
-  captureEvent('Noticia Abierta', {
-    'ID de Noticia': newsId,
-    'Variante': variant,
-    'URL': url,
-  });
-};
-
 // Registra cambio de idioma y lo persiste como propiedad global
 const languageChanged = (locale: string) => {
   setGlobalProperty('Idioma', locale);
@@ -190,7 +180,6 @@ const analytics = {
   simulatorUsed,
   interactiveElementUsed,
   resourceOpened,
-  newsOpened,
   languageChanged,
   cookieConsent,
   quizReaction,
