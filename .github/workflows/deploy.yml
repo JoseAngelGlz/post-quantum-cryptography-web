@@ -27,6 +27,10 @@ jobs:
 
       - name: Build del proyecto
         run: npm run build
+        env:
+          VITE_PUBLIC_POSTHOG_KEY: ${{ secrets.VITE_PUBLIC_POSTHOG_KEY }}
+          VITE_PUBLIC_POSTHOG_HOST: https://eu.i.posthog.com
+          VITE_WEB3FORMS_KEY: ${{ secrets.VITE_WEB3FORMS_KEY }}
 
       - name: Subir artefacto
         uses: actions/upload-pages-artifact@v3
