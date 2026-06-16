@@ -20,6 +20,13 @@ export const translations = {
 
     'footer.line1': 'Criptografía Post-Cuántica · ML-KEM (FIPS 203) y ML-DSA (FIPS 204) · NIST 2024',
     'footer.line2': 'José Ángel González Álamo · Universidad de La Laguna',
+    'footer.a11y': 'Accesibilidad',
+    'a11y.title': 'Accesibilidad',
+    'a11y.body1': 'Esta plataforma educativa ha sido diseñada procurando facilitar su uso por parte de todas las personas, siguiendo criterios generales de accesibilidad web, claridad en la navegación, estructura comprensible de los contenidos y compatibilidad con distintos dispositivos.',
+    'a11y.body2': 'Se han tenido en cuenta aspectos como el contraste visual, la legibilidad de los textos, la organización mediante encabezados, la navegación mediante teclado y el uso de textos alternativos cuando procede.',
+    'a11y.contact': 'Si detecta alguna barrera de accesibilidad o dificultad para utilizar la plataforma, puede comunicarlo a través del siguiente correo electrónico:',
+    'a11y.email': 'alu0101564180@ull.edu.es',
+    'a11y.close': 'Cerrar',
 
     /* ─── Common UI ─────────────────────────────── */
     'ui.continue': 'Continuar',
@@ -1251,6 +1258,13 @@ export const translations = {
 
     'footer.line1': 'Post-Quantum Cryptography · ML-KEM (FIPS 203) and ML-DSA (FIPS 204) · NIST 2024',
     'footer.line2': 'José Ángel González Álamo · Universidad de La Laguna',
+    'footer.a11y': 'Accessibility',
+    'a11y.title': 'Accessibility',
+    'a11y.body1': 'This educational platform has been designed to be usable by everyone, following general web accessibility criteria, clear navigation, an understandable content structure and compatibility with different devices.',
+    'a11y.body2': 'Aspects such as visual contrast, text legibility, organisation through headings, keyboard navigation and the use of alternative text where appropriate have been taken into account.',
+    'a11y.contact': 'If you encounter any accessibility barrier or difficulty using the platform, you can report it via the following email address:',
+    'a11y.email': 'alu0101564180@ull.edu.es',
+    'a11y.close': 'Close',
 
     /* Common UI */
     'ui.continue': 'Continue',
