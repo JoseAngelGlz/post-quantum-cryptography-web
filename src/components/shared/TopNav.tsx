@@ -1,5 +1,6 @@
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Moon, Sun } from 'lucide-react';
 import type { RouteId } from '../../routes';
 import { useI18n } from '../../i18n';
 import { useTheme } from '../../theme';
@@ -26,6 +27,31 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
   const { t, locale, setLocale } = useI18n();
   const { mode, toggle } = useTheme();
   const { themeChanged, languageChanged } = useAnalytics();
+
+  // Detecta si el menú de rutas tiene secciones ocultas por scroll horizontal (móvil)
+  const navRef = useRef<HTMLElement>(null);
+  const [showStartFade, setShowStartFade] = useState(false);
+  const [showEndFade, setShowEndFade] = useState(false);
+
+  const updateFades = useCallback(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setShowStartFade(scrollLeft > 2);
+    setShowEndFade(scrollLeft + clientWidth < scrollWidth - 2);
+  }, []);
+
+  useEffect(() => {
+    updateFades();
+    const el = navRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', updateFades, { passive: true });
+    window.addEventListener('resize', updateFades);
+    return () => {
+      el.removeEventListener('scroll', updateFades);
+      window.removeEventListener('resize', updateFades);
+    };
+  }, [updateFades, locale]);
 
   // Cambia el locale solo si es diferente al actual y lo registra en analytics
   const handleLocaleChange = (newLocale: 'es' | 'en') => {
@@ -82,21 +108,44 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
         </button>
 
         {/* ── Menú de rutas ── */}
-        <nav className="flex items-center gap-1 text-sm overflow-x-auto scrollbar-none">
-          {order.map((r) => (
-            <button
-              key={r}
-              onClick={() => onChange(r)}
-              className={`px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${
-                current === r
-                  ? 'text-quantum-cyan bg-quantum-cyan/10'
-                  : 'text-quantum-fg-soft hover:text-quantum-fg-strong'
-              }`}
-            >
-              {routeLabels[r]}
-            </button>
-          ))}
-        </nav>
+        <div className="relative min-w-0">
+          <nav
+            ref={navRef}
+            className="flex items-center gap-1 text-sm overflow-x-auto scrollbar-none"
+          >
+            {order.map((r) => (
+              <button
+                key={r}
+                onClick={() => onChange(r)}
+                className={`px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${
+                  current === r
+                    ? 'text-quantum-cyan bg-quantum-cyan/10'
+                    : 'text-quantum-fg-soft hover:text-quantum-fg-strong'
+                }`}
+              >
+                {routeLabels[r]}
+              </button>
+            ))}
+          </nav>
+
+          {/* Degradado izquierdo: hay secciones ocultas hacia atrás */}
+          <div
+            aria-hidden
+            className={`pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-quantum-bg to-transparent transition-opacity duration-200 ${
+              showStartFade ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+
+          {/* Degradado derecho + flecha: la barra es deslizable */}
+          <div
+            aria-hidden
+            className={`pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end pl-5 bg-gradient-to-l from-quantum-bg via-quantum-bg/90 to-transparent transition-opacity duration-200 ${
+              showEndFade ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <ChevronRight size={16} className="text-quantum-cyan/80 animate-pulse" />
+          </div>
+        </div>
 
         {/* ── Controles: progreso, idioma, tema ── */}
         <div className="flex items-center gap-2 shrink-0">
