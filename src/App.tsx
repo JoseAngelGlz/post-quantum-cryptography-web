@@ -18,7 +18,7 @@ import { useAnalytics } from './hooks/useAnalytics';
 
 const SESSION_ROUTE_KEY = 'postq-session-route';
 const SESSION_SCROLL_KEY = 'postq-session-scroll';
-const VALID_ROUTES: RouteId[] = ['intro', 'fundamentos', 'aplicaciones', 'mlkem', 'mldsa', 'noticias', 'recursos'];
+const VALID_ROUTES: RouteId[] = ['intro', 'fundamentos', 'aplicaciones', 'mlkem', 'mldsa', 'recursos'];
 
 function App() {
   const [route, setRoute] = useState<RouteId>(() => {
