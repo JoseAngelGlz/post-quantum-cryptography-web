@@ -4,5 +4,4 @@ export type RouteId =
   | 'aplicaciones'
   | 'mlkem'
   | 'mldsa'
-  | 'noticias'
   | 'recursos';

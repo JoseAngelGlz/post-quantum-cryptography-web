@@ -153,11 +153,14 @@ const HighLowViz: React.FC<{ t: TFn }> = ({ t }) => {
   );
 };
 
+// Ruta de ML-DSA: presenta Module-SIS, rejection sampling, HighBits/LowBits,
+// el proceso de firma/verificación y el simulador interactivo Baby-Dilithium
 const MLDSARoute: React.FC<RouteProps> = ({ onChange: _onChange }) => {
   const t = useT();
   const { simulatorUsed } = useAnalytics();
   useRouteTracking('mldsa');
 
+  // Registra el uso del simulador ML-DSA en analytics la primera vez que interactúa
   const handleSimulatorInteraction = () => {
     simulatorUsed('SimMLDSA');
   };
@@ -182,6 +185,7 @@ const MLDSARoute: React.FC<RouteProps> = ({ onChange: _onChange }) => {
           </>
         }
         subtitle={t('mldsa.hero.subtitle')}
+        onBack={() => _onChange('mlkem')}
       />
 
       {/* OVERVIEW */}

@@ -48,26 +48,32 @@ const Z_BOUND = GAMMA1 - BETA; // accept |z|_inf < this
 type Matrix = number[][];
 type Vector = number[];
 
+// Módulo positivo
 const mod = (v: number, q: number) => ((v % q) + q) % q;
+// Representación centrada en (-q/2, q/2]
 const centeredMod = (v: number, q: number) => {
   const r = mod(v, q);
   return r > q / 2 ? r - q : r;
 };
+// Entero aleatorio en [lo, hi]
 const randInt = (lo: number, hi: number) =>
   Math.floor(Math.random() * (hi - lo + 1)) + lo;
 
+// Genera un vector pequeño con coeficientes en [-eta, eta] (secreto s o máscara y)
 const sampleSmall = (n: number, eta: number): Vector =>
   Array.from({ length: n }, () => randInt(-eta, eta));
 
+// Producto matriz-vector módulo Q
 const matMulVec = (m: Matrix, v: Vector): Vector =>
   m.map((row) => mod(row.reduce((s, val, i) => s + val * v[i], 0), Q));
 
 const vecAdd = (a: Vector, b: Vector) => a.map((v, i) => mod(v + b[i], Q));
 const vecSub = (a: Vector, b: Vector) => a.map((v, i) => mod(v - b[i], Q));
 const vecScalarMul = (a: Vector, k: number) => a.map((v) => mod(v * k, Q));
+// Norma infinito centrada: max|coef| de un vector
 const maxAbs = (v: Vector) => Math.max(...v.map((x) => Math.abs(centeredMod(x, Q))));
 
-// Block-matrix * block-vector with k blocks of size n
+// Producto bloque-matriz × bloque-vector con k bloques de tamaño n
 const blockMatVec = (A: Matrix[][], v: Vector[]): Vector[] => {
   const out: Vector[] = [];
   for (let i = 0; i < A.length; i++) {
@@ -85,6 +91,7 @@ const blockVecAdd = (a: Vector[], b: Vector[]) => a.map((row, i) => vecAdd(row, 
 const blockVecSub = (a: Vector[], b: Vector[]) => a.map((row, i) => vecSub(row, b[i]));
 const blockVecScalarMul = (a: Vector[], k: number) => a.map((row) => vecScalarMul(row, k));
 
+// Hash de juguete determinista que produce el reto c para Fiat-Shamir
 const fakeHash = (parts: number[][]): { c: number; sign: 1 | -1 } => {
   // Toy challenge generator: deterministic but unpredictable from inputs.
   let h = 0x9e3779b1 >>> 0;
@@ -114,6 +121,7 @@ interface Signature {
   trace: TraceEntry[];
 }
 
+// KeyGen: genera la matriz pública A, el secreto s y calcula t = As mod q
 const genKeys = (): KeyPair => {
   const A: Matrix[][] = [];
   for (let i = 0; i < K; i++) {
@@ -138,7 +146,7 @@ interface CurrentAttempt {
   valid: boolean;
 }
 
-/** Run a single rejection-sampling attempt (does not loop). */
+// Ejecuta un intento de firma con rejection sampling; no itera (el bucle está en el componente)
 const signOneAttempt = (
   msg: string,
   sk: KeyPair,
@@ -159,7 +167,7 @@ const signOneAttempt = (
 
 const MAX_SIGN_ATTEMPTS = 50;
 
-/** Forge a random signature without knowing the secret. */
+// Genera una firma falsa aleatoria (sin conocer s) para el modo atacante
 const forgeRandom = (): Signature => {
   const z: Vector[] = Array.from({ length: L }, () =>
     Array.from({ length: N }, () => randInt(-Z_BOUND + 1, Z_BOUND - 1)),
@@ -179,6 +187,7 @@ interface VerifyDetail {
   zNorm: number;
 }
 
+// Verificación: recalcula w' = Az - ct y comprueba que H(w', msg) == c y ||z||∞ < Z_BOUND
 const verify = (msg: string, sig: Signature, pk: KeyPair): VerifyDetail => {
   // Recompute w' = A*z - c*t   should equal A*y (if z was honest)
   const Az = blockMatVec(pk.A, sig.z);
@@ -194,11 +203,13 @@ const verify = (msg: string, sig: Signature, pk: KeyPair): VerifyDetail => {
   return { valid: cMatch && bound, Az, ct, wPrime, cPrime, cMatch, bound, zNorm };
 };
 
+// Formatea un entero con signo explícito (para representación centrada)
 const fmt = (v: number) => {
   const c = centeredMod(v, Q);
   return c > 0 ? `+${c}` : `${c}`;
 };
 
+// Formatea un vector como cadena legible, opcionalmente en representación centrada
 const fmtVec = (v: Vector, centered = false) =>
   `[${v.map((x) => (centered ? fmt(x) : mod(x, Q))).join(', ')}]`;
 
@@ -541,6 +552,8 @@ interface MLDSASimulatorProps {
   onUse?: () => void;
 }
 
+// Simulador interactivo de Baby-Dilithium (q=97, n=2) con 4 pasos:
+// KeyGen → Sign (con rejection sampling interactivo) → Verify → Modo atacante
 const MLDSASimulator: React.FC<MLDSASimulatorProps> = ({ onUse }) => {
   const t = useT();
   const [keys, setKeys] = useState<KeyPair | null>(null);

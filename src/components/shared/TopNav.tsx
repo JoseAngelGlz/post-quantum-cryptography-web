@@ -1,5 +1,6 @@
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Moon, Sun } from 'lucide-react';
 import type { RouteId } from '../../routes';
 import { useI18n } from '../../i18n';
 import { useTheme } from '../../theme';
@@ -11,21 +12,48 @@ interface TopNavProps {
   onChange: (r: RouteId) => void;
 }
 
+// Orden lineal de las rutas para el menú de navegación
 const order: RouteId[] = [
   'intro',
   'fundamentos',
   'aplicaciones',
   'mlkem',
   'mldsa',
-  'noticias',
   'recursos',
 ];
 
+// Barra de navegación fija: logo, menú de rutas, selector de idioma y tema
 const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
   const { t, locale, setLocale } = useI18n();
   const { mode, toggle } = useTheme();
   const { themeChanged, languageChanged } = useAnalytics();
 
+  // Detecta si el menú de rutas tiene secciones ocultas por scroll horizontal (móvil)
+  const navRef = useRef<HTMLElement>(null);
+  const [showStartFade, setShowStartFade] = useState(false);
+  const [showEndFade, setShowEndFade] = useState(false);
+
+  const updateFades = useCallback(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setShowStartFade(scrollLeft > 2);
+    setShowEndFade(scrollLeft + clientWidth < scrollWidth - 2);
+  }, []);
+
+  useEffect(() => {
+    updateFades();
+    const el = navRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', updateFades, { passive: true });
+    window.addEventListener('resize', updateFades);
+    return () => {
+      el.removeEventListener('scroll', updateFades);
+      window.removeEventListener('resize', updateFades);
+    };
+  }, [updateFades, locale]);
+
+  // Cambia el locale solo si es diferente al actual y lo registra en analytics
   const handleLocaleChange = (newLocale: 'es' | 'en') => {
     if (newLocale !== locale) {
       setLocale(newLocale);
@@ -33,19 +61,20 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
     }
   };
 
+  // Alterna el tema y registra el cambio en analytics
   const handleThemeToggle = () => {
     toggle();
     const newTheme = mode === 'dark' ? 'Claro' : 'Oscuro';
     themeChanged(newTheme);
   };
 
+  // Traduce cada RouteId a su etiqueta localizada para el menú
   const routeLabels: Record<RouteId, string> = {
     intro: t('nav.intro'),
     fundamentos: t('nav.fundamentos'),
     aplicaciones: t('nav.aplicaciones'),
     mlkem: t('nav.mlkem'),
     mldsa: t('nav.mldsa'),
-    noticias: t('nav.noticias'),
     recursos: t('nav.recursos'),
   };
 
@@ -56,15 +85,15 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
       transition={{ duration: 0.6 }}
       className="fixed top-0 inset-x-0 z-40 backdrop-blur-md bg-quantum-bg/70 border-b border-quantum-border/60"
     >
+      {/* ── Logo ── */}
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 px-4 md:px-6 py-3">
-        {/* Brand */}
         <button
           onClick={() => onChange('intro')}
           className="flex items-center gap-2.5 group shrink-0"
           aria-label="PostQ"
         >
           <img
-            src={`${import.meta.env.BASE_URL}logo.png`}
+            src={`${import.meta.env.BASE_URL}q-orbita.svg`}
             alt="PostQ"
             className="w-9 h-9 rounded-lg object-contain group-hover:scale-105 transition-transform"
           />
@@ -78,29 +107,51 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
           </div>
         </button>
 
-        {/* Routes */}
-        <nav className="flex items-center gap-1 text-sm overflow-x-auto scrollbar-none">
-          {order.map((r) => (
-            <button
-              key={r}
-              onClick={() => onChange(r)}
-              className={`px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${
-                current === r
-                  ? 'text-quantum-cyan bg-quantum-cyan/10'
-                  : 'text-quantum-fg-soft hover:text-quantum-fg-strong'
-              }`}
-            >
-              {routeLabels[r]}
-            </button>
-          ))}
-        </nav>
+        {/* ── Menú de rutas ── */}
+        <div className="relative min-w-0">
+          <nav
+            ref={navRef}
+            className="flex items-center gap-1 text-sm overflow-x-auto scrollbar-none"
+          >
+            {order.map((r) => (
+              <button
+                key={r}
+                onClick={() => onChange(r)}
+                className={`px-3 py-1.5 rounded-full transition-all whitespace-nowrap ${
+                  current === r
+                    ? 'text-quantum-cyan bg-quantum-cyan/10'
+                    : 'text-quantum-fg-soft hover:text-quantum-fg-strong'
+                }`}
+              >
+                {routeLabels[r]}
+              </button>
+            ))}
+          </nav>
 
-        {/* Controls */}
+          {/* Degradado izquierdo: hay secciones ocultas hacia atrás */}
+          <div
+            aria-hidden
+            className={`pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-quantum-bg to-transparent transition-opacity duration-200 ${
+              showStartFade ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+
+          {/* Degradado derecho + flecha: la barra es deslizable */}
+          <div
+            aria-hidden
+            className={`pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end pl-5 bg-gradient-to-l from-quantum-bg via-quantum-bg/90 to-transparent transition-opacity duration-200 ${
+              showEndFade ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <ChevronRight size={16} className="text-quantum-cyan/80 animate-pulse" />
+          </div>
+        </div>
+
+        {/* ── Controles: progreso, idioma, tema ── */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Progress badge */}
           <ProgressBadge />
 
-          {/* Language pill */}
+          {/* Selector de idioma (escritorio) */}
           <div
             className="hidden md:flex items-center text-xs font-mono rounded-full border border-quantum-border bg-quantum-panel/60 overflow-hidden"
             role="group"
@@ -130,7 +181,7 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
             </button>
           </div>
 
-          {/* Mobile language toggle */}
+          {/* Selector de idioma (móvil: alterna entre ES y EN) */}
           <button
             onClick={() => handleLocaleChange(locale === 'es' ? 'en' : 'es')}
             className="md:hidden px-2 py-1 rounded-full border border-quantum-border bg-quantum-panel/60 text-xs font-mono text-quantum-fg-soft hover:text-quantum-cyan"
@@ -139,7 +190,7 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
             {locale.toUpperCase()}
           </button>
 
-          {/* Theme toggle */}
+          {/* Botón de alternancia de tema */}
           <button
             onClick={handleThemeToggle}
             className="p-2 rounded-full border border-quantum-border bg-quantum-panel/60 text-quantum-fg-soft hover:text-quantum-cyan hover:border-quantum-cyan/40 transition-colors"
@@ -156,6 +207,7 @@ const TopNav: React.FC<TopNavProps> = ({ current, onChange }) => {
 
 export default TopNav;
 
+// Botón auxiliar para volver a la introducción desde cualquier ruta
 export const BackToIntro: React.FC<{ onChange: (r: RouteId) => void }> = ({ onChange }) => (
   <button onClick={() => onChange('intro')} className="btn-ghost text-sm">
     <ArrowLeft size={14} /> Volver al inicio

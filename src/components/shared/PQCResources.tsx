@@ -60,6 +60,7 @@ const typeMeta: Record<ResourceType, TypeMeta> = {
 
 const ORDER: ResourceType[] = ['standard', 'paper', 'course', 'tool'];
 
+// Tarjeta de recurso externo: muestra título, descripción, tipo y enlace; registra clic en analytics
 const ResourceCard: React.FC<{ item: ResourceKey; index: number }> = ({ item, index }) => {
   const t = useT();
   const { resourceOpened } = useAnalytics();
@@ -165,7 +166,7 @@ const PQCResources: React.FC = () => {
 
       <p className="text-xs text-quantum-fg-mute flex items-center gap-2 pt-4 border-t border-quantum-border/60">
         <BookOpen size={12} />
-        {t('news.footer')}
+        {t('res.footer')}
       </p>
     </div>
   );

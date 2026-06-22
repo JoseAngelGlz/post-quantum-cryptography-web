@@ -63,6 +63,7 @@ interface StepCardProps {
   compact?: boolean;
 }
 
+// Tarjeta de un paso del algoritmo ML-KEM: número, icono, explicación y fórmula
 const StepCard: React.FC<StepCardProps> = ({
   step,
   icon,
@@ -150,6 +151,7 @@ interface PipelineNode {
   label: string;
 }
 
+// Diagrama horizontal de flujo que muestra las fases de KeyGen / Encaps / Decaps
 const PipelineDiagram: React.FC<{
   nodes: PipelineNode[];
   palette: StepPalette;
@@ -198,11 +200,14 @@ const PipelineDiagram: React.FC<{
   );
 };
 
+// Ruta de ML-KEM: presenta KeyGen, Encaps y Decaps paso a paso, la cancelación
+// matemática, la transformación FO y el simulador interactivo Baby-Kyber
 const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
   const t = useT();
   const { simulatorUsed } = useAnalytics();
   useRouteTracking('mlkem');
 
+  // Registra el uso del simulador ML-KEM en analytics la primera vez que interactúa
   const handleSimulatorInteraction = () => {
     simulatorUsed('SimMLKEM');
   };
@@ -221,6 +226,7 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
           </>
         }
         subtitle={t('mlkem.hero.subtitle')}
+        onBack={() => onChange('aplicaciones')}
       />
 
       <ScrollSection eyebrow={t('mlkem.s01.eyebrow')} title={t('mlkem.s01.title')}>

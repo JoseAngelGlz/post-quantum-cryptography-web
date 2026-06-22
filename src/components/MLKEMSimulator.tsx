@@ -45,37 +45,49 @@ interface Cipher {
 }
 
 /* ─── Math helpers ───────────────────────────────── */
+
+// Módulo siempre positivo (evita negativos de JS)
 const mod = (v: number, q: number): number => ((v % q) + q) % q;
 
+// Transpone una matriz cuadrada
 const transpose = (m: Matrix): Matrix => m[0].map((_, c) => m.map((r) => r[c]));
 
+// Producto matriz-vector módulo q
 const matVecMul = (m: Matrix, v: Vector, q: number): Vector =>
   m.map((row) => mod(row.reduce((s, val, i) => s + val * v[i], 0), q));
 
+// Suma de dos vectores módulo q
 const vecAdd = (a: Vector, b: Vector, q: number): Vector =>
   a.map((v, i) => mod(v + b[i], q));
 
+// Producto escalar sin reducción modular
 const dot = (a: Vector, b: Vector): number =>
   a.reduce((s, v, i) => s + v * b[i], 0);
 
+// Entero aleatorio uniforme en [lo, hi]
 const randomInt = (lo: number, hi: number) =>
   Math.floor(Math.random() * (hi - lo + 1)) + lo;
 
+// Matriz aleatoria de enteros en [0, q-1] (pública A)
 const randomMatrix = (size: number, q: number): Matrix =>
   Array.from({ length: size }, () =>
     Array.from({ length: size }, () => randomInt(0, q - 1)),
   );
 
+// Vector de ruido pequeño con coeficientes en [-amp, amp] (secreto s o ruido e)
 const randomSmallVec = (size: number, amp: number): Vector =>
   Array.from({ length: size }, () => randomInt(-amp, amp));
 
+// Aplica mod a cada coeficiente de un vector
 const toMod = (v: Vector, q: number): Vector => v.map((x) => mod(x, q));
 
+// Distancia circular entre x y target en Z_Q
 const distMod = (x: number, target: number) => {
   const d = Math.abs(mod(x, Q) - target);
   return Math.min(d, Q - d);
 };
 
+// Decodificador del código corrector: redondea al punto de código más cercano (0 ó HALF_Q)
 const threshold = (value: number): number => {
   const dHalf = distMod(value, HALF_Q);
   const dZero = distMod(value, 0);
@@ -99,6 +111,7 @@ const SECRETS: SecretDef[] = [
   { shape: 'diamond', labelKey: 'kemSim.secret.diamond', bits: [HALF_Q, HALF_Q], palette: 'violet' },
 ];
 
+// Busca el índice del secreto que tiene exactamente esos bits codificados
 const bitsToSecretIdx = (bits: Vector): number =>
   SECRETS.findIndex((s) => s.bits[0] === bits[0] && s.bits[1] === bits[1]);
 
@@ -118,6 +131,7 @@ const paletteHex: Record<Palette, string> = {
   blue: '#60a5fa',
 };
 
+// Icono SVG de cada secreto (círculo, hexágono, triángulo o rombo) con glow opcional
 const Shape: React.FC<{
   kind: ShapeKind;
   palette: Palette;
@@ -211,6 +225,7 @@ const Shape: React.FC<{
   );
 };
 
+// Celda coloreada de una matriz/vector: el color muestra la intensidad relativa del valor mod q
 const HeatCell = ({
   value,
   palette,
@@ -253,6 +268,7 @@ const HeatCell = ({
   );
 };
 
+// Rejilla 2×2 de HeatCells para mostrar la matriz A en el simulador
 const MatrixHeatmap = ({
   label,
   matrix,
@@ -274,6 +290,7 @@ const MatrixHeatmap = ({
   </div>
 );
 
+// Fila de HeatCells para mostrar un vector (s, e, t, u, v…)
 const VectorHeat = ({
   label,
   vector,
@@ -308,6 +325,7 @@ const MathOp = ({ children }: { children: React.ReactNode }) => (
   </span>
 );
 
+// Bloque desplegable que muestra el detalle matemático de un paso del simulador
 const MathDetail = ({ children }: { children: React.ReactNode }) => {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -343,6 +361,7 @@ const MathDetail = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// Avatar de Alice o Bob con emoji y nombre coloreado
 const Avatar = ({
   name,
   emoji,
@@ -598,6 +617,8 @@ interface MLKEMSimulatorProps {
   onUse?: () => void;
 }
 
+// Simulador interactivo de Baby-Kyber (q=23, n=2) con 4 fases:
+// Intro → KeyGen (Alice) → Encaps (Bob) → Decaps (Alice) + modo espía
 const MLKEMSimulator: React.FC<MLKEMSimulatorProps> = ({ onUse }) => {
   const t = useT();
   const containerRef = useRef<HTMLElement>(null);
@@ -626,6 +647,7 @@ const MLKEMSimulator: React.FC<MLKEMSimulatorProps> = ({ onUse }) => {
 
   /* ── Handlers ──────────────────────────────────── */
 
+  // KeyGen: genera A aleatoria, secreto s, ruido e y calcula t = As + e mod q
   const handleGenerate = () => {
     onUse?.();
     const A = randomMatrix(N, Q);
@@ -641,6 +663,7 @@ const MLKEMSimulator: React.FC<MLKEMSimulatorProps> = ({ onUse }) => {
     setSpyBits(null);
   };
 
+  // Encaps: Bob genera r y ruidos e1, e2; calcula u = Aᵀr + e1, v = tᵀr + e2 + m
   const handleEncapsulate = () => {
     if (!keyPair) return;
     onUse?.();
@@ -663,6 +686,7 @@ const MLKEMSimulator: React.FC<MLKEMSimulatorProps> = ({ onUse }) => {
     setSpyBits(null);
   };
 
+  // Decaps: Alice calcula w = v − sᵀu; el código corrector recupera m desde w
   const handleDecapsulate = () => {
     if (!keyPair || !cipher) return;
     onUse?.();
@@ -1553,6 +1577,31 @@ const MLKEMSimulator: React.FC<MLKEMSimulatorProps> = ({ onUse }) => {
                         </p>
                         <p className="text-slate-500">{t('kemSim.spy.realScale')}</p>
                       </div>
+
+                      {/* Detalle matemático: contraste entre el descifrado de Alice (s) y el de Eva (s′) */}
+                      {(() => {
+                        const sDotU = mod(dot(toMod(keyPair!.s, Q), cipher!.u), Q);
+                        const aliceW = cipher!.v.map((vi) => mod(vi - sDotU, Q));
+                        const spySDotU = mod(dot(toMod(spyKey, Q), cipher!.u), Q);
+                        const spyW = cipher!.v.map((vi) => mod(vi - spySDotU, Q));
+                        return (
+                          <MathDetail>
+                            <p className="text-quantum-mint">{t('kemSim.spy.math.alice')}</p>
+                            <p>s = [{keyPair!.s.join(', ')}]</p>
+                            <p>sᵀ·u = {sDotU} (mod {Q})</p>
+                            <p>w = v − sᵀ·u = [{aliceW.join(', ')}]</p>
+                            <p>Decode(w) = [{decryptedBits?.join(', ')}]</p>
+                            <p className="text-quantum-rose mt-2">{t('kemSim.spy.math.eve')}</p>
+                            <p>s′ = [{spyKey.join(', ')}]</p>
+                            <p>s′ᵀ·u = {spySDotU} (mod {Q})</p>
+                            <p>w′ = v − s′ᵀ·u = [{spyW.join(', ')}]</p>
+                            <p>Decode(w′) = [{spyBits.join(', ')}]</p>
+                            <p className="text-slate-500 mt-1 leading-relaxed">
+                              {t('kemSim.spy.math.note')}
+                            </p>
+                          </MathDetail>
+                        );
+                      })()}
                     </motion.div>
                   )}
                 </div>

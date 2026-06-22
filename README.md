@@ -2,7 +2,7 @@
 
 Aplicación web interactiva desarrollada como TFG (Trabajo de Fin de Grado) de Ingeniería Informática en la Universidad de La Laguna. Permite aprender criptografía post-cuántica de forma visual y progresiva, con simuladores interactivos, cuestionarios y recursos curados.
 
-![App screenshot](https://github.com/user-attachments/assets/401ad9e0-c227-42b1-b7f4-a56f5e080ce3)
+![App screenshot](/img/Introduction.png)
 
 ## Secciones
 
@@ -47,8 +47,8 @@ VITE_WEB3FORMS_KEY=<tu_clave_web3forms>
 ## Build y despliegue
 
 ```bash
-npm run build    # genera dist/
-npm run preview  # sirve el build localmente
+npm run build
+npm run preview 
 ```
 
 El despliegue en GitHub Pages se realiza automáticamente mediante GitHub Actions al hacer push a `main`. La base URL está configurada como `/post-quantum-cryptography-web/`.
@@ -68,4 +68,4 @@ La aplicación guarda en `localStorage` las siguientes claves:
 
 ## Aviso
 
-Los simuladores de ML-KEM y ML-DSA son reconstrucciones didácticas. No implementan NTT, compresión ni las funciones hash completas del estándar. **No usar en producción.**
+Los simuladores de ML-KEM y ML-DSA son reconstrucciones didácticas. No implementan NTT, compresión ni las funciones hash completas del estándar.

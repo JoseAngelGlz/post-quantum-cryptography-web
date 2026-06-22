@@ -8,6 +8,8 @@ interface MathProps {
   className?: string;
 }
 
+// Renderiza una expresión LaTeX a HTML mediante KaTeX.
+// display=true la centra en bloque; false la deja en línea.
 const Math: React.FC<MathProps> = ({ children, display = false, className = '' }) => {
   const html = useMemo(() => {
     try {

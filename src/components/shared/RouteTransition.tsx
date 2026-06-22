@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * Ambient constellation: a permanent decorative background of moving particles
- * connected with lines, tinted blue→pink. Lives behind all content at a low,
- * constant opacity. No fade-in or fade-out — it just is there.
+ * Fondo decorativo permanente: constelación de partículas animadas conectadas
+ * con líneas en degradado azul→rosa. Vive detrás de todo el contenido.
  */
 const RouteTransition: React.FC = () => {
   return (
@@ -17,6 +16,7 @@ const RouteTransition: React.FC = () => {
   );
 };
 
+// Canvas que anima 100 partículas con conexiones entre las más cercanas
 const ConstellationCanvas: React.FC = () => {
   const ref = useRef<HTMLCanvasElement | null>(null);
 
@@ -33,6 +33,7 @@ const ConstellationCanvas: React.FC = () => {
     type P = { x: number; y: number; vx: number; vy: number; r: number; hue: number };
     let pts: P[] = [];
 
+    // Lee una variable CSS y la devuelve como [r, g, b]
     const readVar = (name: string): [number, number, number] => {
       const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
       const parts = v.split(/\s+/).map((n) => parseInt(n, 10));
@@ -42,6 +43,7 @@ const ConstellationCanvas: React.FC = () => {
       return [128, 128, 255];
     };
 
+    // Ajusta el canvas al tamaño de la ventana e inicializa las partículas
     const init = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       w = window.innerWidth;
@@ -62,6 +64,7 @@ const ConstellationCanvas: React.FC = () => {
       }));
     };
 
+    // Bucle de animación: mueve partículas, rebota en bordes y dibuja conexiones
     const draw = () => {
       const [br, bg, bb] = readVar('--blue');
       const [pr, pg, pb] = readVar('--pink');
@@ -110,6 +113,7 @@ const ConstellationCanvas: React.FC = () => {
     init();
     draw();
 
+    // Reinicializa el canvas cuando cambia el tamaño de la ventana
     const onResize = () => {
       cancelAnimationFrame(raf);
       init();

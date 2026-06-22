@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useAnalytics } from './useAnalytics';
 
+// Hook que rastrea el progreso de lectura de una ruta por scroll.
+// Dispara routeStarted al 25 % y routeCompleted al 95 %, con tiempo transcurrido.
 export const useRouteTracking = (routeId: string) => {
   const { routeStarted, routeCompleted } = useAnalytics();
   const startedRef = useRef(false);
@@ -12,6 +14,7 @@ export const useRouteTracking = (routeId: string) => {
     completedRef.current = false;
     startTimeRef.current = 0;
 
+    // Calcula el porcentaje de scroll y lanza eventos en los umbrales
     const handleScroll = () => {
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
       if (scrollable <= 0) return;

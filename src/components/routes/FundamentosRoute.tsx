@@ -25,6 +25,8 @@ interface RouteProps {
   onChange: (r: RouteId) => void;
 }
 
+// Ruta de fundamentos matemáticos: retículos, SVP, CVP, LWE, Module-LWE,
+// códigos correctores y hashes; enlaza todos los conceptos en la cadena lógica de ML-KEM
 const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
   const t = useT();
   useRouteTracking('fundamentos');
@@ -44,6 +46,7 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
           </>
         }
         subtitle={t('fund.hero.subtitle')}
+        onBack={() => onChange('intro')}
       />
 
       <ScrollSection

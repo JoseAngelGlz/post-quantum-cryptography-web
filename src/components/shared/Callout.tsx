@@ -36,6 +36,7 @@ const variantStyles: Record<CalloutVariant, { border: string; bg: string; text: 
   },
 };
 
+// Bloque destacado con icono, borde de color y texto. Variantes: info, warning, tip, quote
 const Callout: React.FC<CalloutProps> = ({ variant = 'info', title, children }) => {
   const v = variantStyles[variant];
   return (

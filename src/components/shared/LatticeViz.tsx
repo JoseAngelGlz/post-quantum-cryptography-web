@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 
 interface LatticeVizProps {
   goodBasis?: boolean;
-  showTarget?: boolean;
-  showShortest?: boolean;
+  showTarget?: boolean;  // activa modo CVP: el usuario puede colocar un punto objetivo
+  showShortest?: boolean; // activa modo SVP: resalta el vector más corto
   size?: number;
 }
 
+// Visualización de retículo en canvas con soporte para SVP y CVP interactivos
 const LatticeViz: React.FC<LatticeVizProps> = ({
   goodBasis = true,
   showTarget = false,
@@ -17,6 +18,7 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
   const [target, setTarget] = useState<{ x: number; y: number } | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
 
+  // Vectores base: "buena" base es ortogonal y corta; "mala" es oblicua y larga
   const goodB1 = { x: 50, y: 0 };
   const goodB2 = { x: 0, y: 50 };
   const badB1 = { x: 50, y: 0 };
@@ -25,7 +27,7 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
   const b1 = goodBasis ? goodB1 : badB1;
   const b2 = goodBasis ? goodB2 : badB2;
 
-  // pulse animation for unhinted CVP
+  // Animación de pulso para el indicador de CVP cuando aún no hay punto objetivo
   const [pulseT, setPulseT] = useState(0);
   useEffect(() => {
     if (!showTarget || target) return;
@@ -39,6 +41,7 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
     return () => cancelAnimationFrame(raf);
   }, [showTarget, target]);
 
+  // Redibuja el canvas en cada cambio de estado relevante
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
@@ -56,7 +59,7 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
     const cx = size / 2;
     const cy = size / 2;
 
-    // grid bg
+    // ── Cuadrícula de fondo ──
     ctx.strokeStyle = 'rgba(94, 234, 212, 0.06)';
     ctx.lineWidth = 1;
     for (let i = 0; i <= size; i += 30) {
@@ -70,7 +73,7 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
       ctx.stroke();
     }
 
-    // axes
+    // ── Ejes cartesianos ──
     ctx.strokeStyle = 'rgba(148, 163, 184, 0.18)';
     ctx.beginPath();
     ctx.moveTo(0, cy);
@@ -79,7 +82,7 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
     ctx.lineTo(cx, size);
     ctx.stroke();
 
-    // lattice points
+    // ── Puntos del retículo (combinaciones enteras de b1 y b2) ──
     const pts: { px: number; py: number; ix: number; iy: number }[] = [];
     for (let i = -8; i <= 8; i++) {
       for (let j = -8; j <= 8; j++) {
@@ -101,7 +104,7 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
       ctx.shadowBlur = 0;
     });
 
-    // basis vectors from origin
+    // ── Vectores base con flecha ──
     const drawArrow = (dx: number, dy: number, color: string) => {
       const tx = cx + dx;
       const ty = cy - dy;
@@ -125,9 +128,8 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
     drawArrow(b1.x, b1.y, '#f472b6');
     drawArrow(b2.x, b2.y, '#a78bfa');
 
-    // SVP: highlight shortest non-zero lattice vector
+    // ── SVP: flecha verde al vector no nulo más corto ──
     if (showShortest) {
-      // find shortest among all visible non-zero points
       let bestPt: typeof pts[number] | null = null;
       let bestD = Infinity;
       for (const p of pts) {
@@ -139,7 +141,6 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
         }
       }
       if (bestPt) {
-        // shortest vector arrow in mint
         ctx.strokeStyle = '#34d399';
         ctx.fillStyle = '#34d399';
         ctx.lineWidth = 3;
@@ -159,14 +160,13 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // circle around target point
         ctx.strokeStyle = '#34d399';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(bestPt.px, bestPt.py, 10, 0, Math.PI * 2);
         ctx.stroke();
 
-        // distance label
+        // Etiqueta con la norma λ₁
         const midX = (cx + bestPt.px) / 2;
         const midY = (cy + bestPt.py) / 2;
         ctx.fillStyle = '#34d399';
@@ -178,10 +178,9 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
       }
     }
 
-    // CVP: pulsing hint when no target is set
+    // ── CVP: anillo pulsante de sugerencia cuando no hay punto objetivo ──
     if (showTarget && !target) {
       const pulse = 0.35 + 0.25 * Math.sin(pulseT * 2.4);
-      // outer pulsing ring at canvas center
       const hintX = size * 0.7;
       const hintY = size * 0.3;
       ctx.strokeStyle = `rgba(251, 191, 36, ${pulse})`;
@@ -192,7 +191,6 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // crosshair at hint
       ctx.strokeStyle = `rgba(251, 191, 36, ${pulse + 0.2})`;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
@@ -201,11 +199,10 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
       ctx.moveTo(hintX, hintY - 9);
       ctx.lineTo(hintX, hintY + 9);
       ctx.stroke();
-
     }
 
+    // ── CVP: punto objetivo y línea al punto del retículo más cercano ──
     if (target && showTarget) {
-      // target dot
       ctx.beginPath();
       ctx.fillStyle = '#fbbf24';
       ctx.shadowColor = 'rgba(251, 191, 36, 0.8)';
@@ -214,7 +211,6 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // closest lattice point
       let best = pts[0];
       let bestD = Infinity;
       for (const p of pts) {
@@ -240,7 +236,7 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
       ctx.stroke();
     }
 
-    // hover preview when showTarget but no target yet
+    // ── Preview del cursor cuando se mueve sobre el canvas en modo CVP ──
     if (showTarget && hover && !target) {
       ctx.fillStyle = 'rgba(251, 191, 36, 0.55)';
       ctx.beginPath();
@@ -249,6 +245,7 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
     }
   }, [b1.x, b1.y, b2.x, b2.y, size, target, showTarget, showShortest, pulseT, hover]);
 
+  // Coloca el punto objetivo en la posición del clic (solo en modo CVP)
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!showTarget) return;
     const rect = e.currentTarget.getBoundingClientRect();

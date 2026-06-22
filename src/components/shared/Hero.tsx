@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { useT } from '../../i18n';
 
 interface HeroProps {
   eyebrow?: string;
@@ -9,6 +10,8 @@ interface HeroProps {
   hueA?: number;
   hueB?: number;
   scrollHint?: boolean;
+  /** If provided, shows a back button that calls this handler */
+  onBack?: () => void;
 }
 
 const Hero: React.FC<HeroProps> = ({
@@ -16,9 +19,25 @@ const Hero: React.FC<HeroProps> = ({
   title,
   subtitle,
   scrollHint = true,
+  onBack,
 }) => {
+  const t = useT();
+
   return (
     <section className="relative min-h-[100vh] flex flex-col justify-center items-center overflow-hidden">
+      {onBack && (
+        <motion.button
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          onClick={onBack}
+          className="absolute top-24 left-6 md:left-10 flex items-center gap-2 text-sm text-quantum-fg-soft hover:text-quantum-cyan transition-colors group z-10"
+        >
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          {t('ui.backSection')}
+        </motion.button>
+      )}
+
       <div className="relative z-10 max-w-5xl px-6 text-center">
         {eyebrow && (
           <motion.div
@@ -59,7 +78,7 @@ const Hero: React.FC<HeroProps> = ({
           transition={{ delay: 1.5, duration: 0.8 }}
           className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-400"
         >
-          <span className="text-xs tracking-[0.3em] uppercase">scroll</span>
+          <span className="text-xs tracking-[0.3em] uppercase">{t('ui.scrollHint')}</span>
           <motion.div
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}

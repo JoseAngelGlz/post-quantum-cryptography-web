@@ -12,11 +12,8 @@ interface QubitScaleProps {
   emoji?: string[];
 }
 
-/**
- * Scale rendered as rows of qubits.  Level N = N glowing qubits.
- * Each qubit is a cyan→violet gradient sphere with a glow halo when active.
- * If emoji is provided, shows emoji instead of qubits.
- */
+// Escala de valoración visual: N niveles representados como qubits o emojis.
+// Se usa en FeedbackForm y QuickQuiz para recoger valoraciones de 1 a N.
 const QubitScale: React.FC<QubitScaleProps> = ({
   label,
   value,

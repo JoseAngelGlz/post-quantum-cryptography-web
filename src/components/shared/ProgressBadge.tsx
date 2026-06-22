@@ -14,6 +14,7 @@ import type { TranslationKey } from '../../i18n/translations';
 import Modal from './Modal';
 import FeedbackForm from './FeedbackForm';
 
+// Devuelve el emoji correspondiente a una reacción (1=😕, 2=🙂, 3=🤩)
 const reactionEmoji = (r: QuizReaction | undefined): string => {
   if (r === 1) return '😕';
   if (r === 2) return '🙂';
@@ -24,6 +25,8 @@ const reactionEmoji = (r: QuizReaction | undefined): string => {
 /** Total number of mini-tests across the entire tour. Update if more are added. */
 const TOTAL_QUIZZES = 6;
 
+// Badge circular en la barra de navegación que muestra cuántos quizzes se han completado
+// y despliega un popover con el desglose por sección al hacer clic
 const ProgressBadge: React.FC = () => {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -77,6 +80,7 @@ const ProgressBadge: React.FC = () => {
   const C = 2 * Math.PI * R;
   const offset = C * (1 - ratio);
 
+  // Devuelve la etiqueta traducida de una ruta a partir de la clave nav.<routeId>
   const routeLabel = (routeId: string): string => {
     const key = `nav.${routeId}` as TranslationKey;
     return t(key) ?? routeId;
