@@ -16,8 +16,18 @@ import { useT } from './i18n';
 import { useTheme } from './theme';
 import { useAnalytics } from './hooks/useAnalytics';
 
+const SESSION_ROUTE_KEY = 'postq-session-route';
+const SESSION_SCROLL_KEY = 'postq-session-scroll';
+const VALID_ROUTES: RouteId[] = ['intro', 'fundamentos', 'aplicaciones', 'mlkem', 'mldsa', 'recursos'];
+
 function App() {
-  const [route, setRoute] = useState<RouteId>('intro');
+  const [route, setRoute] = useState<RouteId>(() => {
+    try {
+      const saved = sessionStorage.getItem(SESSION_ROUTE_KEY) as RouteId;
+      if (VALID_ROUTES.includes(saved)) return saved;
+    } catch { /* ignore */ }
+    return 'intro';
+  });
   const t = useT();
   const { mode } = useTheme();
   const { pageView, themeDefault } = useAnalytics();
@@ -51,9 +61,37 @@ function App() {
     pageView(route);
   }, [route, pageView]);
 
+  // Persist active route
+  useEffect(() => {
+    try { sessionStorage.setItem(SESSION_ROUTE_KEY, route); } catch { /* ignore */ }
+  }, [route]);
+
+  // Save scroll position (throttled to once per animation frame)
+  useEffect(() => {
+    let rafId: number;
+    const save = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        try { sessionStorage.setItem(SESSION_SCROLL_KEY, String(window.scrollY)); } catch { /* ignore */ }
+      });
+    };
+    window.addEventListener('scroll', save, { passive: true });
+    return () => { window.removeEventListener('scroll', save); cancelAnimationFrame(rafId); };
+  }, []);
+
+  // Restore scroll position on initial load
+  useEffect(() => {
+    try {
+      const y = parseInt(sessionStorage.getItem(SESSION_SCROLL_KEY) ?? '', 10);
+      if (y > 0) requestAnimationFrame(() => window.scrollTo(0, y));
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Navega a una ruta y hace scroll suave al inicio de la página
   const changeRoute = (r: RouteId) => {
     setRoute(r);
+    try { sessionStorage.removeItem(SESSION_SCROLL_KEY); } catch { /* ignore */ }
     requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
