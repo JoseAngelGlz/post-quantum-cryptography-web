@@ -11,9 +11,8 @@ Aplicación web interactiva desarrollada como TFG (Trabajo de Fin de Grado) de I
 | **Introducción** | Amenaza cuántica, algoritmos de Shor y Grover, cronología NIST, familias de algoritmos PQC |
 | **Fundamentos** | Retículos, SVP/CVP, LWE, Module-LWE, visualizador interactivo y playground de ruido |
 | **Aplicaciones** | Casos de uso reales de ML-KEM y ML-DSA: TLS, firmware, identidad digital |
-| **Simulador ML-KEM** | Baby-Kyber didáctico (n=2, q=17): generación de claves, encapsulación, desencapsulación y modo espía |
-| **Simulador ML-DSA** | Baby-Dilithium didáctico (n=2, q=17): generación de claves, firma y verificación |
-| **Noticias** | Actualidad en criptografía post-cuántica con enlaces a fuentes externas |
+| **Simulador ML-KEM** | Baby-Kyber didáctico (n=2, q=23): generación de claves, encapsulación, desencapsulación y modo espía |
+| **Simulador ML-DSA** | Baby-Dilithium didáctico (q=97, n=2, k=l=2): generación de claves, firma y verificación |
 | **Recursos** | Estándares NIST (FIPS 203/204/205), papers, cursos y herramientas externas |
 
 ## Stack tecnológico
