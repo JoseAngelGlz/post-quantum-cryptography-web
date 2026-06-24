@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useT } from '../../i18n';
 
 interface ZqCircleProps {
   q?: number;
@@ -9,6 +10,7 @@ interface ZqCircleProps {
 // El usuario elige un bit (0 ó 1) y un ruido; el canvas muestra si el decodificador
 // recupera el bit correctamente según el umbral q/4.
 const ZqCircle: React.FC<ZqCircleProps> = ({ q = 17, size = 320 }) => {
+  const t = useT();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [bit, setBit] = useState<0 | 1>(1);
   const [noise, setNoise] = useState(0);
@@ -109,10 +111,10 @@ const ZqCircle: React.FC<ZqCircleProps> = ({ q = 17, size = 320 }) => {
     ctx.fillText(`Z_${q}`, cx, cy - 8);
     ctx.font = '12px JetBrains Mono, monospace';
     ctx.fillStyle = correct ? '#34d399' : '#fb7185';
-    ctx.fillText(`valor = ${value}`, cx, cy + 12);
+    ctx.fillText(`${t('viz.zq.value')} = ${value}`, cx, cy + 12);
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText(`decodifica → ${decoded}`, cx, cy + 28);
-  }, [q, value, correct, decoded, size]);
+    ctx.fillText(`${t('viz.zq.decode')} ${decoded}`, cx, cy + 28);
+  }, [q, value, correct, decoded, size, t]);
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -142,7 +144,7 @@ const ZqCircle: React.FC<ZqCircleProps> = ({ q = 17, size = 320 }) => {
           </button>
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-xs uppercase tracking-widest text-slate-400">ruido</label>
+          <label className="text-xs uppercase tracking-widest text-slate-400">{t('viz.zq.noise')}</label>
           <input
             type="range"
             min={-Math.floor(q / 2)}
@@ -158,8 +160,8 @@ const ZqCircle: React.FC<ZqCircleProps> = ({ q = 17, size = 320 }) => {
       </div>
       <p className={`text-sm font-medium ${correct ? 'text-quantum-mint' : 'text-quantum-rose'}`}>
         {correct
-          ? '✓ Decodificación correcta · el ruido cabe dentro del margen q/4'
-          : '✗ Decodificación errónea · el ruido cruzó la frontera'}
+          ? t('viz.zq.correct')
+          : t('viz.zq.incorrect')}
       </p>
     </div>
   );

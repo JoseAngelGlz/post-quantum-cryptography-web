@@ -305,7 +305,7 @@ const MLDSARoute: React.FC<RouteProps> = ({ onChange: _onChange }) => {
           <div className="space-y-4 text-quantum-fg leading-relaxed text-[17px]">
             <p>{t('mldsa.s03.p1')}</p>
             <p>{t('mldsa.s03.p2')}</p>
-            <Math display>{`\\text{SIS}: \\;\\; \\text{encuentra } \\mathbf{x} \\text{ corto tal que } \\mathbf{A}\\mathbf{x} = \\mathbf{0}`}</Math>
+            <Math display>{t('mldsa.sis.formula')}</Math>
             <p className="text-quantum-fg-soft text-sm">{t('mldsa.s03.caption')}</p>
           </div>
 

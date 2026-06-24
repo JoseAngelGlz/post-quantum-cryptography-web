@@ -1241,6 +1241,44 @@ export const translations = {
     'progress.empty.body': 'Conforme se completen los cuestionarios del recorrido, los resultados se mostrarán en esta sección.',
     'progress.completed': '{n}/{total} cuestionarios',
     'progress.giveFeedback': 'Aportar valoración sobre la plataforma',
+
+    /* ─── Visualizaciones interactivas (canvas) ───── */
+    /* LatticeViz · SVP */
+    'viz.svp.a': 'La flecha ',
+    'viz.svp.b': 'verde',
+    'viz.svp.c': ' es el vector no nulo más corto del retículo · su norma es λ₁.',
+    /* LatticeViz · CVP */
+    'viz.cvp.target.a': ' es el punto objetivo; ',
+    'viz.cvp.target.b': ' el vértice del retículo más cercano.',
+    'viz.cvp.hint.a': 'Haz clic',
+    'viz.cvp.hint.b': ' en cualquier parte para colocar un punto objetivo · te marcamos el vértice más cercano.',
+    'viz.cvp.reset': 'Reiniciar punto',
+    /* ZqCircle */
+    'viz.zq.noise': 'ruido',
+    'viz.zq.value': 'valor',
+    'viz.zq.decode': 'decodifica →',
+    'viz.zq.correct': '✓ Decodificación correcta · el ruido cabe dentro del margen q/4',
+    'viz.zq.incorrect': '✗ Decodificación errónea · el ruido cruzó la frontera',
+
+    /* ─── ML-KEM · StepCard y PipelineDiagram ─────── */
+    'mlkem.step.formula': 'Fórmula',
+    'mlkem.step.produces': 'produce',
+    'mlkem.pipeline.title': 'Flujo del algoritmo',
+    'mlkem.pipe.seed': 'semilla d',
+    'mlkem.pipe.matrixSecrets': 'matriz A · secretos s, e',
+    'mlkem.pipe.message': 'mensaje m',
+    'mlkem.pipe.noises': 'ruidos r, e₁, e₂',
+    'mlkem.pipe.send': 'c · enviar',
+    'mlkem.pipe.ciphertext': 'criptograma c',
+    'mlkem.pipe.verify': 'verifica (FO)',
+    'mlkem.pipe.key': 'clave K',
+    'mlkem.s06.smallNoise': 'ruido pequeño',
+
+    /* ─── Fórmulas matemáticas (LaTeX traducible) ─── */
+    'apps.rsa.formula': 'n = p \\cdot q \\quad \\text{(con } p,q \\text{ primos secretos)}',
+    'apps.ecdh.formula': 'Q = k \\cdot P \\quad \\text{(hallar } k \\text{ desde } Q,P \\text{ es duro)}',
+    'fund.mlwe.formula': '\\mathbf{t} = \\mathbf{A}\\mathbf{s} + \\mathbf{e} \\quad \\text{donde } \\mathbf{A} \\in R_q^{k \\times k}',
+    'mldsa.sis.formula': '\\text{SIS}: \\;\\; \\text{encuentra } \\mathbf{x} \\text{ corto tal que } \\mathbf{A}\\mathbf{x} = \\mathbf{0}',
   },
 
   en: {
@@ -2466,6 +2504,44 @@ export const translations = {
     'progress.empty.body': 'As you complete the quizzes throughout the tour, results will appear in this section.',
     'progress.completed': '{n}/{total} quizzes',
     'progress.giveFeedback': 'Provide feedback about the platform',
+
+    /* ─── Interactive visualizations (canvas) ─────── */
+    /* LatticeViz · SVP */
+    'viz.svp.a': 'The ',
+    'viz.svp.b': 'green',
+    'viz.svp.c': ' arrow is the shortest non-zero vector in the lattice · its norm is λ₁.',
+    /* LatticeViz · CVP */
+    'viz.cvp.target.a': ' is the target point; ',
+    'viz.cvp.target.b': ' the nearest lattice vertex.',
+    'viz.cvp.hint.a': 'Click',
+    'viz.cvp.hint.b': ' anywhere to place a target point · we mark the nearest vertex for you.',
+    'viz.cvp.reset': 'Reset point',
+    /* ZqCircle */
+    'viz.zq.noise': 'noise',
+    'viz.zq.value': 'value',
+    'viz.zq.decode': 'decodes →',
+    'viz.zq.correct': '✓ Correct decoding · the noise fits within the q/4 margin',
+    'viz.zq.incorrect': '✗ Incorrect decoding · the noise crossed the boundary',
+
+    /* ─── ML-KEM · StepCard and PipelineDiagram ───── */
+    'mlkem.step.formula': 'Formula',
+    'mlkem.step.produces': 'produces',
+    'mlkem.pipeline.title': 'Algorithm flow',
+    'mlkem.pipe.seed': 'seed d',
+    'mlkem.pipe.matrixSecrets': 'matrix A · secrets s, e',
+    'mlkem.pipe.message': 'message m',
+    'mlkem.pipe.noises': 'noise r, e₁, e₂',
+    'mlkem.pipe.send': 'c · send',
+    'mlkem.pipe.ciphertext': 'ciphertext c',
+    'mlkem.pipe.verify': 'verify (FO)',
+    'mlkem.pipe.key': 'key K',
+    'mlkem.s06.smallNoise': 'small noise',
+
+    /* ─── Math formulas (translatable LaTeX) ──────── */
+    'apps.rsa.formula': 'n = p \\cdot q \\quad \\text{(secret primes } p,q\\text{)}',
+    'apps.ecdh.formula': 'Q = k \\cdot P \\quad \\text{(finding } k \\text{ from } Q,P \\text{ is hard)}',
+    'fund.mlwe.formula': '\\mathbf{t} = \\mathbf{A}\\mathbf{s} + \\mathbf{e} \\quad \\text{where } \\mathbf{A} \\in R_q^{k \\times k}',
+    'mldsa.sis.formula': '\\text{SIS}: \\;\\; \\text{find a short } \\mathbf{x} \\text{ such that } \\mathbf{A}\\mathbf{x} = \\mathbf{0}',
   },
 } as const;
 

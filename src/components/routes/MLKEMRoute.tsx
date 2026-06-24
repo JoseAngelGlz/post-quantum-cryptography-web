@@ -75,6 +75,7 @@ const StepCard: React.FC<StepCardProps> = ({
   palette,
   compact,
 }) => {
+  const t = useT();
   const hex = paletteToHex[palette];
   return (
     <motion.div
@@ -131,13 +132,13 @@ const StepCard: React.FC<StepCardProps> = ({
             style={{ borderColor: `${hex}33` }}
           >
             <div className="text-[9px] uppercase tracking-widest text-slate-500 mb-1">
-              Fórmula
+              {t('mlkem.step.formula')}
             </div>
             <div className="text-[14px]">{formula}</div>
           </div>
           <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest text-slate-400">
             <ArrowRight size={11} style={{ color: hex }} />
-            <span style={{ color: hex }}>produce</span>
+            <span style={{ color: hex }}>{t('mlkem.step.produces')}</span>
             <span className="text-slate-300 normal-case">{produces}</span>
           </div>
         </div>
@@ -156,11 +157,12 @@ const PipelineDiagram: React.FC<{
   nodes: PipelineNode[];
   palette: StepPalette;
 }> = ({ nodes, palette }) => {
+  const t = useT();
   const hex = paletteToHex[palette];
   return (
     <div className="rounded-2xl border border-quantum-border bg-quantum-panel/40 p-4 md:p-5 overflow-x-auto">
       <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-mono">
-        Flujo del algoritmo
+        {t('mlkem.pipeline.title')}
       </div>
       <div className="flex items-center gap-2 md:gap-3 min-w-max">
         {nodes.map((n, i) => (
@@ -331,9 +333,9 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
         <PipelineDiagram
           palette="cyan"
           nodes={[
-            { icon: <Dice5 size={16} />, label: 'semilla d' },
+            { icon: <Dice5 size={16} />, label: t('mlkem.pipe.seed') },
             { icon: <Hash size={16} />, label: '(ρ, σ)' },
-            { icon: <Layers size={16} />, label: 'matriz A · secretos s, e' },
+            { icon: <Layers size={16} />, label: t('mlkem.pipe.matrixSecrets') },
             { icon: <Sigma size={16} />, label: 't = A·s + e' },
             { icon: <Package size={16} />, label: '(pk, sk)' },
           ]}
@@ -373,11 +375,11 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
         <PipelineDiagram
           palette="violet"
           nodes={[
-            { icon: <Dice5 size={16} />, label: 'mensaje m' },
+            { icon: <Dice5 size={16} />, label: t('mlkem.pipe.message') },
             { icon: <Hash size={16} />, label: '(K, r) = Hash(m, ...)' },
-            { icon: <Shuffle size={16} />, label: 'ruidos r, e₁, e₂' },
+            { icon: <Shuffle size={16} />, label: t('mlkem.pipe.noises') },
             { icon: <Sigma size={16} />, label: 'u, v' },
-            { icon: <Send size={16} />, label: 'c · enviar' },
+            { icon: <Send size={16} />, label: t('mlkem.pipe.send') },
           ]}
         />
 
@@ -412,11 +414,11 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
         <PipelineDiagram
           palette="pink"
           nodes={[
-            { icon: <Package size={16} />, label: 'ciphertext c' },
+            { icon: <Package size={16} />, label: t('mlkem.pipe.ciphertext') },
             { icon: <Unlock size={16} />, label: 'w = v − sᵀ·u' },
             { icon: <Sparkles size={16} />, label: 'Decode → m\'' },
-            { icon: <ShieldCheck size={16} />, label: 'verifica (FO)' },
-            { icon: <KeyRound size={16} />, label: 'clave K' },
+            { icon: <ShieldCheck size={16} />, label: t('mlkem.pipe.verify') },
+            { icon: <KeyRound size={16} />, label: t('mlkem.pipe.key') },
           ]}
         />
 
@@ -490,7 +492,7 @@ const MLKEMRoute: React.FC<RouteProps> = ({ onChange }) => {
               {t('mlkem.s06.step.cancel')}
             </div>
             <Math display>
-              {`w = \\text{Encode}(m) + \\underbrace{(\\mathbf{e}^T\\mathbf{r} - \\mathbf{s}^T\\mathbf{e}_1 + e_2)}_{\\text{ruido pequeño}}`}
+              {`w = \\text{Encode}(m) + \\underbrace{(\\mathbf{e}^T\\mathbf{r} - \\mathbf{s}^T\\mathbf{e}_1 + e_2)}_{\\text{${t('mlkem.s06.smallNoise')}}}`}
             </Math>
           </div>
         </div>

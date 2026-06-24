@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useT } from '../../i18n';
 
 interface LatticeVizProps {
   goodBasis?: boolean;
@@ -14,6 +15,7 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
   showShortest = false,
   size = 360,
 }) => {
+  const t = useT();
   const ref = useRef<HTMLCanvasElement | null>(null);
   const [target, setTarget] = useState<{ x: number; y: number } | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
@@ -275,7 +277,7 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
             onClick={() => setTarget(null)}
             className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-quantum-panel/80 border border-quantum-border text-[10px] text-slate-300 hover:text-quantum-amber hover:border-quantum-amber/60 transition-colors"
           >
-            Reiniciar punto
+            {t('viz.cvp.reset')}
           </button>
         )}
       </div>
@@ -283,21 +285,21 @@ const LatticeViz: React.FC<LatticeVizProps> = ({
         <p className="mt-2 text-xs text-slate-400 text-center">
           {target ? (
             <>
-              <span className="text-quantum-amber">●</span> es el punto objetivo;{' '}
-              <span className="text-quantum-amber">○</span> el vértice del retículo más cercano.
+              <span className="text-quantum-amber">●</span>{t('viz.cvp.target.a')}
+              <span className="text-quantum-amber">○</span>{t('viz.cvp.target.b')}
             </>
           ) : (
             <>
-              <span className="text-quantum-amber font-semibold">Haz clic</span> en cualquier
-              parte para colocar un punto objetivo · te marcamos el vértice más cercano.
+              <span className="text-quantum-amber font-semibold">{t('viz.cvp.hint.a')}</span>
+              {t('viz.cvp.hint.b')}
             </>
           )}
         </p>
       )}
       {showShortest && !showTarget && (
         <p className="mt-2 text-xs text-slate-400 text-center">
-          La flecha <span className="text-quantum-mint font-semibold">verde</span> es el
-          vector no nulo más corto del retículo · su norma es λ₁.
+          {t('viz.svp.a')}<span className="text-quantum-mint font-semibold">{t('viz.svp.b')}</span>
+          {t('viz.svp.c')}
         </p>
       )}
     </div>

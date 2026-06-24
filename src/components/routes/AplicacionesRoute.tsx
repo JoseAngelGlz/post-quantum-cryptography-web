@@ -88,7 +88,7 @@ const AplicacionesRoute: React.FC<RouteProps> = ({ onChange }) => {
               <h3 className="font-display text-lg font-semibold text-slate-100">RSA</h3>
             </div>
             <p className="text-sm text-slate-300 leading-relaxed mb-3">{t('apps.s01.rsa.body')}</p>
-            <Math display>{`n = p \\cdot q \\quad \\text{(con } p,q \\text{ primos secretos)}`}</Math>
+            <Math display>{t('apps.rsa.formula')}</Math>
           </div>
           <div className="card-quantum p-7">
             <div className="flex items-center gap-3 mb-3">
@@ -98,7 +98,7 @@ const AplicacionesRoute: React.FC<RouteProps> = ({ onChange }) => {
               <h3 className="font-display text-lg font-semibold text-slate-100">ECDH</h3>
             </div>
             <p className="text-sm text-slate-300 leading-relaxed mb-3">{t('apps.s01.ecdh.body')}</p>
-            <Math display>{`Q = k \\cdot P \\quad \\text{(hallar } k \\text{ desde } Q,P \\text{ es duro)}`}</Math>
+            <Math display>{t('apps.ecdh.formula')}</Math>
           </div>
         </div>
       </ScrollSection>

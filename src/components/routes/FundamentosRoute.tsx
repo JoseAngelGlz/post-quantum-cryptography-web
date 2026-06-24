@@ -274,7 +274,7 @@ const FundamentosRoute: React.FC<RouteProps> = ({ onChange }) => {
               <span className="text-quantum-mint">{t('fund.s06.p2.b')}</span>
               {t('fund.s06.p2.c')}
             </p>
-            <Math display>{`\\mathbf{t} = \\mathbf{A}\\mathbf{s} + \\mathbf{e} \\quad \\text{donde } \\mathbf{A} \\in R_q^{k \\times k}`}</Math>
+            <Math display>{t('fund.mlwe.formula')}</Math>
           </div>
 
           <div className="card-quantum p-7 space-y-3">
